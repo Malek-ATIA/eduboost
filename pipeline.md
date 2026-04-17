@@ -424,7 +424,17 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
   - Stripe charge.refunded fallback to PaymentIntent metadata — LOW severity, acceptable for MVP.
   - CORS origin `*` — acceptable for MVP, lock to CloudFront domain before production.
 
-### 2026-04-17 — Phase 2B pass (Session scheduling + Reminders + Invoice PDFs)
+### 2026-04-17 — Phase 2B pass (Session scheduling + Reminders + Invoice PDFs + Attendance)
+
+**Attendance tracking** — signed off
+- AttendanceEntity with pk=sessionId + sk=userId (teacher per-session list) and byUser gsi1 (student history).
+- POST /attendance/sessions/:id (teacher-only, entries filtered to classroom members, rejects returned in response), GET /attendance/sessions/:id (teacher sees all hydrated, non-teacher sees only their own), GET /attendance/mine (student history via byUser, desc by markedAt).
+- Auto-mark "present" on Chime join for non-teachers if no prior record exists; teacher overrides survive via existence check; non-fatal on DDB failure.
+- UI: teacher-only attendance panel on /classroom/[sessionId] with status dropdown per student; /attendance page for student history; dashboard link for student/parent. Recording button correctly gated behind isTeacher.
+- Verifier catch: local `type Record = {...}` shadowed the global TypeScript `Record<K,V>` utility in `web/src/app/attendance/page.tsx`, breaking the `STATUS_COLORS` mapped type under strict mode — renamed to `AttendanceRecord`.
+- Deferred: parent views child's attendance (needs parent-child data-sharing model in Phase 3); bulk marking UI; notes input.
+
+
 
 **Session scheduling + calendar** — signed off
 - Closes a hidden MVP gap: confirmed bookings now have an explicit path to a scheduled session with startsAt/endsAt.
