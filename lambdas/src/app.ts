@@ -33,6 +33,7 @@ import { organizationRoutes } from "./routes/organizations.js";
 import { noteRoutes } from "./routes/notes.js";
 import { teacherQuizRoutes } from "./routes/teacher-quiz.js";
 import { eventRoutes } from "./routes/events.js";
+import { assessmentRoutes } from "./routes/assessments.js";
 
 export const app = new Hono();
 
@@ -77,6 +78,7 @@ app.route("/orgs", organizationRoutes);
 app.route("/notes", noteRoutes);
 app.route("/teacher-quiz", teacherQuizRoutes);
 app.route("/events", eventRoutes);
+app.route("/assessments", assessmentRoutes);
 
 app.onError((err, c) => {
   console.error(err);

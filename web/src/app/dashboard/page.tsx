@@ -113,6 +113,11 @@ export default function DashboardPage() {
     description: "Upcoming workshops, meetups and ticketed sessions",
   });
   links.push({
+    href: "/assessments",
+    label: "Assessments",
+    description: "Take or author MCQ + short-answer exams",
+  });
+  links.push({
     href: "/referrals",
     label: "Invite a friend",
     description: "Share your referral code",

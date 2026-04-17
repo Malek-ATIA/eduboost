@@ -112,3 +112,10 @@ export {
   type EventStatus,
   type EventTicketStatus,
 } from "./event.js";
+export {
+  AssessmentEntity,
+  AssessmentAttemptEntity,
+  ASSESSMENT_STATUSES,
+  makeExamId,
+  type AssessmentStatus,
+} from "./assessment.js";

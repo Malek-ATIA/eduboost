@@ -345,7 +345,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 - Integrations beyond Google Calendar + classroom-level external links: deep Google Drive/Docs/Slides embedding, WhatsApp, social media, other external educational tools
 - Suggested T&Os (paid advertisements)
-- Non-AI assessment exams (graded + timed tests — AI grading of free-text submissions is shipped as 2F.1)
 - Review session between teachers and students/parents (structured post-course retrospective meetings — distinct from the star-review system)
 - Study materials portal with exam sharing (peer-to-peer exam bank — distinct from marketplace digital goods)
 - Mailbox (parent↔teacher async inbox with a threaded UI beyond DM)
@@ -379,6 +378,7 @@ These rows were in the deferred list earlier in the project and have since lande
 - Minimum wage enforcement for teachers (price floors on listings/bookings) — shipped 2G.2
 - Classroom-level external resource links (portion of the broader "Integrations beyond Google Calendar" row — deep Drive/Docs/Slides embedding and the other integration surfaces remain deferred) — shipped 2G.2
 - Event planning services — shipped 2G.3
+- Non-AI assessment exams — shipped 2G.4
 
 ## In-scope MVP features (must pass audit)
 
@@ -404,6 +404,22 @@ These rows were in the deferred list earlier in the project and have since lande
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2G #4 pass (Assessment exams)
+
+**Non-AI assessment exams — signed off**
+
+- **Feature summary.** New `AssessmentEntity` (`db/src/entities/assessment.ts`) keyed by `examId` with `byTeacher` (teacher → exams) and `byStatus` (published feed) GSIs, plus a companion `AssessmentAttemptEntity` keyed by `(examId, studentId)` with a `byStudent` GSI for "my attempts" lookups. Questions are a zod discriminated union on `kind`: MCQ items carry `{ prompt, options[2..8], correctIndex }`; short-answer items carry `{ prompt }` only. Nine routes in `lambdas/src/routes/assessments.ts`: teacher CRUD (`POST /`, `PATCH /:examId`, `GET /teacher/mine`), the public browse surface (`GET /` — status=published only, scalar summary with no question bodies), per-exam detail (`GET /:examId` — answer-key stripped from `correctIndex` for non-owners), attempts (`POST /:examId/attempts`, `GET /:examId/attempts` teacher-only with student `displayName` hydration, `GET /student/mine`). Auto-grading scores MCQ items only (`autoScore / maxMcqScore`); short-answer responses are recorded for manual teacher review. Four UI pages wired into `web/src/app/assessments/{page.tsx,new/page.tsx,[examId]/page.tsx,[examId]/results/page.tsx}` plus dashboard link entry in `web/src/app/dashboard/page.tsx`.
+- **Authz invariants.** Answer-key stripping removes `correctIndex` from the MCQ payload for any caller who is neither the owning teacher nor an admin, so students cannot peek at correct answers via network inspection. `POST /:examId/attempts` blocks duplicate attempts (`AssessmentAttemptEntity.get` → 409 `already_attempted`) and blocks the owning teacher from attempting their own exam (409 `teacher_cannot_attempt_own_exam`). `PATCH /:examId` and `GET /:examId/attempts` are owner-only (403 `forbidden` otherwise).
+- **Auditor's three items + Verifier fixes (all landed this pass):**
+  - **Cleanup (Auditor nit).** `POST /:examId/attempts` previously returned the full `saved.data` AssessmentAttempt row — including the student's submitted `answers` array. Not a real leak (the student just submitted those answers themselves), but the response is now trimmed to `{ examId, studentId, autoScore, maxMcqScore, submittedAt }` to keep attempt POSTs from ever shipping answer payloads back over the wire.
+  - **Should-fix #1 — client-side role guard on results page.** `web/src/app/assessments/[examId]/results/page.tsx` previously fetched and relied on the API's 403 to bounce non-teachers. Verifier added a `currentRole(s) !== "teacher" && !isAdmin(s)` check before the fetch; non-teachers are now redirected to `/assessments` without a failed request round-trip.
+  - **Should-fix #2 — 409 → 404 on not_published.** `POST /:examId/attempts` previously returned 409 when the exam was not published while `GET /:examId` returned 404 for the same condition. Aligned both to 404 for consistency — "not published" is effectively "not visible to you", which is a not-found semantic, not a conflict.
+- **MVP trade-offs (accepted, tracked here for follow-up phases):**
+  - **No timer / time limit.** Exams have no per-exam duration cap or server-side clock; students can sit on a page indefinitely. A `durationMinutes` field plus a client timer and server-side submission-window check is deferred.
+  - **No question shuffle.** Question order is fixed at creation; every student sees options in the same order. Shuffling (both question and option order) is deferred — it'd require persisting a per-attempt permutation seed so grading still maps correctly.
+  - **No per-classroom scope.** Exams are platform-wide once published — any authenticated student can list and take any published exam; there is no `classroomId` filter. Restricting an exam to a specific classroom/cohort is deferred until product decides the scoping model.
+- **Typecheck status.** All four workspace typechecks (db, lambdas, cdk, web) pass clean: `tsc --noEmit` exits 0 across the board after the three fixes above.
 
 ### 2026-04-17 — Phase 2G #3 pass (Events + ticketing)
 
