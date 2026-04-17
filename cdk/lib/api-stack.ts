@@ -99,6 +99,9 @@ export class ApiStack extends cdk.Stack {
         REMINDER_LAMBDA_ARN: reminderHandler.functionArn,
         SCHEDULER_ROLE_ARN: schedulerRole.roleArn,
         SCHEDULE_GROUP_NAME: scheduleGroup.name ?? `eduboost-${props.stage}-reminders`,
+        STRIPE_STUDENT_PREMIUM_PRICE_ID: process.env.STRIPE_STUDENT_PREMIUM_PRICE_ID ?? "",
+        STRIPE_TEACHER_PRO_PRICE_ID: process.env.STRIPE_TEACHER_PRO_PRICE_ID ?? "",
+        WEB_BASE_URL: process.env.WEB_BASE_URL ?? "https://eduboost.com",
       },
     });
 
@@ -226,6 +229,12 @@ export class ApiStack extends cdk.Stack {
     });
     api.addRoutes({
       path: "/marketplace/listings/{listingId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
+    api.addRoutes({
+      path: "/memberships/plans",
       methods: [apigw.HttpMethod.GET],
       integration,
     });

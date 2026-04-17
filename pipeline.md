@@ -402,6 +402,26 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2C #2 pass (Membership plans)
+
+**Membership plans (Stripe subscriptions)** — signed off
+- SubscriptionEntity keyed by userId, with `byStripeSubscription` (gsi1) and `byStripeCustomer` (gsi2) for webhook reverse-lookups when metadata is missing.
+- Hardcoded plans in `lambdas/src/lib/plans.ts`: `student_premium` (EUR 9.99/mo, audience="student" — student or parent can buy) and `teacher_pro` (EUR 29/mo, audience="teacher").
+- Public `GET /memberships/plans` for a pricing page; authenticated `GET /me`, `POST /checkout` (Stripe Checkout subscription mode with metadata propagation), `POST /cancel` (cancel_at_period_end).
+- Stripe webhook handlers for `customer.subscription.{created,updated,deleted}` + fallback via `byStripeSubscription` GSI when metadata.userId is missing (e.g. created from Stripe dashboard).
+- CDK: new public `GET /memberships/plans` route; env vars `STRIPE_STUDENT_PREMIUM_PRICE_ID`, `STRIPE_TEACHER_PRO_PRICE_ID`, `WEB_BASE_URL`.
+- UI: `/membership` page (Suspense-wrapped) with role-filtered plan grid, current-plan display + cancel CTA, and checkout-return status handling via `?status=success|cancelled`.
+- Verifier catches:
+  - **Critical**: `membershipRoutes` had not been mounted in `lambdas/src/app.ts` — all `/memberships/*` would 404. Fixed.
+  - **Real bug**: webhook `planId` was cast from `s.metadata?.planId` without runtime validation, so a dashboard-created subscription with malformed metadata would write an invalid `planId` into DDB and fail ElectroDB's enum at write-time with a cryptic error. Now validated against `PLAN_IDS` before the cast, bail+warn on miss.
+  - `Plan.audience` type was widened to `"student"|"parent"|"teacher"` but only `"student"` and `"teacher"` are constructed; narrowed backend + frontend types.
+- MVP tradeoffs accepted:
+  - No feature gating on classroom size (teacher_pro declares "up to 25 students" but nothing enforces it).
+  - No proration on plan swap — users must cancel+resubscribe.
+  - No Stripe Billing Portal self-serve payment management.
+  - No webhook deduplication (upsert idempotency covers normal retries).
+  - Stripe SDK v17 current_period_end is top-level; SDK v18 moves it under `items` — revisit on upgrade.
+
 ### 2026-04-17 — Phase 2C #1 pass (Marketplace v0)
 
 **Marketplace v0 (digital tutorials only)** — signed off

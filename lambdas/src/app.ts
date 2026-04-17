@@ -19,6 +19,7 @@ import { familyRoutes } from "./routes/family.js";
 import { paymentRoutes } from "./routes/payments.js";
 import { attendanceRoutes } from "./routes/attendance.js";
 import { marketplaceRoutes } from "./routes/marketplace.js";
+import { membershipRoutes } from "./routes/memberships.js";
 
 export const app = new Hono();
 
@@ -49,6 +50,7 @@ app.route("/family", familyRoutes);
 app.route("/payments", paymentRoutes);
 app.route("/attendance", attendanceRoutes);
 app.route("/marketplace", marketplaceRoutes);
+app.route("/memberships", membershipRoutes);
 
 app.onError((err, c) => {
   console.error(err);

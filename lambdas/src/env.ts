@@ -12,4 +12,7 @@ export const env = {
   reminderLambdaArn: process.env.REMINDER_LAMBDA_ARN ?? "",
   schedulerRoleArn: process.env.SCHEDULER_ROLE_ARN ?? "",
   scheduleGroupName: process.env.SCHEDULE_GROUP_NAME ?? "default",
+  stripeStudentPremiumPriceId: process.env.STRIPE_STUDENT_PREMIUM_PRICE_ID ?? "",
+  stripeTeacherProPriceId: process.env.STRIPE_TEACHER_PRO_PRICE_ID ?? "",
+  webBaseUrl: process.env.WEB_BASE_URL ?? "https://eduboost.com",
 };

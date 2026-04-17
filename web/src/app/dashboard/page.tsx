@@ -67,6 +67,11 @@ export default function DashboardPage() {
     );
   }
   links.push({
+    href: "/membership",
+    label: "Membership",
+    description: "Upgrade your account for extra features",
+  });
+  links.push({
     href: "/support",
     label: "Support & disputes",
     description: "File a dispute, report an issue, or contact the team",

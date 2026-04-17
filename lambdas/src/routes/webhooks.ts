@@ -1,7 +1,16 @@
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import type Stripe from "stripe";
-import { BookingEntity, PaymentEntity, UserEntity, OrderEntity, ListingEntity } from "@eduboost/db";
+import {
+  BookingEntity,
+  PaymentEntity,
+  UserEntity,
+  OrderEntity,
+  ListingEntity,
+  SubscriptionEntity,
+  PLAN_IDS,
+} from "@eduboost/db";
+import type { PlanId } from "@eduboost/db";
 import { stripe, computePlatformFeeCents } from "../lib/stripe.js";
 import { sendEmail, emailTemplates } from "../lib/resend.js";
 import { notify } from "../lib/notifications.js";
@@ -34,6 +43,13 @@ webhookRoutes.post("/stripe", async (c) => {
         break;
       case "charge.refunded":
         await onRefund(event.data.object as Stripe.Charge);
+        break;
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+        await onSubscriptionUpsert(event.data.object as Stripe.Subscription);
+        break;
+      case "customer.subscription.deleted":
+        await onSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
       default:
         break;
@@ -161,6 +177,64 @@ async function onRefund(charge: Stripe.Charge) {
       linkPath: `/bookings/${bookingId}`,
     }),
   ]);
+}
+
+async function onSubscriptionUpsert(s: Stripe.Subscription) {
+  const userId = (s.metadata?.userId as string) ?? "";
+  const rawPlanId = s.metadata?.planId ?? "";
+  if (!userId || !rawPlanId) {
+    console.warn("subscription upsert: missing metadata", { subscriptionId: s.id });
+    return;
+  }
+  if (!(PLAN_IDS as readonly string[]).includes(rawPlanId)) {
+    console.warn("subscription upsert: unknown planId", {
+      subscriptionId: s.id,
+      planId: rawPlanId,
+    });
+    return;
+  }
+  const planId = rawPlanId as PlanId;
+  const customerId = typeof s.customer === "string" ? s.customer : s.customer.id;
+  const periodEnd = s.current_period_end
+    ? new Date(s.current_period_end * 1000).toISOString()
+    : undefined;
+
+  await SubscriptionEntity.upsert({
+    userId,
+    planId,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: s.id,
+    status: s.status as
+      | "trialing"
+      | "active"
+      | "past_due"
+      | "canceled"
+      | "incomplete"
+      | "incomplete_expired"
+      | "unpaid"
+      | "paused",
+    currentPeriodEnd: periodEnd,
+    cancelAtPeriodEnd: s.cancel_at_period_end ?? false,
+  }).go();
+}
+
+async function onSubscriptionDeleted(s: Stripe.Subscription) {
+  const userId = (s.metadata?.userId as string) ?? "";
+  if (!userId) {
+    // Fall back to byStripeSubscription GSI lookup.
+    const existing = await SubscriptionEntity.query
+      .byStripeSubscription({ stripeSubscriptionId: s.id })
+      .go({ limit: 1 });
+    const row = existing.data[0];
+    if (!row) return;
+    await SubscriptionEntity.patch({ userId: row.userId })
+      .set({ status: "canceled", cancelAtPeriodEnd: false })
+      .go();
+    return;
+  }
+  await SubscriptionEntity.patch({ userId })
+    .set({ status: "canceled", cancelAtPeriodEnd: false })
+    .go();
 }
 
 async function onMarketplacePaid(pi: Stripe.PaymentIntent) {
