@@ -31,6 +31,7 @@ export default function DashboardPage() {
       { href: "/requests", label: "My lesson requests", description: "Requests you've sent to teachers" },
       { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
       { href: "/payments", label: "Payment history", description: "Download invoices for past payments" },
+      { href: "/attendance", label: "My attendance", description: "Your attendance record across sessions" },
     );
   }
   if (role === "parent") {

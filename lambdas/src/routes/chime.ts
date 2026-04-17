@@ -13,7 +13,7 @@ import {
   CreateMediaCapturePipelineCommand,
   DeleteMediaCapturePipelineCommand,
 } from "@aws-sdk/client-chime-sdk-media-pipelines";
-import { SessionEntity, ClassroomMembershipEntity } from "@eduboost/db";
+import { SessionEntity, ClassroomMembershipEntity, AttendanceEntity } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { env } from "../env.js";
 import { cancelReminders } from "../lib/scheduler.js";
@@ -70,6 +70,24 @@ chimeRoutes.post(
         ExternalUserId: sub,
       }),
     );
+
+    // Auto-mark attendance as present if no prior record exists. Teacher can
+    // override later. Non-fatal — meeting join shouldn't fail over this.
+    if (sub !== session.data.teacherId) {
+      try {
+        const existing = await AttendanceEntity.get({ sessionId, userId: sub }).go();
+        if (!existing.data) {
+          await AttendanceEntity.create({
+            sessionId,
+            userId: sub,
+            status: "present",
+            markedBy: sub,
+          }).go();
+        }
+      } catch (err) {
+        console.error("chime.join: auto-mark attendance failed (non-fatal)", err);
+      }
+    }
 
     return c.json({
       meeting: meetingResp?.Meeting ?? { MeetingId: meetingId },

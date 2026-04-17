@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import {
   ConsoleLogger,
   DataMessage,
@@ -9,6 +9,7 @@ import {
   MeetingSessionConfiguration,
 } from "amazon-chime-sdk-js";
 import { api } from "@/lib/api";
+import { currentSession } from "@/lib/cognito";
 
 type JoinResponse = {
   meeting: unknown;
@@ -24,6 +25,17 @@ type SessionResponse = {
 
 type ChatEntry = { senderId: string; body: string; at: string };
 
+type AttendanceItem = {
+  sessionId: string;
+  userId: string;
+  status: "present" | "absent" | "excused" | "late";
+  markedAt: string;
+  notes?: string;
+  user?: { userId: string; displayName: string; email: string } | null;
+};
+
+const ATTENDANCE_STATUSES = ["present", "late", "absent", "excused"] as const;
+type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 const CHAT_TOPIC = "classroom-chat";
 
 export default function ClassroomPage({ params }: { params: Promise<{ sessionId: string }> }) {
@@ -37,15 +49,31 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
   const [classroomId, setClassroomId] = useState<string | null>(null);
+  const [viewerSub, setViewerSub] = useState<string | null>(null);
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceItem[] | null>(null);
+
+  const loadAttendance = useCallback(async () => {
+    try {
+      const r = await api<{ items: AttendanceItem[] }>(`/attendance/sessions/${sessionId}`);
+      setAttendance(r.items);
+    } catch (err) {
+      console.warn("attendance load failed", err);
+    }
+  }, [sessionId]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setStatus("joining");
       try {
+        const s = await currentSession();
+        if (s) setViewerSub((s.getIdToken().payload.sub as string) ?? null);
+
         const sessionInfo = await api<SessionResponse>(`/sessions/${sessionId}`);
         if (cancelled) return;
         setClassroomId(sessionInfo.classroomId);
+        setTeacherId(sessionInfo.teacherId);
 
         const { meeting, attendee } = await api<JoinResponse>(
           `/chime/sessions/${sessionId}/join`,
@@ -77,6 +105,8 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
         session.audioVideo.start();
         session.audioVideo.startLocalVideoTile();
         setStatus("joined");
+
+        await loadAttendance();
       } catch (err) {
         setError((err as Error).message);
         setStatus("error");
@@ -86,7 +116,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       cancelled = true;
       sessionRef.current?.audioVideo.stop();
     };
-  }, [sessionId]);
+  }, [sessionId, loadAttendance]);
 
   async function sendMessage() {
     const session = sessionRef.current;
@@ -116,19 +146,35 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     }
   }
 
+  async function markAttendance(userId: string, newStatus: AttendanceStatus) {
+    try {
+      await api(`/attendance/sessions/${sessionId}`, {
+        method: "POST",
+        body: JSON.stringify({ entries: [{ userId, status: newStatus }] }),
+      });
+      await loadAttendance();
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  }
+
+  const isTeacher = viewerSub !== null && viewerSub === teacherId;
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Classroom · {sessionId}</h1>
-        <button
-          onClick={toggleRecording}
-          disabled={status !== "joined"}
-          className={`rounded px-3 py-1 text-sm ${
-            recording ? "bg-red-600 text-white" : "border"
-          } disabled:opacity-50`}
-        >
-          {recording ? "Stop recording" : "Start recording"}
-        </button>
+        {isTeacher && (
+          <button
+            onClick={toggleRecording}
+            disabled={status !== "joined"}
+            className={`rounded px-3 py-1 text-sm ${
+              recording ? "bg-red-600 text-white" : "border"
+            } disabled:opacity-50`}
+          >
+            {recording ? "Stop recording" : "Start recording"}
+          </button>
+        )}
       </div>
       <p className="mt-2 text-sm text-gray-500">Status: {status}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
@@ -174,6 +220,42 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           </div>
         </div>
       </div>
+
+      {isTeacher && attendance && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Attendance</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Students are auto-marked present when they join. Override below.
+          </p>
+          {attendance.length === 0 ? (
+            <p className="mt-4 text-sm text-gray-500">No students have joined yet.</p>
+          ) : (
+            <ul className="mt-4 divide-y rounded border">
+              {attendance.map((a) => (
+                <li key={a.userId} className="flex items-center justify-between p-3">
+                  <div>
+                    <div className="font-medium">{a.user?.displayName ?? a.userId}</div>
+                    <div className="text-xs text-gray-500">
+                      {a.user?.email ?? ""} · marked {new Date(a.markedAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <select
+                    value={a.status}
+                    onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
+                    className="rounded border px-2 py-1 text-sm"
+                  >
+                    {ATTENDANCE_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <audio ref={audioRef} />
     </main>

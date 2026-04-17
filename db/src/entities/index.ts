@@ -37,3 +37,8 @@ export {
   makeLessonRequestId,
   type LessonRequestStatus,
 } from "./lesson-request.js";
+export {
+  AttendanceEntity,
+  ATTENDANCE_STATUSES,
+  type AttendanceStatus,
+} from "./attendance.js";
