@@ -3,5 +3,117 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light only;
+  --parchment: #f1e9d2;
+  --parchment-dark: #e8d9c1;
+  --ink: #4b3621;
+  --ink-soft: #6b5b47;
+  --ink-faded: #8b7355;
+  --seal: #8b3a3a;
+}
+
+@layer base {
+  html {
+    font-feature-settings: "liga", "kern";
+  }
+  body {
+    /* Parchment surface. Under the warm base colour we layer an SVG filled
+       with a feTurbulence fractalNoise — that's what gives the page its
+       "grainy fibre" feel at any zoom. The SVG lives as a data URL so there's
+       no extra HTTP hop and no asset to version. A second layer (a subtle
+       radial vignette) adds corner darkening like an aged page that has sat
+       against the edges of a binder. */
+    color: var(--ink);
+    background-color: var(--parchment);
+    background-image:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(75, 54, 33, 0.04),
+        transparent 70%
+      ),
+      radial-gradient(
+        circle at 50% 100%,
+        rgba(75, 54, 33, 0.07),
+        transparent 70%
+      ),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.294 0 0 0 0 0.212 0 0 0 0 0.129 0 0 0 0.28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-attachment: fixed, fixed, fixed;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  h1 {
+    font-weight: 700;
+  }
+  /* Links default to the wax-seal red. Using the seal colour for every link
+     would exhaust the accent; most UIs use it via `.link-seal` on hover. */
+  a {
+    color: var(--ink);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  a:hover {
+    color: var(--seal);
+  }
+  *:focus-visible {
+    outline: 2px solid var(--seal);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: rgba(139, 58, 58, 0.2);
+  }
+}
+
+@layer components {
+  /* Reusable parchment-themed primitives. Apply these classes directly or
+     compose their equivalents inline — keep the visual language consistent
+     but don't force an abstraction on one-off surfaces. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-ink px-5 py-2.5 text-sm font-medium text-parchment shadow-vellum transition hover:bg-ink-quill focus-visible:outline-seal disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-seal {
+    @apply inline-flex items-center justify-center rounded-md bg-seal px-5 py-2.5 text-sm font-medium text-parchment shadow-seal transition hover:bg-seal-dark disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-ink-faded/60 bg-parchment-dark px-5 py-2.5 text-sm font-medium text-ink shadow-vellum transition hover:border-ink/70 hover:bg-parchment-shade disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:bg-parchment-dark hover:text-ink;
+  }
+  .card {
+    @apply rounded-lg border border-ink-faded/40 bg-parchment-dark/70 shadow-vellum;
+  }
+  .card-interactive {
+    @apply card transition hover:-translate-y-0.5 hover:border-ink-faded hover:shadow-manuscript;
+  }
+  .input {
+    @apply block w-full rounded-md border border-ink-faded/60 bg-parchment/60 px-3 py-2 text-sm text-ink shadow-vellum transition placeholder:text-ink-faded/80 focus:border-seal focus:outline-none focus:ring-2 focus:ring-seal/20;
+  }
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-ink-soft;
+  }
+  .eyebrow {
+    @apply font-display text-xs font-semibold uppercase tracking-[0.2em] text-seal;
+  }
+  .rule {
+    /* Decorative horizontal rule with a centre diamond — used between page
+       sections to evoke a printed folio. */
+    @apply flex items-center gap-3 text-ink-faded;
+  }
+  .rule::before,
+  .rule::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.4;
+  }
 }

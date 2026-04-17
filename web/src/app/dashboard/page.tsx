@@ -158,13 +158,76 @@ export default function DashboardPage() {
     description: "Common questions and how to reach us",
   });
 
+  // Group links by theme so the dashboard reads like a table of contents
+  // rather than a flat grid of everything we ship. The grouping is purely
+  // presentational — the array built above still drives membership.
+  const sections: { title: string; eyebrow: string; hrefs: string[] }[] = [
+    {
+      eyebrow: "Chapter I",
+      title: "Classes & learning",
+      hrefs: [
+        "/teachers",
+        "/bookings",
+        "/teacher/bookings",
+        "/requests",
+        "/calendar",
+        "/attendance",
+        "/notes",
+        "/assessments",
+        "/grades",
+        "/teacher/grader",
+      ],
+    },
+    {
+      eyebrow: "Chapter II",
+      title: "Marketplace & payments",
+      hrefs: [
+        "/marketplace",
+        "/orders",
+        "/seller/listings",
+        "/seller/orders",
+        "/study-materials",
+        "/payments",
+        "/teacher/earnings",
+        "/membership",
+        "/events",
+      ],
+    },
+    {
+      eyebrow: "Chapter III",
+      title: "Community",
+      hrefs: ["/forum", "/mailbox", "/referrals", "/orgs"],
+    },
+    {
+      eyebrow: "Chapter IV",
+      title: "Account & support",
+      hrefs: [
+        "/teacher/profile",
+        "/parent/children",
+        "/student/parents",
+        "/analytics",
+        "/settings/sms",
+        "/settings/google",
+        "/support",
+        "/faq",
+        "/admin",
+      ],
+    },
+  ];
+
+  const byHref = new Map(links.map((l) => [l.href, l]));
+
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
+      <header className="flex items-start justify-between gap-4 border-b border-ink-faded/40 pb-6">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="eyebrow">Your account</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-sm text-ink-soft">
             {email ?? "..."} · <span className="capitalize">{role ?? ""}</span>
+            {admin && " · admin"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -174,24 +237,42 @@ export default function DashboardPage() {
               signOut();
               router.replace("/");
             }}
-            className="rounded border px-3 py-1 text-sm"
+            className="btn-ghost"
           >
             Log out
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        {links.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href as never}
-            className="block rounded border p-4 transition hover:border-black dark:hover:border-white"
-          >
-            <div className="font-medium">{l.label}</div>
-            <div className="mt-1 text-sm text-gray-500">{l.description}</div>
-          </Link>
-        ))}
+      <div className="mt-10 space-y-12">
+        {sections.map((s) => {
+          const items = s.hrefs
+            .map((h) => byHref.get(h))
+            .filter((l): l is NonNullable<typeof l> => !!l);
+          if (items.length === 0) return null;
+          return (
+            <section key={s.title}>
+              <p className="eyebrow">{s.eyebrow}</p>
+              <h2 className="mt-1 font-display text-2xl text-ink">{s.title}</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href as never}
+                    className="card-interactive group block p-5"
+                  >
+                    <div className="font-display text-base text-ink group-hover:text-seal">
+                      {l.label}
+                    </div>
+                    <div className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                      {l.description}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </main>
   );

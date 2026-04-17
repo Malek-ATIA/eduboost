@@ -85,15 +85,24 @@ export default function TeachersPage() {
   }, [queryString]);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Find a teacher</h1>
+    <main className="mx-auto max-w-5xl px-6 pb-20 pt-16">
+      <div>
+        <p className="eyebrow">Directory</p>
+        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink sm:text-5xl">
+          Find a teacher
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-ink-soft">
+          Every tutor below has been verified by our team. Filter by subject,
+          location, rating, or price band.
+        </p>
+      </div>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           setApplied(filters);
         }}
-        className="mt-6 grid grid-cols-1 gap-3 rounded border p-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="card mt-8 grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4"
       >
         <Input label="Subject" placeholder="Mathematics" value={filters.subject} onChange={(v) => setFilters({ ...filters, subject: v })} />
         <Input label="City" placeholder="Dublin" value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} />
@@ -102,25 +111,25 @@ export default function TeachersPage() {
         <Input label="Min years exp" type="number" min="0" placeholder="2" value={filters.minExperience} onChange={(v) => setFilters({ ...filters, minExperience: v })} />
         <Input label="Min rate (€/hr)" type="number" min="0" placeholder="10" value={filters.minRateEur} onChange={(v) => setFilters({ ...filters, minRateEur: v })} />
         <Input label="Max rate (€/hr)" type="number" min="0" placeholder="100" value={filters.maxRateEur} onChange={(v) => setFilters({ ...filters, maxRateEur: v })} />
-        <label className="flex items-end gap-2 text-sm">
-          <input type="checkbox" checked={filters.trial} onChange={(e) => setFilters({ ...filters, trial: e.target.checked })} />
+        <label className="flex items-end gap-2 text-sm text-ink-soft">
+          <input type="checkbox" checked={filters.trial} onChange={(e) => setFilters({ ...filters, trial: e.target.checked })} className="accent-seal" />
           Trial session
         </label>
-        <label className="flex items-end gap-2 text-sm">
-          <input type="checkbox" checked={filters.individual} onChange={(e) => setFilters({ ...filters, individual: e.target.checked })} />
+        <label className="flex items-end gap-2 text-sm text-ink-soft">
+          <input type="checkbox" checked={filters.individual} onChange={(e) => setFilters({ ...filters, individual: e.target.checked })} className="accent-seal" />
           Individual sessions
         </label>
-        <label className="flex items-end gap-2 text-sm">
-          <input type="checkbox" checked={filters.group} onChange={(e) => setFilters({ ...filters, group: e.target.checked })} />
+        <label className="flex items-end gap-2 text-sm text-ink-soft">
+          <input type="checkbox" checked={filters.group} onChange={(e) => setFilters({ ...filters, group: e.target.checked })} className="accent-seal" />
           Group sessions
         </label>
         <div className="sm:col-span-2 lg:col-span-4 flex gap-2 pt-2">
-          <button className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black" type="submit">
+          <button className="btn-seal" type="submit">
             Search
           </button>
           <button
             type="button"
-            className="rounded border px-4 py-2 text-sm"
+            className="btn-secondary"
             onClick={() => {
               setFilters(EMPTY);
               setApplied(EMPTY);
@@ -131,46 +140,67 @@ export default function TeachersPage() {
         </div>
       </form>
 
-      {loading && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
-      {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
+      {loading && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
+      {error && <p className="mt-6 text-sm text-seal">{error}</p>}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {items.map((t) => (
-          <Link
-            key={t.userId}
-            href={`/teachers/${t.userId}` as never}
-            className="block rounded border p-4 transition hover:border-black dark:hover:border-white"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="font-medium">{t.city ?? t.country ?? "—"}</div>
-                {t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date() && (
-                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                    Sponsored
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {items.map((t) => {
+          const isSponsored =
+            t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date();
+          return (
+            <Link
+              key={t.userId}
+              href={`/teachers/${t.userId}` as never}
+              className="card-interactive group block p-5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="font-display text-lg text-ink group-hover:text-seal">
+                    {t.city ?? t.country ?? "Unlisted"}
+                  </div>
+                  {isSponsored && (
+                    <span className="rounded-sm bg-seal/10 px-1.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-widest text-seal">
+                      Sponsored
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-ink-soft">
+                  {t.ratingCount > 0
+                    ? `★ ${t.ratingAvg.toFixed(1)} (${t.ratingCount})`
+                    : "New"}
+                </div>
+              </div>
+              <p className="mt-1.5 line-clamp-2 text-sm italic text-ink-soft">
+                {t.bio ?? "No biography yet."}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {t.subjects.slice(0, 4).map((s) => (
+                  <span
+                    key={s}
+                    className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-1.5 py-0.5 text-xs text-ink-soft"
+                  >
+                    {s}
                   </span>
-                )}
+                ))}
               </div>
-              <div className="text-sm text-gray-500">
-                {t.ratingCount > 0 ? `★ ${t.ratingAvg.toFixed(1)} (${t.ratingCount})` : "New"}
-              </div>
-            </div>
-            <div className="mt-1 text-sm text-gray-600 line-clamp-2">{t.bio ?? ""}</div>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {t.subjects.slice(0, 4).map((s) => (
-                <span key={s} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
-                  {s}
+              <div className="mt-4 flex items-center gap-3 border-t border-ink-faded/30 pt-3 text-sm">
+                <span className="font-display font-semibold text-ink">
+                  €{Math.round(t.hourlyRateCents / 100)}/hr
                 </span>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              <span className="font-medium">€{Math.round(t.hourlyRateCents / 100)}/hr</span>
-              {t.trialSession && <span className="text-xs text-green-700">Trial</span>}
-              {t.groupSessions && <span className="text-xs text-blue-700">Group</span>}
-              <span className="text-xs text-gray-500">· {t.yearsExperience} yrs</span>
-            </div>
-          </Link>
-        ))}
-        {!loading && items.length === 0 && <p className="text-sm text-gray-500">No teachers match your filters.</p>}
+                {t.trialSession && (
+                  <span className="text-xs uppercase tracking-wider text-seal">Trial</span>
+                )}
+                {t.groupSessions && (
+                  <span className="text-xs uppercase tracking-wider text-ink-faded">Group</span>
+                )}
+                <span className="ml-auto text-xs text-ink-faded">{t.yearsExperience} yrs</span>
+              </div>
+            </Link>
+          );
+        })}
+        {!loading && items.length === 0 && (
+          <p className="text-sm text-ink-soft">No teachers match your filters.</p>
+        )}
       </div>
     </main>
   );
@@ -188,10 +218,10 @@ function Input(props: {
   maxLength?: number;
 }) {
   return (
-    <label className="block text-sm">
-      <span className="mb-1 block text-gray-600">{props.label}</span>
+    <label className="block">
+      <span className="label">{props.label}</span>
       <input
-        className="w-full rounded border px-3 py-1.5"
+        className="input"
         type={props.type ?? "text"}
         placeholder={props.placeholder}
         min={props.min}

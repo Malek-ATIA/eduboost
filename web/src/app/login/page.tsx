@@ -25,33 +25,51 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-bold">Log in</h1>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <input
-          className="w-full rounded border px-3 py-2"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          className="w-full rounded border px-3 py-2"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+    <main className="mx-auto max-w-md px-6 pb-16 pt-20">
+      <div className="text-center">
+        <p className="eyebrow">Return to your studies</p>
+        <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">
+          Log in
+        </h1>
+      </div>
+      <form onSubmit={onSubmit} className="card mt-10 space-y-5 p-8">
+        <label className="block">
+          <span className="label">Email</span>
+          <input
+            className="input"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label className="block">
+          <span className="label">Password</span>
+          <input
+            className="input"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
+        {error && <p className="text-sm text-seal">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-black py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal w-full"
         >
-          {loading ? "..." : "Log in"}
+          {loading ? "Signing in..." : "Log in"}
         </button>
+        <p className="text-center text-sm text-ink-soft">
+          New here?{" "}
+          <a href="/signup" className="underline">
+            Create an account
+          </a>
+          .
+        </p>
       </form>
     </main>
   );

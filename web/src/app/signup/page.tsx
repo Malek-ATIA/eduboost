@@ -64,20 +64,27 @@ function SignupInner() {
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-bold">Sign up</h1>
+    <main className="mx-auto max-w-md px-6 pb-16 pt-20">
+      <div className="text-center">
+        <p className="eyebrow">Join the folio</p>
+        <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">
+          Create an account
+        </h1>
+      </div>
       {step === "credentials" ? (
-        <form onSubmit={onSignup} className="mt-6 space-y-4">
+        <form onSubmit={onSignup} className="card mt-10 space-y-5 p-8">
           <div>
-            <label className="mb-1 block text-sm font-medium">I am a...</label>
+            <span className="label">I am a…</span>
             <div className="grid grid-cols-3 gap-2">
               {(["student", "parent", "teacher"] as const).map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRole(r)}
-                  className={`rounded border px-2 py-2 text-sm capitalize ${
-                    role === r ? "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black" : ""
+                  className={`rounded-md border px-2 py-2 text-sm font-medium capitalize transition ${
+                    role === r
+                      ? "border-ink bg-ink text-parchment shadow-vellum"
+                      : "border-ink-faded/60 bg-parchment/60 text-ink hover:bg-parchment-dark"
                   }`}
                 >
                   {r}
@@ -85,29 +92,35 @@ function SignupInner() {
               ))}
             </div>
           </div>
-          <input
-            className="w-full rounded border px-3 py-2"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className="w-full rounded border px-3 py-2"
-            type="password"
-            placeholder="Password (min 10 chars)"
-            minLength={10}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <label className="flex items-start gap-2 text-sm">
+          <label className="block">
+            <span className="label">Email</span>
+            <input
+              className="input"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label className="block">
+            <span className="label">Password</span>
+            <input
+              className="input"
+              type="password"
+              placeholder="At least 10 characters"
+              minLength={10}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <label className="flex items-start gap-2 text-sm text-ink-soft">
             <input
               type="checkbox"
               checked={tosAccepted}
               onChange={(e) => setTosAccepted(e.target.checked)}
-              className="mt-0.5"
+              className="mt-0.5 accent-seal"
               required
             />
             <span>
@@ -118,31 +131,40 @@ function SignupInner() {
               .
             </span>
           </label>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-seal">{error}</p>}
           <button
             disabled={loading || !tosAccepted}
-            className="w-full rounded bg-black py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal w-full"
           >
-            {loading ? "..." : "Create account"}
+            {loading ? "Creating..." : "Create account"}
           </button>
+          <p className="text-center text-sm text-ink-soft">
+            Already registered?{" "}
+            <Link href="/login" className="underline">
+              Log in
+            </Link>
+            .
+          </p>
         </form>
       ) : (
-        <form onSubmit={onConfirm} className="mt-6 space-y-4">
-          <p className="text-sm text-gray-600">Enter the code we emailed to {email}.</p>
-          <input
-            className="w-full rounded border px-3 py-2"
-            type="text"
-            placeholder="Confirmation code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            required
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            disabled={loading}
-            className="w-full rounded bg-black py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
-          >
-            {loading ? "..." : "Confirm"}
+        <form onSubmit={onConfirm} className="card mt-10 space-y-5 p-8">
+          <p className="text-sm text-ink-soft">
+            Enter the code we emailed to <strong>{email}</strong>.
+          </p>
+          <label className="block">
+            <span className="label">Confirmation code</span>
+            <input
+              className="input font-mono"
+              type="text"
+              placeholder="6 digits"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+            />
+          </label>
+          {error && <p className="text-sm text-seal">{error}</p>}
+          <button disabled={loading} className="btn-seal w-full">
+            {loading ? "Confirming..." : "Confirm"}
           </button>
         </form>
       )}
@@ -156,9 +178,12 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-sm px-6 py-16">
-          <h1 className="text-2xl font-bold">Sign up</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-md px-6 pb-16 pt-20 text-center">
+          <p className="eyebrow">Join the folio</p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight text-ink">
+            Create an account
+          </h1>
+          <p className="mt-6 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >
