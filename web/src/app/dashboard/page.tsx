@@ -112,6 +112,11 @@ export default function DashboardPage() {
     description: "Get texted for time-sensitive updates",
   });
   links.push({
+    href: "/settings/google",
+    label: "Google Calendar",
+    description: "Sync your scheduled sessions to Google Calendar",
+  });
+  links.push({
     href: "/membership",
     label: "Membership",
     description: "Upgrade your account for extra features",

@@ -110,6 +110,10 @@ export class ApiStack extends cdk.Stack {
         STRIPE_STUDENT_PREMIUM_PRICE_ID: process.env.STRIPE_STUDENT_PREMIUM_PRICE_ID ?? "",
         STRIPE_TEACHER_PRO_PRICE_ID: process.env.STRIPE_TEACHER_PRO_PRICE_ID ?? "",
         WEB_BASE_URL: process.env.WEB_BASE_URL ?? "https://eduboost.com",
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL ?? "",
+        GOOGLE_STATE_SECRET: process.env.GOOGLE_STATE_SECRET ?? "",
       },
     });
 
@@ -275,6 +279,15 @@ export class ApiStack extends cdk.Stack {
     });
     api.addRoutes({
       path: "/forum/posts/{postId}/hydrated",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
+    // Google OAuth redirects the browser to this path without our bearer
+    // token; authorization is instead carried inside the signed `state` param
+    // that our /google/connect-url endpoint issued. Must be a public route.
+    api.addRoutes({
+      path: "/google/callback",
       methods: [apigw.HttpMethod.GET],
       integration,
     });

@@ -13,10 +13,16 @@ import {
   CreateMediaCapturePipelineCommand,
   DeleteMediaCapturePipelineCommand,
 } from "@aws-sdk/client-chime-sdk-media-pipelines";
-import { SessionEntity, ClassroomMembershipEntity, AttendanceEntity } from "@eduboost/db";
+import {
+  SessionEntity,
+  ClassroomMembershipEntity,
+  AttendanceEntity,
+  GoogleCalendarEventEntity,
+} from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { env } from "../env.js";
 import { cancelReminders } from "../lib/scheduler.js";
+import { deleteCalendarEvent } from "../lib/google.js";
 
 export const chimeRoutes = new Hono();
 
@@ -125,6 +131,28 @@ chimeRoutes.post(
       await cancelReminders(sessionId);
     } catch (err) {
       console.error("chime.end: cancelReminders failed (non-fatal)", err);
+    }
+
+    // Remove any Google Calendar events linked to this session (non-fatal).
+    try {
+      const events = await GoogleCalendarEventEntity.query
+        .primary({ sessionId })
+        .go({ limit: 250 });
+      await Promise.all(
+        events.data.map(async (e) => {
+          try {
+            await deleteCalendarEvent(e.userId, e.googleEventId);
+          } catch (err) {
+            console.warn("chime.end: deleteCalendarEvent failed (non-fatal)", err);
+          }
+          await GoogleCalendarEventEntity.delete({
+            sessionId,
+            userId: e.userId,
+          }).go();
+        }),
+      );
+    } catch (err) {
+      console.error("chime.end: Google Calendar cleanup failed (non-fatal)", err);
     }
 
     return c.json({ ok: true });

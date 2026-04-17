@@ -8,10 +8,90 @@ import {
   ClassroomMembershipEntity,
   BookingEntity,
   UserEntity,
+  GoogleCalendarEventEntity,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { notify } from "../lib/notifications.js";
 import { scheduleReminders, rescheduleReminders, cancelReminders } from "../lib/scheduler.js";
+import {
+  createCalendarEvent,
+  deleteCalendarEvent,
+  patchCalendarEvent,
+} from "../lib/google.js";
+
+async function pushSessionToCalendars(
+  sessionId: string,
+  classroomId: string,
+  startsAt: string,
+  endsAt: string,
+  title: string,
+): Promise<void> {
+  try {
+    const members = await ClassroomMembershipEntity.query
+      .primary({ classroomId })
+      .go({ limit: 250 });
+    await Promise.all(
+      members.data.map(async (m) => {
+        const eventId = await createCalendarEvent(m.userId, {
+          summary: title,
+          startsAt,
+          endsAt,
+        });
+        if (eventId) {
+          await GoogleCalendarEventEntity.create({
+            sessionId,
+            userId: m.userId,
+            googleEventId: eventId,
+          }).go();
+        }
+      }),
+    );
+  } catch (err) {
+    console.error("sessions: push to Google Calendars failed (non-fatal)", err);
+  }
+}
+
+async function updateCalendarsForSession(
+  sessionId: string,
+  startsAt: string,
+  endsAt: string,
+): Promise<void> {
+  try {
+    const events = await GoogleCalendarEventEntity.query
+      .primary({ sessionId })
+      .go({ limit: 250 });
+    await Promise.all(
+      events.data.map((e) =>
+        patchCalendarEvent(e.userId, e.googleEventId, { startsAt, endsAt }),
+      ),
+    );
+  } catch (err) {
+    console.error("sessions: patch Google Calendars failed (non-fatal)", err);
+  }
+}
+
+async function removeCalendarsForSession(sessionId: string): Promise<void> {
+  try {
+    const events = await GoogleCalendarEventEntity.query
+      .primary({ sessionId })
+      .go({ limit: 250 });
+    await Promise.all(
+      events.data.map(async (e) => {
+        try {
+          await deleteCalendarEvent(e.userId, e.googleEventId);
+        } catch (err) {
+          console.warn("deleteCalendarEvent failed (non-fatal)", err);
+        }
+        await GoogleCalendarEventEntity.delete({
+          sessionId,
+          userId: e.userId,
+        }).go();
+      }),
+    );
+  } catch (err) {
+    console.error("sessions: remove Google Calendars failed (non-fatal)", err);
+  }
+}
 
 export const sessionRoutes = new Hono();
 
@@ -174,6 +254,16 @@ sessionRoutes.post("/", zValidator("json", createSchema), async (c) => {
     console.error("sessions.post: scheduleReminders failed (non-fatal)", err);
   }
 
+  // Push to each member's connected Google Calendar (non-fatal on failure).
+  const calendarTitle = body.title ?? "EduBoost session";
+  await pushSessionToCalendars(
+    sessionId,
+    classroomId,
+    body.startsAt,
+    body.endsAt,
+    calendarTitle,
+  );
+
   // Notify all non-teacher members of this classroom.
   try {
     const members = await ClassroomMembershipEntity.query
@@ -242,6 +332,16 @@ sessionRoutes.patch(
       }
     } catch (err) {
       console.error("sessions.patch: reminder sync failed (non-fatal)", err);
+    }
+
+    // Keep any linked Google Calendar events in sync (non-fatal).
+    if (body.status === "cancelled") {
+      await removeCalendarsForSession(sessionId);
+    } else if (
+      (body.startsAt && body.startsAt !== session.data.startsAt) ||
+      (body.endsAt && body.endsAt !== session.data.endsAt)
+    ) {
+      await updateCalendarsForSession(sessionId, effectiveStartsAt, effectiveEndsAt);
     }
 
     return c.json({ ok: true });

@@ -15,4 +15,8 @@ export const env = {
   stripeStudentPremiumPriceId: process.env.STRIPE_STUDENT_PREMIUM_PRICE_ID ?? "",
   stripeTeacherProPriceId: process.env.STRIPE_TEACHER_PRO_PRICE_ID ?? "",
   webBaseUrl: process.env.WEB_BASE_URL ?? "https://eduboost.com",
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  googleRedirectUrl: process.env.GOOGLE_REDIRECT_URL ?? "",
+  googleStateSecret: process.env.GOOGLE_STATE_SECRET ?? "",
 };

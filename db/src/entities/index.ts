@@ -83,3 +83,7 @@ export {
   makeWallCommentId,
 } from "./wall.js";
 export { ReferralEntity, makeReferralCode } from "./referral.js";
+export {
+  GoogleIntegrationEntity,
+  GoogleCalendarEventEntity,
+} from "./google-integration.js";

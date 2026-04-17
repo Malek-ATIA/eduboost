@@ -402,6 +402,18 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2E #5 pass (Google Calendar integration)
+
+**Google Calendar OAuth + session sync** — signed off
+- GoogleIntegrationEntity (userId pk) + GoogleCalendarEventEntity (sessionId + userId pk/sk, byUser gsi1) track per-user OAuth tokens and per-session calendar event IDs so reschedules/cancels/session-ends can patch or delete the right events.
+- OAuth Authorization Code flow with `access_type=offline&prompt=consent`; state is HMAC-SHA256 signed (GOOGLE_STATE_SECRET) with a 10-minute expiry and `timingSafeEqual` verification. Public CDK route for GET /google/callback; authorization is carried inside the signed state param.
+- `getFreshAccessToken` refreshes with a 60s grace window and patches the row; Google API helpers (`createCalendarEvent`, `patchCalendarEvent`, `deleteCalendarEvent`) all return gracefully if the integration is missing or the refresh token is revoked.
+- Wired into the session lifecycle: POST /sessions pushes events to every classroom member's connected Google, PATCH reschedule/cancel patches or deletes those events, and /chime/sessions/:id/end also cleans them up.
+- `/google/disconnect` revokes at Google best-effort (non-fatal) and deletes the local integration.
+- UI: Suspense-wrapped /settings/google with connect/disconnect, showing connected email + calendar ID and mapping `?status=connected|denied|error` back from the callback redirect.
+- Verifier catch: /connect-url env-presence check omitted `googleClientSecret`, so a misconfigured deployment would fail only at token exchange time. Now fast-fails with 503 google_not_configured.
+- MVP tradeoffs (deferred): retries on Google API failures, UI signal when a refresh token has been revoked at Google, dedup for concurrent duplicate scheduling, state-replay single-use enforcement (captured state within 10 min is idempotent via upsert), Drive/Docs/Slides scopes, attendee invites on Calendar events, at-rest KMS envelope for stored tokens, per-Google-call fetch timeouts.
+
 ### 2026-04-17 — Phase 2E #4 pass (SMS notifications via AWS SNS)
 
 **SMS notifications** — signed off
