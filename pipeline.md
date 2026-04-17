@@ -402,6 +402,17 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2E #2 pass (Support ticket attachments)
+
+**Ticket attachments** — signed off
+- TicketMessageEntity extended with `attachments: list<map>` (s3Key + filename + optional mimeType/sizeBytes).
+- POST /support/tickets/:id/attachment-url issues a presigned PUT scoped to `support/${ticketId}/` with ContentType + ContentLength signed; 15-min expiry. Owner-or-admin authz.
+- GET /support/attachments/:ticketId/:s3Key{.+} issues a presigned GET with `ResponseContentDisposition: attachment` (RFC 5987 filename encoding) so HTML/SVG uploads can't render inline. Key reconstruction forces the `support/${ticketId}/` prefix so clients can't pivot to other tickets' files.
+- Hono regex param `:s3Key{.+}` verified against Hono v4 docs (same pattern as the Hono `/posts/:filename{.+\\.png}` example).
+- Reply flow uploads before POSTing the message. New-ticket flow can't upload before the ticket exists (presigned endpoint requires a ticketId), so a new `POST /support/tickets/:id/initial-attachments` endpoint backfills the initial message — owner-only, refuses if attachments are already populated (409 attachments_already_set). Frontend /support/new now wires this as a three-step flow (create ticket → upload → backfill).
+- Defense-in-depth: every message-create path now rejects s3Keys that don't start with `support/${ticketId}/` (400 bad_attachment_key), even though download-time key reconstruction already made cross-ticket reads impossible.
+- MVP tradeoffs (deferred): MIME whitelist, attachment cleanup on ticket retention, virus scanning.
+
 ### 2026-04-17 — Phase 2E #1 pass (Teacher profile verification)
 
 **Teacher profile verification workflow** — signed off

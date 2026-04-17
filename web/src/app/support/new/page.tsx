@@ -23,6 +23,12 @@ function isCategory(v: string | null): v is Category {
 }
 
 type Ticket = { ticketId: string };
+type AttachmentMeta = {
+  s3Key: string;
+  filename: string;
+  mimeType?: string;
+  sizeBytes?: number;
+};
 
 function NewTicketForm() {
   const router = useRouter();
@@ -36,7 +42,9 @@ function NewTicketForm() {
   const [priority, setPriority] = useState<"low" | "normal" | "high" | "urgent">("normal");
   const [bookingId, setBookingId] = useState(presetBookingId);
   const [body, setBody] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,11 +53,51 @@ function NewTicketForm() {
     });
   }, [router]);
 
+  // Uploads selected files against a freshly-minted ticketId. Each upload
+  // needs a presigned PUT from the server (scoped to this ticket's S3
+  // prefix); returned metadata is then handed to the initial-attachments
+  // endpoint so the first message picks them up.
+  async function uploadAttachments(ticketId: string): Promise<AttachmentMeta[]> {
+    const uploaded: AttachmentMeta[] = [];
+    for (const f of files) {
+      setProgress(`Uploading ${f.name}...`);
+      const urlResp = await api<{ uploadUrl: string; s3Key: string }>(
+        `/support/tickets/${ticketId}/attachment-url`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            filename: f.name,
+            mimeType: f.type || "application/octet-stream",
+            sizeBytes: f.size,
+          }),
+        },
+      );
+      const put = await fetch(urlResp.uploadUrl, {
+        method: "PUT",
+        headers: { "content-type": f.type || "application/octet-stream" },
+        body: f,
+      });
+      if (!put.ok) throw new Error(`Upload failed for ${f.name}: ${put.status}`);
+      uploaded.push({
+        s3Key: urlResp.s3Key,
+        filename: f.name,
+        mimeType: f.type || undefined,
+        sizeBytes: f.size,
+      });
+    }
+    return uploaded;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setProgress(null);
     try {
+      // Step 1: create the ticket without attachments. The server mints the
+      // ticketId, which we need to scope the S3 uploads. The first message
+      // is created inside this call with an empty attachments array.
+      setProgress("Creating ticket...");
       const t = await api<Ticket>(`/support/tickets`, {
         method: "POST",
         body: JSON.stringify({
@@ -60,11 +108,26 @@ function NewTicketForm() {
           bookingId: bookingId || undefined,
         }),
       });
+
+      // Step 2: if the user picked files, upload them under this ticket's
+      // prefix and backfill the initial message via a dedicated endpoint.
+      // If the upload step fails, the ticket still exists — user can reply
+      // to add attachments from the ticket page.
+      if (files.length > 0) {
+        const attachments = await uploadAttachments(t.ticketId);
+        setProgress("Attaching files...");
+        await api(`/support/tickets/${t.ticketId}/initial-attachments`, {
+          method: "POST",
+          body: JSON.stringify({ attachments }),
+        });
+      }
+
       router.replace(`/support/${t.ticketId}` as never);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setSubmitting(false);
+      setProgress(null);
     }
   }
 
@@ -138,6 +201,28 @@ function NewTicketForm() {
           />
         </Field>
 
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Attachments (optional, up to 5, 25 MB each)
+          </label>
+          <input
+            type="file"
+            multiple
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
+            className="text-xs"
+          />
+          {files.length > 0 && (
+            <ul className="mt-1 text-xs text-gray-600">
+              {files.map((f) => (
+                <li key={f.name}>
+                  {f.name} ({(f.size / 1024).toFixed(1)} KB)
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {progress && <p className="text-xs text-gray-500">{progress}</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button

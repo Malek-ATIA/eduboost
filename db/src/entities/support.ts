@@ -72,6 +72,19 @@ export const TicketMessageEntity = new Entity(
       authorId: { type: "string", required: true },
       authorRole: { type: TICKET_AUTHOR_ROLES, required: true },
       body: { type: "string", required: true },
+      attachments: {
+        type: "list",
+        items: {
+          type: "map",
+          properties: {
+            s3Key: { type: "string", required: true },
+            filename: { type: "string", required: true },
+            mimeType: { type: "string" },
+            sizeBytes: { type: "number" },
+          },
+        },
+        default: [],
+      },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
     },
     indexes: {
