@@ -402,6 +402,15 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2C #3 pass (Teacher financial reporting)
+
+**Teacher earnings + CSV export** — signed off
+- GET /reports/teacher/summary aggregates PaymentEntity.byPayee into thisMonth/prevMonth/YTD/allTime buckets, split by kind (booking vs marketplace via the `ord_` prefix on bookingId), counting only status=succeeded payments.
+- GET /reports/teacher/export.csv streams a CSV with paymentId, bookingOrOrderId, kind, timestamps, currency, gross/fee/net, status, providerPaymentId; proper CSV escaping + Content-Disposition attachment.
+- UI: /teacher/earnings page with four bucket cards (sessions + marketplace breakdown under each) and authenticated blob-download button for CSV. Dashboard link.
+- Verifier catch: month/year boundaries were using local-time `new Date(y, m, d)` which would shift bucket edges in non-UTC runtimes. Fixed with `new Date(Date.UTC(y, m, d))` + `getUTCFullYear()`/`getUTCMonth()`.
+- MVP tradeoffs (deferred): pagination beyond 1000 payments, per-currency breakdown, Stripe Connect payouts, charts.
+
 ### 2026-04-17 — Phase 2C #2 pass (Membership plans)
 
 **Membership plans (Stripe subscriptions)** — signed off
