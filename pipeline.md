@@ -341,34 +341,43 @@ Date: <today>
 
 ## Deferred (explicit)
 
-Items from the spec that are intentionally NOT in MVP scope. Must be listed here to avoid being flagged as gaps.
+Items from the spec that are intentionally NOT in MVP scope. Must be listed here to avoid being flagged as gaps. Entries that were initially deferred but have since shipped are listed under `### Shipped in later phases` below so the pruning history isn't lost.
 
-- Marketplace (digital/printed tutorials, goods, events)
-- Event planning services (venue, dates, ticketing, organization)
-- Forum (Reddit-style posts, comments, votes, channels)
-- Note-keeping of key learning points
-- Integrations: Google Drive/Docs/Slides/Calendar, WhatsApp, social media, external educational tools
+- Event planning services (venue, dates, ticketing, organization) — distinct from the marketplace-for-goods which is shipped
+- Note-keeping of key learning points (per-session structured notes UI)
+- Integrations beyond Google Calendar: Google Drive/Docs/Slides, WhatsApp, social media, other external educational tools
 - Suggested T&Os (paid advertisements)
-- Invite-a-friend rewards
 - Quiz on teacher's performance
-- Assessment exams
-- Review session between teachers and students/parents
-- Profile checking by team (manual verification workflow)
-- Money-back guarantee policy (UX + backend)
-- Membership plans / paid extras
-- Financial reporting dashboards for teachers
-- Minimum wage enforcement for teachers
-- Teacher wall (posts + comments)
-- Study materials portal with exam sharing
-- Mailbox (parent↔teacher async inbox beyond DM)
-- Grades and assessments
-- Attendance tracking
-- Invoice download (PDF)
-- Calendar UI + reminders
-- Lesson-request flow as distinct from booking (accept/reject, request/response states)
-- Scheduled session reminders (requires EventBridge scheduler or equivalent)
-- Lesson-request flow as distinct from booking (accept/reject, request/response states)
-- Scheduled session reminders (requires EventBridge scheduler or equivalent)
+- Non-AI assessment exams (graded + timed tests — AI grading of free-text submissions is shipped as 2F.1)
+- Review session between teachers and students/parents (structured post-course retrospective meetings — distinct from the star-review system)
+- Money-back guarantee policy (UX flow + automated refund logic — manual admin refunds shipped as 2F.4)
+- Minimum wage enforcement for teachers (price floors on listings/bookings)
+- Study materials portal with exam sharing (peer-to-peer exam bank — distinct from marketplace digital goods)
+- Mailbox (parent↔teacher async inbox with a threaded UI beyond DM)
+
+### Shipped in later phases (previously deferred)
+
+These rows were in the deferred list earlier in the project and have since landed; kept here for audit-trail continuity.
+
+- Marketplace (digital/printed tutorials, goods) — shipped 2C.1; commercial-org marketplace shipped 2F.7
+- Forum (Reddit-style posts, comments, votes, channels) — shipped 2D
+- Invite-a-friend rewards — shipped as referrals 2E.3
+- Profile checking by team (manual verification workflow) — shipped 2E.1 (admin verifications console)
+- Membership plans / paid extras — shipped 2C.2
+- Financial reporting dashboards for teachers — shipped 2C.3 (`/teacher/earnings`)
+- Teacher wall (posts + comments) — shipped 2D
+- Grades — shipped 2F.1 (AI grading via Bedrock)
+- Attendance tracking — shipped 2B
+- Invoice download (PDF) — shipped 2B
+- Calendar UI + reminders — shipped 2B
+- Lesson-request flow (distinct from booking) — shipped 2A
+- Scheduled session reminders (EventBridge scheduler) — shipped 2B
+- Google Calendar integration — shipped 2E.5
+- Private educational organization team admin — shipped 2F.6
+- Parent/student analytics space — shipped 2F.5
+- Comprehensive dispute system — shipped 2F.4
+- Whiteboard — shipped 2F.3
+- Breakout rooms — shipped 2F.2
 
 ## In-scope MVP features (must pass audit)
 
