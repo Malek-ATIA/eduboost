@@ -19,4 +19,5 @@ export const env = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   googleRedirectUrl: process.env.GOOGLE_REDIRECT_URL ?? "",
   googleStateSecret: process.env.GOOGLE_STATE_SECRET ?? "",
+  bedrockGradingModelId: process.env.BEDROCK_GRADING_MODEL_ID ?? "",
 };

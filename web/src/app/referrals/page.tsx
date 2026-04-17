@@ -16,6 +16,7 @@ type ReferralRow = {
   referredId: string;
   referralCode: string;
   createdAt: string;
+  rewardedAt?: string | null;
   referred: { userId: string; displayName: string } | null;
 };
 

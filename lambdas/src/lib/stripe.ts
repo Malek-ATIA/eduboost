@@ -6,7 +6,7 @@ let client: Stripe | null = null;
 export function stripe(): Stripe {
   if (!client) {
     if (!env.stripeSecretKey) throw new Error("STRIPE_SECRET_KEY not set");
-    client = new Stripe(env.stripeSecretKey, { apiVersion: "2024-11-20.acacia" });
+    client = new Stripe(env.stripeSecretKey, { apiVersion: "2025-02-24.acacia" });
   }
   return client;
 }

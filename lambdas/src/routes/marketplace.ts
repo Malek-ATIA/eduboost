@@ -233,7 +233,7 @@ marketplaceRoutes.post("/orders", requireAuth, zValidator("json", createOrderSch
   const orderId = makeOrderId();
   const intent = await stripe().paymentIntents.create({
     amount: listing.data.priceCents,
-    currency: listing.data.currency.toLowerCase(),
+    currency: (listing.data.currency ?? "EUR").toLowerCase(),
     automatic_payment_methods: { enabled: true },
     metadata: {
       kind: "marketplace_order",

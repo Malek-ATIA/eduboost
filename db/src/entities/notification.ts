@@ -22,6 +22,7 @@ export const NOTIFICATION_TYPES = [
   "listing_sold",
   "profile_verified",
   "profile_rejected",
+  "new_grade",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

@@ -99,7 +99,7 @@ async function onPaymentSucceeded(pi: Stripe.PaymentIntent) {
       const tpl = emailTemplates.bookingConfirmed(
         student.data.displayName,
         teacher.data.displayName,
-        booking.data.createdAt,
+        booking.data.createdAt ?? new Date().toISOString(),
       );
       await sendEmail({ to: student.data.email, subject: tpl.subject, html: tpl.html });
     }

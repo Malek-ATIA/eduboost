@@ -346,7 +346,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Marketplace (digital/printed tutorials, goods, events)
 - Event planning services (venue, dates, ticketing, organization)
 - Forum (Reddit-style posts, comments, votes, channels)
-- AI grading system (instadeep model integration)
 - Whiteboard
 - Split rooms (breakout rooms within classroom)
 - Note-keeping of key learning points
@@ -401,6 +400,33 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #1 pass (AI grading via Bedrock)
+
+**AI grading with Claude on Bedrock** — signed off
+- AiGradeEntity (gradeId pk, byStudent gsi1, byTeacher gsi2) persists score/feedback/modelId plus a 500-char submission excerpt (full submission not stored to avoid DDB item-size growth).
+- `lambdas/src/lib/ai-grader.ts` wraps `@aws-sdk/client-bedrock-runtime` InvokeModel against `anthropic.claude-haiku-4-5-20251001-v1:0` (overridable via `BEDROCK_GRADING_MODEL_ID`); system prompt forces JSON-only output; `extractJson` strips ``` fences defensively.
+- Routes (`/ai-grades`, all auth-gated): POST (teacher-only, classroom-membership check when classroomId supplied), GET /student/mine, GET /teacher/mine, GET /:gradeId (participant-only).
+- CDK: `BEDROCK_GRADING_MODEL_ID` env var + `bedrock:InvokeModel` IAM scoped to `arn:aws:bedrock:<region>::foundation-model/anthropic.*` and regional inference profiles.
+- UI: /teacher/grader compose form + /grades list (role-aware endpoint pick); dashboard links (`/teacher/grader` teacher-only, `/grades` for all roles).
+- Auditor claims — all confirmed by Verifier reading the files:
+  - `@aws-sdk/client-bedrock-runtime` was missing from `lambdas/package.json` (imported in `ai-grader.ts:1`). Added at `^3.700.0` matching the other AWS SDK v3 packages.
+  - `NOTIFICATION_TYPES` was missing `"new_grade"`; `ai-grades.ts:79` used `"review_posted"` as a workaround (misleading because that type is semantically for teacher-profile reviews). Added `"new_grade"` to the tuple and switched the notify() call; comment about "reuse generic type — new_grade is deferred" removed. Confirmed `reviews.ts:75` still uses `review_posted` legitimately and was untouched.
+- Verifier catch (missed by the Auditor): `extractJson` in `lambdas/src/lib/ai-grader.ts` dereferenced `fenceMatch[1]` (typed `string | undefined` under `noUncheckedIndexedAccess`), so `ai-grader.ts` itself wouldn't typecheck even after the dep/notification fixes. Changed to `fenceMatch?.[1] ?? text`.
+- Independent checks the Verifier ran:
+  - `ClassroomMembershipEntity` primary key is `pk=classroomId, sk=userId` — `ai-grades.ts:38–44` passes `{classroomId, userId}`, correct key order.
+  - `byStudent`/`byTeacher` confirmed on `AiGradeEntity` (gsi1/gsi2).
+  - CDK already wires `BEDROCK_GRADING_MODEL_ID` into ApiHandler env (api-stack.ts:117) AND grants `bedrock:InvokeModel` IAM (api-stack.ts:175-185) — no additional blocker there.
+  - Dashboard links verified: `/teacher/grader` teacher-only; `/grades` in both student/parent and teacher link arrays (parent gets it via the student/parent bucket).
+- **Typecheck status:** db/lambdas/web/cdk all PASS after this pass.
+- Cleanup fixes bundled in this pass (pre-existing bugs from earlier phases uncovered during 2F #1 verifier run):
+  - `lambdas/src/lib/stripe.ts` — bumped `apiVersion` to `2025-02-24.acacia` to match installed `stripe@17.7.0` types.
+  - `lambdas/src/routes/payments.ts` — defaulted optional ElectroDB-defaulted fields (`createdAt`, `currency`, `platformFeeCents`) in the invoice call; replaced Hono `c.body(Buffer)` with `new Response(new Uint8Array(pdf))` to satisfy the pdfkit Buffer typing.
+  - `lambdas/src/routes/marketplace.ts` — `listing.data.currency ?? "EUR"` before `.toLowerCase()`.
+  - `lambdas/src/routes/reports.ts` — defaulted optional `platformFeeCents`/`createdAt`/`currency`/`status` in both the summary loop and the CSV export.
+  - `lambdas/src/routes/webhooks.ts` — defaulted `booking.data.createdAt` in the bookingConfirmed email template.
+  - `web/src/app/referrals/page.tsx` — added `rewardedAt?: string | null` to the local `ReferralRow` type.
+- MVP tradeoffs (deferred): rate limiting on POST /ai-grades (Bedrock cost abuse), retries on transient Bedrock throttling, streaming long responses, storing full submission in S3 rather than 500-char excerpt.
 
 ### 2026-04-17 — Phase 2E #5 pass (Google Calendar integration)
 

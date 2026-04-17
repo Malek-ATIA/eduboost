@@ -87,3 +87,4 @@ export {
   GoogleIntegrationEntity,
   GoogleCalendarEventEntity,
 } from "./google-integration.js";
+export { AiGradeEntity, makeGradeId } from "./ai-grade.js";

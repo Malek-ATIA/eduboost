@@ -53,12 +53,14 @@ reportRoutes.get("/teacher/summary", async (c) => {
   for (const p of all.data) {
     if (p.status !== "succeeded") continue;
     if (p.currency) currency = p.currency;
+    const createdAt = p.createdAt ?? "";
+    const fee = p.platformFeeCents ?? 0;
     const bucket = isMarketplace(p.bookingId) ? "marketplace" : "booking";
     const target: (keyof typeof buckets)[] = ["allTime"];
-    if (p.createdAt >= startOfYear) target.push("ytd");
-    if (p.createdAt >= startOfMonth) target.push("thisMonth");
-    if (p.createdAt >= startOfPrevMonth && p.createdAt < endOfPrevMonth) target.push("prevMonth");
-    for (const t of target) addTo(buckets[t][bucket], p.amountCents, p.platformFeeCents);
+    if (createdAt >= startOfYear) target.push("ytd");
+    if (createdAt >= startOfMonth) target.push("thisMonth");
+    if (createdAt >= startOfPrevMonth && createdAt < endOfPrevMonth) target.push("prevMonth");
+    for (const t of target) addTo(buckets[t][bucket], p.amountCents, fee);
   }
 
   return c.json({
@@ -85,18 +87,19 @@ reportRoutes.get("/teacher/export.csv", async (c) => {
   ];
   for (const p of all.data) {
     const kind = isMarketplace(p.bookingId) ? "marketplace" : "booking";
-    const net = p.amountCents - p.platformFeeCents;
+    const fee = p.platformFeeCents ?? 0;
+    const net = p.amountCents - fee;
     rows.push(
       [
         csv(p.paymentId),
         csv(p.bookingId),
         csv(kind),
-        csv(p.createdAt),
-        csv(p.currency),
+        csv(p.createdAt ?? ""),
+        csv(p.currency ?? "EUR"),
         String(p.amountCents),
-        String(p.platformFeeCents),
+        String(fee),
         String(net),
-        csv(p.status),
+        csv(p.status ?? ""),
         csv(p.providerPaymentId ?? ""),
       ].join(","),
     );

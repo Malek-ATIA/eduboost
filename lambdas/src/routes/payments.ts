@@ -86,22 +86,22 @@ paymentRoutes.get(
 
     const pdf = await renderInvoicePdf({
       paymentId: payment.data.paymentId,
-      createdAt: payment.data.createdAt,
+      createdAt: payment.data.createdAt ?? new Date().toISOString(),
       bookingId: payment.data.bookingId,
       bookingType: booking.data.type,
-      currency: payment.data.currency,
+      currency: payment.data.currency ?? "EUR",
       amountCents: payment.data.amountCents,
-      platformFeeCents: payment.data.platformFeeCents,
+      platformFeeCents: payment.data.platformFeeCents ?? 0,
       payer: { displayName: payer.data.displayName, email: payer.data.email },
       payee: { displayName: payee.data.displayName, email: payee.data.email },
     });
 
-    c.header("Content-Type", "application/pdf");
-    c.header(
-      "Content-Disposition",
-      `attachment; filename="eduboost-invoice-${paymentId}.pdf"`,
-    );
-    c.header("Cache-Control", "private, max-age=300");
-    return c.body(pdf);
+    return new Response(new Uint8Array(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="eduboost-invoice-${paymentId}.pdf"`,
+        "Cache-Control": "private, max-age=300",
+      },
+    });
   },
 );

@@ -114,6 +114,7 @@ export class ApiStack extends cdk.Stack {
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
         GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL ?? "",
         GOOGLE_STATE_SECRET: process.env.GOOGLE_STATE_SECRET ?? "",
+        BEDROCK_GRADING_MODEL_ID: process.env.BEDROCK_GRADING_MODEL_ID ?? "",
       },
     });
 
@@ -168,6 +169,18 @@ export class ApiStack extends cdk.Stack {
         // SNS direct-publish to a phone number ("PhoneNumber" target) uses the
         // wildcard resource; AWS does not expose per-phone-number ARNs.
         resources: ["*"],
+      }),
+    );
+
+    handler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        // Bedrock model ARNs are regional. Restrict to the inference profiles
+        // we care about in this region; wildcard on account portion only.
+        resources: [
+          `arn:aws:bedrock:${this.region}::foundation-model/anthropic.*`,
+          `arn:aws:bedrock:${this.region}:${cdk.Aws.ACCOUNT_ID}:inference-profile/*`,
+        ],
       }),
     );
 

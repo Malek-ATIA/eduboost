@@ -63,6 +63,7 @@ export default function DashboardPage() {
       { href: "/attendance", label: "My attendance", description: "Your attendance record across sessions" },
       { href: "/marketplace", label: "Marketplace", description: "Browse study materials for sale" },
       { href: "/orders", label: "My orders", description: "Digital tutorials you've purchased" },
+      { href: "/grades", label: "My grades", description: "Feedback from AI-graded submissions" },
     );
   }
   if (role === "parent") {
@@ -89,6 +90,8 @@ export default function DashboardPage() {
       { href: "/seller/listings", label: "Marketplace listings", description: "Sell digital study materials" },
       { href: "/seller/orders", label: "Marketplace sales", description: "Orders on your listings" },
       { href: "/teacher/earnings", label: "Earnings", description: "Gross, fee, and net income across sessions and marketplace" },
+      { href: "/teacher/grader", label: "AI grader", description: "Score submissions with Claude + a rubric" },
+      { href: "/grades", label: "Grades given", description: "History of your AI-graded submissions" },
     );
   }
   if (admin) {
