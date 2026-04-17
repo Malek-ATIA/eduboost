@@ -141,6 +141,12 @@ export class ApiStack extends cdk.Stack {
       integration,
     });
 
+    api.addRoutes({
+      path: "/reviews/teachers/{proxy+}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
     this.apiUrl = api.apiEndpoint;
 
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });

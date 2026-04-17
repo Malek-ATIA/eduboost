@@ -424,6 +424,51 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
   - Stripe charge.refunded fallback to PaymentIntent metadata — LOW severity, acceptable for MVP.
   - CORS origin `*` — acceptable for MVP, lock to CloudFront domain before production.
 
+### 2026-04-17 — Phase 2A pass (Reviews + Lesson requests + Parent-child CRUD)
+
+**Phase 2A brings EduBoost from MVP to "trustworthy marketplace" by adding the trust/onboarding features deferred from Phase 1.**
+
+**Reviews & ratings** (2026-04-17) — signed off
+- ReviewEntity with primary/byTeacher/byReviewer/byBooking indexes
+- POST /reviews (requires confirmed/completed booking owned by reviewer; one-per-booking)
+- GET /reviews/teachers/:id (public, via CDK public route)
+- DELETE /reviews/:id (author or admin)
+- `recomputeTeacherRating` keeps TeacherProfileEntity.ratingAvg/ratingCount in sync
+- `review_posted` notification
+- UI: star-picker form at /reviews/new, "Review" CTA on /bookings, reviews section on teacher detail with delete button for author/admin
+- Fixes from verifier: UserEntity.get cascade wrapped in try/catch; 409 mapped to friendly messages; teacher profile refetched after delete so the header updates
+- MVP tradeoffs: one-review-per-booking race (low risk), eventual-consistent aggregate (last-write-wins), 1000-review aggregate cap
+
+**Lesson-request flow** (2026-04-17) — signed off
+- LessonRequestEntity with status machine (pending/accepted/rejected/cancelled/expired); byStudent + byTeacher GSIs
+- POST /lesson-requests (blocks self-request, validates teacher role)
+- GET /lesson-requests/mine (student outbox), GET /inbox (teacher inbox), GET /:id (gated to participants)
+- POST /:id/accept, /:id/reject (teacher), /:id/cancel (student)
+- 3 notification types (created/accepted/rejected) → correct audiences
+- UI: Request CTA on teacher detail, /requests role-aware list, /requests/[id] detail with accept/reject/cancel actions and post-accept "Book a session" CTA
+- Audited with TWO separate agents (user correction — no collapsed pipeline). Verifier caught unguarded UserEntity.get cascade in respond() and wrapped it; conditional patchAttrs pattern adopted to avoid explicit-undefined hazard
+- MVP tradeoffs: concurrent accept/reject race (dup notifications), admin sees empty mine list
+
+**Parent ↔ child CRUD** (2026-04-17) — signed off
+- ParentChildLinkEntity extended with status (pending/accepted/rejected), respondedAt, watched updatedAt; PARENT_CHILD_LINK_STATUSES exported
+- POST /family/children (parent invites by email; validates role, blocks self-link, requires student role, prevents duplicates)
+- GET /family/children (parent's children with hydrated user data), PATCH /children/:childId (update relationship, 400 if empty body), DELETE /children/:childId
+- GET /family/parents (child's parents), POST /family/parents/:parentId/accept|reject (child responds, status-guarded)
+- 3 notification types (child_link_requested/accepted/rejected)
+- UI: /parent/children (gated to parent role) list + invite form + error mapping + remove; /student/parents (gated) list + accept/reject for pending
+- Audited with TWO separate agents. Verifier fixed brittle Parameters<...> type (replaced with Context import) and added empty-PATCH guard
+- MVP tradeoffs: GSI eventual consistency on parent-create → child-read, read endpoints fan-out Promise.all rejection on single failure, re-invite after rejection requires delete-then-create
+
+**Files added/modified in Phase 2A pass:**
+- db/src/entities/review.ts (new), lesson-request.ts (new); parent.ts (status + respondedAt + updatedAt)
+- db/src/entities/index.ts (re-exports); notification.ts (7 new notification types total across reviews + lesson-requests + parent-child)
+- lambdas/src/routes/reviews.ts, lesson-requests.ts, family.ts (new)
+- lambdas/src/app.ts (mounted /reviews, /lesson-requests, /family)
+- cdk/lib/api-stack.ts (public GET /reviews/teachers/{proxy+} route)
+- web/src/app/reviews/new/page.tsx (new); /bookings/page.tsx, /teachers/[userId]/page.tsx (Review CTA, reviews section w/ delete)
+- web/src/app/requests/ (new: new, list, [requestId] detail); teachers/[userId] CTA; dashboard links
+- web/src/app/parent/children/page.tsx, /student/parents/page.tsx (new); dashboard links
+
 ### 2026-04-17 — Features 13 + 15 pass (FAQ/Contact + admin ban tool)
 
 **Auditor + Verifier findings:**

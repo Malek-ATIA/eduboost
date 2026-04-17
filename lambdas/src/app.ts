@@ -13,6 +13,9 @@ import { sessionRoutes } from "./routes/sessions.js";
 import { notificationRoutes } from "./routes/notifications.js";
 import { supportRoutes } from "./routes/support.js";
 import { adminRoutes } from "./routes/admin.js";
+import { reviewRoutes } from "./routes/reviews.js";
+import { lessonRequestRoutes } from "./routes/lesson-requests.js";
+import { familyRoutes } from "./routes/family.js";
 
 export const app = new Hono();
 
@@ -37,6 +40,9 @@ app.route("/chat", chatRoutes);
 app.route("/notifications", notificationRoutes);
 app.route("/support", supportRoutes);
 app.route("/admin", adminRoutes);
+app.route("/reviews", reviewRoutes);
+app.route("/lesson-requests", lessonRequestRoutes);
+app.route("/family", familyRoutes);
 
 app.onError((err, c) => {
   console.error(err);

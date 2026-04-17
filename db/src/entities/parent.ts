@@ -2,6 +2,9 @@ import { Entity } from "electrodb";
 import { ddbDoc, TABLE_NAME } from "../client.js";
 import { SERVICE } from "../table-schema.js";
 
+export const PARENT_CHILD_LINK_STATUSES = ["pending", "accepted", "rejected"] as const;
+export type ParentChildLinkStatus = (typeof PARENT_CHILD_LINK_STATUSES)[number];
+
 export const ParentChildLinkEntity = new Entity(
   {
     model: { entity: "parentChildLink", version: "1", service: SERVICE },
@@ -9,7 +12,10 @@ export const ParentChildLinkEntity = new Entity(
       parentId: { type: "string", required: true },
       childId: { type: "string", required: true },
       relationship: { type: ["mother", "father", "guardian"] as const, required: true },
+      status: { type: PARENT_CHILD_LINK_STATUSES, default: "pending" },
+      respondedAt: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
+      updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
     },
     indexes: {
       primary: {

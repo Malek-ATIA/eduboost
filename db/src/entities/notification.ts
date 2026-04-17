@@ -10,6 +10,13 @@ export const NOTIFICATION_TYPES = [
   "new_dm",
   "new_classroom_message",
   "support_ticket_reply",
+  "review_posted",
+  "lesson_request_created",
+  "lesson_request_accepted",
+  "lesson_request_rejected",
+  "child_link_requested",
+  "child_link_accepted",
+  "child_link_rejected",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

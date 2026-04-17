@@ -28,11 +28,27 @@ export default function DashboardPage() {
     links.push(
       { href: "/teachers", label: "Find a teacher", description: "Browse verified tutors and book a trial session" },
       { href: "/bookings", label: "My bookings", description: "Upcoming and past sessions" },
+      { href: "/requests", label: "My lesson requests", description: "Requests you've sent to teachers" },
     );
+  }
+  if (role === "parent") {
+    links.push({
+      href: "/parent/children",
+      label: "My children",
+      description: "Manage linked student accounts",
+    });
+  }
+  if (role === "student") {
+    links.push({
+      href: "/student/parents",
+      label: "My parents / guardians",
+      description: "Accept or view parent link requests",
+    });
   }
   if (role === "teacher") {
     links.push(
       { href: "/teacher/profile", label: "Edit your profile", description: "Bio, subjects, hourly rate" },
+      { href: "/requests", label: "Lesson requests", description: "Accept or decline incoming requests" },
     );
   }
   if (admin) {

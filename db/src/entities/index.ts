@@ -1,6 +1,10 @@
 export { UserEntity } from "./user.js";
 export { TeacherProfileEntity } from "./teacher.js";
-export { ParentChildLinkEntity } from "./parent.js";
+export {
+  ParentChildLinkEntity,
+  PARENT_CHILD_LINK_STATUSES,
+  type ParentChildLinkStatus,
+} from "./parent.js";
 export { ClassroomEntity, ClassroomMembershipEntity } from "./classroom.js";
 export { SessionEntity } from "./session.js";
 export { BookingEntity } from "./booking.js";
@@ -26,3 +30,10 @@ export {
   type TicketPriority,
   type TicketAuthorRole,
 } from "./support.js";
+export { ReviewEntity, makeReviewId } from "./review.js";
+export {
+  LessonRequestEntity,
+  LESSON_REQUEST_STATUSES,
+  makeLessonRequestId,
+  type LessonRequestStatus,
+} from "./lesson-request.js";

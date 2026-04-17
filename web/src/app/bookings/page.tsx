@@ -56,23 +56,36 @@ export default function BookingsPage() {
       )}
       {items && items.length > 0 && (
         <ul className="mt-6 divide-y rounded border">
-          {items.map((b) => (
-            <li key={b.bookingId} className="flex items-center justify-between p-4">
-              <div>
-                <div className="font-medium capitalize">{b.type} session</div>
-                <div className="text-sm text-gray-500">
-                  {new Date(b.createdAt).toLocaleString()} ·{" "}
-                  <Link className="underline" href={`/teachers/${b.teacherId}`}>
-                    teacher
-                  </Link>
+          {items.map((b) => {
+            const canReview = b.status === "confirmed" || b.status === "completed";
+            return (
+              <li key={b.bookingId} className="flex items-center justify-between p-4">
+                <div>
+                  <div className="font-medium capitalize">{b.type} session</div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(b.createdAt).toLocaleString()} ·{" "}
+                    <Link className="underline" href={`/teachers/${b.teacherId}` as never}>
+                      teacher
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="font-medium">€{(b.amountCents / 100).toFixed(2)}</div>
-                <div className={`text-xs uppercase ${STATUS_COLORS[b.status]}`}>{b.status}</div>
-              </div>
-            </li>
-          ))}
+                <div className="flex items-center gap-3 text-right">
+                  <div>
+                    <div className="font-medium">€{(b.amountCents / 100).toFixed(2)}</div>
+                    <div className={`text-xs uppercase ${STATUS_COLORS[b.status]}`}>{b.status}</div>
+                  </div>
+                  {canReview && (
+                    <Link
+                      href={`/reviews/new?bookingId=${b.bookingId}`}
+                      className="rounded border px-3 py-1 text-xs"
+                    >
+                      Review
+                    </Link>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
