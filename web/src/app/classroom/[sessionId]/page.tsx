@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import {
   ConsoleLogger,
@@ -38,6 +39,16 @@ const ATTENDANCE_STATUSES = ["present", "late", "absent", "excused"] as const;
 type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 const CHAT_TOPIC = "classroom-chat";
 
+type BreakoutRoom = {
+  sessionId: string;
+  breakoutId: string;
+  label: string;
+  chimeMeetingId: string;
+  createdBy: string;
+  assignedUserIds: string[];
+  createdAt: string;
+};
+
 export default function ClassroomPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = use(params);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -52,6 +63,19 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const [viewerSub, setViewerSub] = useState<string | null>(null);
   const [teacherId, setTeacherId] = useState<string | null>(null);
   const [attendance, setAttendance] = useState<AttendanceItem[] | null>(null);
+  const [breakouts, setBreakouts] = useState<BreakoutRoom[] | null>(null);
+  const [newBreakoutLabel, setNewBreakoutLabel] = useState("");
+  const [newBreakoutAssignees, setNewBreakoutAssignees] = useState("");
+  const [breakoutError, setBreakoutError] = useState<string | null>(null);
+
+  const loadBreakouts = useCallback(async () => {
+    try {
+      const r = await api<{ items: BreakoutRoom[] }>(`/chime/sessions/${sessionId}/breakouts`);
+      setBreakouts(r.items);
+    } catch (err) {
+      console.warn("breakouts load failed", err);
+    }
+  }, [sessionId]);
 
   const loadAttendance = useCallback(async () => {
     try {
@@ -106,7 +130,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
         session.audioVideo.startLocalVideoTile();
         setStatus("joined");
 
-        await loadAttendance();
+        await Promise.all([loadAttendance(), loadBreakouts()]);
       } catch (err) {
         setError((err as Error).message);
         setStatus("error");
@@ -116,7 +140,39 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       cancelled = true;
       sessionRef.current?.audioVideo.stop();
     };
-  }, [sessionId, loadAttendance]);
+  }, [sessionId, loadAttendance, loadBreakouts]);
+
+  async function createBreakout(e: React.FormEvent) {
+    e.preventDefault();
+    setBreakoutError(null);
+    const label = newBreakoutLabel.trim();
+    if (!label) return;
+    const assignedUserIds = newBreakoutAssignees
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    try {
+      await api(`/chime/sessions/${sessionId}/breakouts`, {
+        method: "POST",
+        body: JSON.stringify({ label, assignedUserIds }),
+      });
+      setNewBreakoutLabel("");
+      setNewBreakoutAssignees("");
+      await loadBreakouts();
+    } catch (err) {
+      setBreakoutError((err as Error).message);
+    }
+  }
+
+  async function endBreakout(breakoutId: string) {
+    if (!confirm("End this breakout and disconnect participants?")) return;
+    try {
+      await api(`/chime/sessions/${sessionId}/breakouts/${breakoutId}`, { method: "DELETE" });
+      await loadBreakouts();
+    } catch (err) {
+      setBreakoutError((err as Error).message);
+    }
+  }
 
   async function sendMessage() {
     const session = sessionRef.current;
@@ -256,6 +312,84 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           )}
         </section>
       )}
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Breakout rooms</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          {isTeacher
+            ? "Split the class into smaller groups. Each breakout is a separate video room; students you assign can join from here."
+            : "If the teacher assigns you to a breakout, click Join to move there."}
+        </p>
+
+        {isTeacher && (
+          <form onSubmit={createBreakout} className="mt-4 grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+            <input
+              value={newBreakoutLabel}
+              onChange={(e) => setNewBreakoutLabel(e.target.value)}
+              placeholder="Room label (e.g. Group A)"
+              maxLength={60}
+              className="rounded border px-3 py-2 text-sm"
+            />
+            <input
+              value={newBreakoutAssignees}
+              onChange={(e) => setNewBreakoutAssignees(e.target.value)}
+              placeholder="Assigned student IDs (comma-separated)"
+              className="rounded border px-3 py-2 font-mono text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!newBreakoutLabel.trim()}
+              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            >
+              Create breakout
+            </button>
+          </form>
+        )}
+
+        {breakoutError && <p className="mt-2 text-sm text-red-600">{breakoutError}</p>}
+
+        {breakouts && breakouts.length === 0 && (
+          <p className="mt-4 text-sm text-gray-500">No breakouts yet.</p>
+        )}
+
+        {breakouts && breakouts.length > 0 && (
+          <ul className="mt-4 divide-y rounded border">
+            {breakouts.map((b) => {
+              const canJoin = isTeacher || (viewerSub && b.assignedUserIds.includes(viewerSub));
+              return (
+                <li key={b.breakoutId} className="flex items-center justify-between p-3">
+                  <div>
+                    <div className="font-medium">{b.label}</div>
+                    <div className="text-xs text-gray-500">
+                      {b.assignedUserIds.length} assigned · created{" "}
+                      {new Date(b.createdAt).toLocaleTimeString()}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {canJoin && (
+                      <Link
+                        href={`/breakout/${sessionId}/${b.breakoutId}`}
+                        target="_blank"
+                        className="rounded border px-3 py-1 text-sm hover:border-black dark:hover:border-white"
+                      >
+                        Join
+                      </Link>
+                    )}
+                    {isTeacher && (
+                      <button
+                        onClick={() => endBreakout(b.breakoutId)}
+                        className="rounded px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                      >
+                        End
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <audio ref={audioRef} />
     </main>

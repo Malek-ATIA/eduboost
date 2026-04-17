@@ -347,7 +347,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Event planning services (venue, dates, ticketing, organization)
 - Forum (Reddit-style posts, comments, votes, channels)
 - Whiteboard
-- Split rooms (breakout rooms within classroom)
 - Note-keeping of key learning points
 - Integrations: Google Drive/Docs/Slides/Calendar, WhatsApp, social media, external educational tools
 - Suggested T&Os (paid advertisements)
@@ -400,6 +399,27 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #2 pass (Breakout rooms via Chime sub-meetings)
+
+**Breakout rooms (split rooms within a classroom session)** — signed off
+- New `BreakoutRoomEntity` keyed by `pk=sessionId, sk=breakoutId` (primary index only). Attributes: `label`, `chimeMeetingId`, `createdBy`, `assignedUserIds` (list, default `[]`, cap 50), `createdAt` (default ISO now, readOnly). `makeBreakoutId()` produces `brk_<ts36><rand36>`.
+- Four routes on `lambdas/src/routes/chime.ts` under `/sessions/:sessionId/breakouts*`, all behind the file-level `requireAuth` middleware:
+  - `POST /breakouts` (teacher-only): zod-validated `label` 1-60, `assignedUserIds` cap 50; creates a child Chime meeting with `ClientRequestToken: nanoid()` and `ExternalMeetingId: ${sessionId}#brk#${nanoid(8)}` so the namespace is scoped to the parent session.
+  - `GET /breakouts` (teacher OR classroom member): `BreakoutRoomEntity.query.primary({ sessionId }).go({ limit: 50 })`.
+  - `POST /breakouts/:breakoutId/join` (teacher always; student only if in `assignedUserIds`): returns `{ MeetingId, MediaRegion }` + the attendee credential. IDOR guard is an explicit `not_assigned` 403 — classroom membership alone is insufficient by design.
+  - `DELETE /breakouts/:breakoutId` (teacher-only): best-effort `DeleteMeetingCommand`, then delete the DDB row. 404-on-delete is treated as a no-op success.
+- UI: `/classroom/[sessionId]` gets a breakouts panel (teacher-only create + end buttons, conditional join link for assigned students); `/breakout/[sessionId]/[breakoutId]` is the join page.
+- Auditor blocker (confirmed by Verifier reading `chime.ts` lines 107-162): `POST /chime/sessions/:sessionId/end` deleted the parent Chime meeting, cancelled reminders, and cleaned up Google Calendar events — but did NOT iterate/delete child breakouts, so child Chime meetings and DDB rows would leak after the parent session completed.
+- Verifier fix: after `cancelReminders` and before Google Calendar cleanup, iterate `BreakoutRoomEntity.query.primary({ sessionId }).go({ limit: 50 })` and for each breakout call `DeleteMeetingCommand` (non-fatal on failure, `console.warn`) + `BreakoutRoomEntity.delete({ sessionId, breakoutId }).go()`. The whole block is wrapped in try/catch with `console.error` — matching the existing non-fatal-cleanup pattern for Google Calendar. Breakout cleanup failures do not block the end-of-session response.
+- Independent Verifier checks:
+  - Confirmed `BreakoutRoomEntity.query.primary({ sessionId })` is the correct access pattern (the only index declared is `primary` with `pk=sessionId, sk=breakoutId`).
+  - Grepped `breakout`/`BreakoutRoom` across `lambdas/src` and `db/src`: only references are `chime.ts`, `breakout.ts`, and the `entities/index.ts` re-export. No `AttendanceEntity` or other entity holds a breakout FK that could orphan.
+  - Spot-checked the `not_assigned` authz on POST /join: `isTeacher = session.data.teacherId === sub`; `isAssigned = (breakout.data.assignedUserIds ?? []).includes(sub)`; 403 when neither is true — correct.
+  - Classroom UI breakout panel continues to fetch the list endpoint; after the parent session ends the teacher typically navigates away, so a transiently stale list (showing breakouts whose Chime meetings have been deleted) is not a live user-facing hazard — flagged as acceptable.
+- Auditor nit (documentation): "Split rooms (breakout rooms within classroom)" was still listed under `## Deferred (explicit)` (now removed) and 2F #2 was missing from the audit log (this entry).
+- **Typecheck status:** db / lambdas / web all PASS after the cleanup fix.
+- MVP tradeoffs (deferred): broadcast-move (teacher moves everyone in/out), timer-based auto-close, audio bridge between breakouts, reassignment UI after a breakout is created, metrics on breakout attendance, rate limiting on create.
 
 ### 2026-04-17 — Phase 2F #1 pass (AI grading via Bedrock)
 
