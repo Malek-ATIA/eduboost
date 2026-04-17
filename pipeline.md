@@ -355,7 +355,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Review session between teachers and students/parents
 - Profile checking by team (manual verification workflow)
 - Money-back guarantee policy (UX + backend)
-- Comprehensive dispute system for payments and reviews
 - Private educational organization team admin (assign students per classroom)
 - Commercial organization marketplace
 - Membership plans / paid extras
@@ -398,6 +397,34 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #4 pass (Dispute system with SLAs)
+
+**Comprehensive dispute system for payments and reviews with SLA deadlines and admin resolution workflow** — signed off
+- Extends the existing support ticket system (`SupportTicketEntity`) with dispute-specific fields: `priority` (urgent/high/normal/low), `slaDeadline` (ISO), `relatedPaymentId`, `relatedReviewId`, `resolvedAt`, `resolvedBy`, `resolution`, `resolutionNote`. `TICKET_RESOLUTIONS = ["refund_full","refund_partial","review_removed","no_action","warning_issued"]` exported from `db/src/entities/index.ts`.
+- SLA windows (in `lambdas/src/routes/support.ts`): urgent=4h, high=24h, normal=48h, low=168h. `computeSlaDeadline(priority)` is called once at ticket creation; not recomputed on priority changes (MVP).
+- `POST /tickets`: accepts `relatedPaymentId`/`relatedReviewId` and validates the caller is a party — payment disputes require the caller is payer OR payee; review disputes require the caller is the subject teacher OR the reviewer. Prevents noisy third-party reports.
+- `POST /tickets/:ticketId/resolve` (admin-only via `groups.includes("admin")`): zod-validated structured outcome with `.refine()` forcing `refundCents` present for `refund_partial`. Idempotency via 409 `already_resolved`. Side effects execute before the ticket is marked resolved — a Stripe failure returns 502 and the ticket stays open so admins can retry.
+  - `refund_full` / `refund_partial`: calls `stripe().refunds.create({ payment_intent, amount })` with either the full `payment.amountCents` or the partial value. On full refund, also patches the `PaymentEntity.status` to `"refunded"`. 409 `already_refunded` if the payment row is already refunded.
+  - `review_removed`: sets `hiddenAt`/`hiddenBy`/`hiddenReason` on the `ReviewEntity` and recomputes the teacher's visible rating aggregate inline (filters `!r.hiddenAt`, writes `ratingAvg`/`ratingCount` to `TeacherProfileEntity`). The recompute mirrors `reviewRoutes::recomputeTeacherRating` to avoid a cross-route import cycle.
+  - `no_action` / `warning_issued`: annotation-only, no side effects.
+- A `system`-role message is appended to the ticket thread after side effects succeed, summarising the resolution + admin note. The in-app `notify()` call at the end is wrapped in try/catch and non-fatal.
+- `GET /tickets/overdue` (admin-only via `requireAdmin`): returns tickets whose `slaDeadline < now` and `status ∉ {resolved, closed}`, capped at `limit`. For the overdue list UI.
+- `GET /reviews/teachers/:teacherId` filters `!r.hiddenAt` on the public list and `recomputeTeacherRating` filters hidden rows on every write, so a takedown immediately reflects in both the visible list and the star average.
+- Auditor's should-fix (confirmed by Verifier reading `lambdas/src/routes/support.ts` lines 293-320): the refund branch capped `refundCents` at 100_000_00 (100k) via zod but did NOT check `refundCents <= payment.data.amountCents`. An admin typoing a too-large partial refund would hit Stripe and get a 502 — misleading because it isn't a Stripe failure, it's a validation failure on our side. The route already fetched the `payment` row, so the check is a free comparison.
+- Verifier fix (`lambdas/src/routes/support.ts` right after the `already_refunded` 409 check, before the `stripe().refunds.create(...)` call):
+  ```
+  if (resolution === "refund_partial" && refundCents! > payment.data.amountCents) {
+    return c.json({ error: "refund_exceeds_payment_amount" }, 400);
+  }
+  ```
+- Independent Verifier checks (beyond the Auditor):
+  - Confirmed `TICKET_RESOLUTIONS` is exported from `db/src/entities/index.ts` (line 29) and imported in `support.ts` (line 21); the zod `resolution` enum binds to the same tuple.
+  - Grepped `hiddenAt` across the repo — only three files reference it: `db/src/entities/review.ts` (attribute), `lambdas/src/routes/support.ts` (takedown writer), `lambdas/src/routes/reviews.ts` (public list + aggregate filter). No booking-detail or review-by-id endpoint surfaces reviews, so takedown propagation is complete.
+  - `ratingAvg`/`ratingCount` are DDB attributes on `TeacherProfileEntity` — they are recomputed on every write and are not cached in any external store (Redis, CloudFront, etc.). Grep of `ratingAvg`/`ratingCount` confirms only web pages reading from the DDB row, no cache layer.
+  - `DELETE /reviews/:reviewId`: does NOT check `hiddenAt` before deleting — intentionally fine. Deletion of an already-hidden review is destructive but harmless; `recomputeTeacherRating` is called afterwards and filters hidden anyway, so the aggregate stays correct whether the deleted row was hidden or not.
+- MVP trade-offs (deferred): no partial-refund accumulation check — if two `refund_partial` resolutions fire against the same payment, we only block refunds exceeding the full original amount, not the remaining amount after prior partials (Stripe itself will reject over-refunds so the worst case is a 502). No auto-escalation on SLA breach (overdue endpoint is pull-based, not push). No reviewer notification on takedown (they can see it in their own reviews list). `refundCents` zod ceiling of 100_000_00 (100k USD) is a belt-and-suspenders sanity cap above the `<= payment.amountCents` check.
+- **Typecheck status:** db / lambdas / web / cdk all PASS.
 
 ### 2026-04-17 — Phase 2F #3 pass (Shared whiteboard)
 

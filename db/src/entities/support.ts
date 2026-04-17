@@ -25,6 +25,15 @@ export type TicketStatus = (typeof TICKET_STATUSES)[number];
 export const TICKET_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 
+export const TICKET_RESOLUTIONS = [
+  "no_action",
+  "refund_full",
+  "refund_partial",
+  "review_removed",
+  "warning_issued",
+] as const;
+export type TicketResolution = (typeof TICKET_RESOLUTIONS)[number];
+
 export const SupportTicketEntity = new Entity(
   {
     model: { entity: "supportTicket", version: "1", service: SERVICE },
@@ -37,6 +46,16 @@ export const SupportTicketEntity = new Entity(
       priority: { type: TICKET_PRIORITIES, default: "normal" },
       bookingId: { type: "string" },
       assignedAdminId: { type: "string" },
+      // Dispute extensions — populated when the ticket is filed against a
+      // specific payment or review. SLA deadline is computed from priority at
+      // creation time; admins resolve by setting resolution + resolvedAt.
+      relatedPaymentId: { type: "string" },
+      relatedReviewId: { type: "string" },
+      slaDeadline: { type: "string" },
+      resolvedAt: { type: "string" },
+      resolvedBy: { type: "string" },
+      resolution: { type: TICKET_RESOLUTIONS },
+      resolutionNote: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
     },

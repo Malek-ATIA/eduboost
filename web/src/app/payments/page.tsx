@@ -118,6 +118,17 @@ export default function PaymentsPage() {
                     {downloadingId === p.paymentId ? "..." : "Invoice"}
                   </button>
                 )}
+                {(p.status === "succeeded" || p.status === "failed") && (
+                  <Link
+                    href={{
+                      pathname: "/support/new",
+                      query: { category: "payment_dispute", paymentId: p.paymentId, bookingId: p.bookingId },
+                    }}
+                    className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                  >
+                    Dispute
+                  </Link>
+                )}
               </div>
             </li>
           ))}

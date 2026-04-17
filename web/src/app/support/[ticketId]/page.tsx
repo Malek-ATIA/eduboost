@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { currentSession } from "@/lib/cognito";
+import { currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
 
 type Ticket = {
@@ -13,9 +13,23 @@ type Ticket = {
   status: string;
   priority: string;
   bookingId?: string;
+  relatedPaymentId?: string;
+  relatedReviewId?: string;
+  slaDeadline?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  resolution?: string;
+  resolutionNote?: string;
   createdAt: string;
   updatedAt: string;
 };
+
+type ResolutionOutcome =
+  | "no_action"
+  | "refund_full"
+  | "refund_partial"
+  | "review_removed"
+  | "warning_issued";
 
 type Attachment = {
   s3Key: string;
@@ -46,6 +60,11 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
+  const [resolution, setResolution] = useState<ResolutionOutcome>("no_action");
+  const [resolutionNote, setResolutionNote] = useState("");
+  const [refundAmount, setRefundAmount] = useState("");
+  const [resolving, setResolving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -63,6 +82,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
         router.replace("/login");
         return;
       }
+      setAdmin(isAdmin(session));
       load();
     })();
   }, [router, load]);
@@ -122,6 +142,40 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
     }
   }
 
+  async function resolveTicket(e: React.FormEvent) {
+    e.preventDefault();
+    if (resolutionNote.trim().length < 10) {
+      setError("Resolution note must be at least 10 characters.");
+      return;
+    }
+    setResolving(true);
+    setError(null);
+    try {
+      const body: Record<string, unknown> = {
+        resolution,
+        note: resolutionNote.trim(),
+      };
+      if (resolution === "refund_partial") {
+        const cents = Math.round(Number(refundAmount) * 100);
+        if (!Number.isFinite(cents) || cents < 1) {
+          throw new Error("Enter a valid refund amount.");
+        }
+        body.refundCents = cents;
+      }
+      await api(`/support/tickets/${ticketId}/resolve`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      setResolutionNote("");
+      setRefundAmount("");
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setResolving(false);
+    }
+  }
+
   async function downloadAttachment(att: Attachment) {
     setDownloadingKey(att.s3Key);
     try {
@@ -157,6 +211,40 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
           {ticket.bookingId && (
             <p className="mt-1 text-sm text-gray-500">
               Linked booking: <span className="font-mono">{ticket.bookingId}</span>
+            </p>
+          )}
+          {ticket.relatedPaymentId && (
+            <p className="mt-1 text-sm text-gray-500">
+              Disputed payment: <span className="font-mono">{ticket.relatedPaymentId}</span>
+            </p>
+          )}
+          {ticket.relatedReviewId && (
+            <p className="mt-1 text-sm text-gray-500">
+              Disputed review: <span className="font-mono">{ticket.relatedReviewId}</span>
+            </p>
+          )}
+          {ticket.slaDeadline && !ticket.resolvedAt && (
+            <p className="mt-1 text-xs">
+              <span className="text-gray-500">SLA deadline:</span>{" "}
+              <span
+                className={
+                  new Date(ticket.slaDeadline) < new Date()
+                    ? "font-medium text-red-600"
+                    : "text-gray-700 dark:text-gray-300"
+                }
+              >
+                {new Date(ticket.slaDeadline).toLocaleString()}
+                {new Date(ticket.slaDeadline) < new Date() && " (overdue)"}
+              </span>
+            </p>
+          )}
+          {ticket.resolution && (
+            <p className="mt-1 text-xs text-gray-500">
+              Resolution:{" "}
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {ticket.resolution.replace(/_/g, " ")}
+              </span>
+              {ticket.resolvedAt && ` · ${new Date(ticket.resolvedAt).toLocaleString()}`}
             </p>
           )}
         </div>
@@ -252,6 +340,81 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
         <p className="mt-6 text-sm text-gray-500">
           This ticket is {ticket.status}. <Link href="/support/new" className="underline">Open a new one</Link> if needed.
         </p>
+      )}
+
+      {admin && !closed && (
+        <section className="mt-8 rounded border border-amber-300 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
+          <h2 className="text-lg font-semibold">Admin resolution</h2>
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            Resolving closes the ticket, records a system message in the
+            thread, and (for refund/review_removed outcomes) executes the
+            relevant side effect.
+          </p>
+          <form onSubmit={resolveTicket} className="mt-4 space-y-3">
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium">Outcome</span>
+              <select
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value as ResolutionOutcome)}
+                className="w-full rounded border px-3 py-2 text-sm"
+              >
+                <option value="no_action">No action</option>
+                <option value="warning_issued">Warning issued</option>
+                <option value="refund_full" disabled={!ticket.relatedPaymentId}>
+                  Refund (full){!ticket.relatedPaymentId && " — no linked payment"}
+                </option>
+                <option value="refund_partial" disabled={!ticket.relatedPaymentId}>
+                  Refund (partial){!ticket.relatedPaymentId && " — no linked payment"}
+                </option>
+                <option value="review_removed" disabled={!ticket.relatedReviewId}>
+                  Remove review{!ticket.relatedReviewId && " — no linked review"}
+                </option>
+              </select>
+            </label>
+
+            {resolution === "refund_partial" && (
+              <label className="block max-w-xs">
+                <span className="mb-1 block text-sm font-medium">
+                  Refund amount (in main currency units)
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  className="w-full rounded border px-3 py-2 text-sm"
+                  placeholder="e.g. 25.00"
+                  required
+                />
+              </label>
+            )}
+
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium">
+                Resolution note (shared with the user)
+              </span>
+              <textarea
+                rows={3}
+                minLength={10}
+                maxLength={2000}
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+                className="w-full rounded border px-3 py-2 text-sm"
+                placeholder="Explain what was decided and why."
+                required
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={resolving || resolutionNote.trim().length < 10}
+              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            >
+              {resolving ? "Resolving..." : "Resolve ticket"}
+            </button>
+          </form>
+        </section>
       )}
     </main>
   );

@@ -34,13 +34,19 @@ function NewTicketForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const presetBookingId = searchParams.get("bookingId") ?? "";
+  const presetPaymentId = searchParams.get("paymentId") ?? "";
+  const presetReviewId = searchParams.get("reviewId") ?? "";
   const rawCategory = searchParams.get("category");
   const presetCategory: Category | null = isCategory(rawCategory) ? rawCategory : null;
 
   const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState<Category>(presetCategory ?? "other");
+  const [category, setCategory] = useState<Category>(
+    presetCategory ?? (presetPaymentId ? "payment_dispute" : presetReviewId ? "review_dispute" : "other"),
+  );
   const [priority, setPriority] = useState<"low" | "normal" | "high" | "urgent">("normal");
   const [bookingId, setBookingId] = useState(presetBookingId);
+  const [relatedPaymentId, setRelatedPaymentId] = useState(presetPaymentId);
+  const [relatedReviewId, setRelatedReviewId] = useState(presetReviewId);
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -106,6 +112,8 @@ function NewTicketForm() {
           priority,
           body,
           bookingId: bookingId || undefined,
+          relatedPaymentId: relatedPaymentId || undefined,
+          relatedReviewId: relatedReviewId || undefined,
         }),
       });
 
@@ -184,6 +192,28 @@ function NewTicketForm() {
               value={bookingId}
               onChange={(e) => setBookingId(e.target.value)}
               placeholder="bk_..."
+            />
+          </Field>
+        )}
+
+        {category === "payment_dispute" && (
+          <Field label="Related payment ID (optional)">
+            <input
+              className="w-full rounded border px-3 py-2 font-mono"
+              value={relatedPaymentId}
+              onChange={(e) => setRelatedPaymentId(e.target.value)}
+              placeholder="pay_..."
+            />
+          </Field>
+        )}
+
+        {category === "review_dispute" && (
+          <Field label="Related review ID (optional)">
+            <input
+              className="w-full rounded border px-3 py-2 font-mono"
+              value={relatedReviewId}
+              onChange={(e) => setRelatedReviewId(e.target.value)}
+              placeholder="rv_..."
             />
           </Field>
         )}

@@ -21,7 +21,10 @@ reviewRoutes.get(
     const result = await ReviewEntity.query
       .byTeacher({ teacherId })
       .go({ limit: 50, order: "desc" });
-    return c.json({ items: result.data });
+    // Post-filter out admin-hidden reviews. The DDB row is retained for audit;
+    // only the public rendering excludes them.
+    const visible = result.data.filter((r) => !r.hiddenAt);
+    return c.json({ items: visible });
   },
 );
 
@@ -109,8 +112,12 @@ async function recomputeTeacherRating(teacherId: string): Promise<void> {
   // Acceptable while a teacher has <~1000 reviews. Beyond that, maintain a running
   // aggregate via DDB Streams → small materialized counter instead.
   const all = await ReviewEntity.query.byTeacher({ teacherId }).go({ limit: 1000 });
-  const count = all.data.length;
-  const avg = count === 0 ? 0 : all.data.reduce((sum, r) => sum + r.rating, 0) / count;
+  // Exclude hidden reviews from the aggregate so takedowns restore the
+  // teacher's visible rating. Hidden rows stay for audit but must not
+  // influence the public average.
+  const visible = all.data.filter((r) => !r.hiddenAt);
+  const count = visible.length;
+  const avg = count === 0 ? 0 : visible.reduce((sum, r) => sum + r.rating, 0) / count;
   await TeacherProfileEntity.patch({ userId: teacherId })
     .set({ ratingAvg: Math.round(avg * 100) / 100, ratingCount: count })
     .go();

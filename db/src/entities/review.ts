@@ -12,6 +12,12 @@ export const ReviewEntity = new Entity(
       bookingId: { type: "string", required: true },
       rating: { type: "number", required: true },
       comment: { type: "string" },
+      // Admin takedown fields — set when a dispute against this review resolves
+      // with outcome="review_removed". Rendered callers should filter by
+      // `hiddenAt` absence; the row is kept for audit rather than deleted.
+      hiddenAt: { type: "string" },
+      hiddenBy: { type: "string" },
+      hiddenReason: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
     },
     indexes: {

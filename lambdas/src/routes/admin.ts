@@ -148,6 +148,34 @@ adminRoutes.get("/tickets", zValidator("query", ticketsQuery), async (c) => {
   return c.json({ items: result.data });
 });
 
+// Overdue disputes: tickets whose SLA deadline has passed without resolution.
+// Queries the byStatus GSI for open/in_review/awaiting_user partitions and
+// post-filters by slaDeadline < now. Small O(N) pass over at most `limit * 3`
+// tickets — acceptable for admin-only traffic.
+adminRoutes.get(
+  "/disputes/overdue",
+  zValidator(
+    "query",
+    z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) }),
+  ),
+  async (c) => {
+    const { limit } = c.req.valid("query");
+    const now = new Date().toISOString();
+    const activeStatuses = ["open", "in_review", "awaiting_user"] as const;
+    const lists = await Promise.all(
+      activeStatuses.map((s) =>
+        SupportTicketEntity.query.byStatus({ status: s }).go({ limit, order: "desc" }),
+      ),
+    );
+    const merged = lists
+      .flatMap((l) => l.data)
+      .filter((t) => t.slaDeadline && t.slaDeadline < now)
+      .sort((a, b) => (a.slaDeadline ?? "").localeCompare(b.slaDeadline ?? ""))
+      .slice(0, limit);
+    return c.json({ items: merged });
+  },
+);
+
 const verificationsQuery = z.object({
   status: z.enum(VERIFICATION_STATUSES).default("pending"),
   limit: z.coerce.number().int().min(1).max(100).default(50),

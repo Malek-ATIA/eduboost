@@ -26,12 +26,14 @@ export {
   TICKET_CATEGORIES,
   TICKET_STATUSES,
   TICKET_PRIORITIES,
+  TICKET_RESOLUTIONS,
   TICKET_AUTHOR_ROLES,
   makeTicketId,
   makeTicketMessageId,
   type TicketCategory,
   type TicketStatus,
   type TicketPriority,
+  type TicketResolution,
   type TicketAuthorRole,
 } from "./support.js";
 export { ReviewEntity, makeReviewId } from "./review.js";

@@ -12,6 +12,7 @@ type Ticket = {
   category: string;
   status: string;
   priority: string;
+  slaDeadline?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -22,6 +23,7 @@ export default function AdminTicketsPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState<(typeof STATUSES)[number] | "">("open");
+  const [overdueOnly, setOverdueOnly] = useState(false);
   const [items, setItems] = useState<Ticket[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,13 +48,16 @@ export default function AdminTicketsPage() {
     let cancelled = false;
     setItems(null);
     setError(null);
-    api<{ items: Ticket[] }>(`/admin/tickets${queryString}`)
+    const path = overdueOnly
+      ? `/admin/disputes/overdue`
+      : `/admin/tickets${queryString}`;
+    api<{ items: Ticket[] }>(path)
       .then((r) => !cancelled && setItems(r.items))
       .catch((err) => !cancelled && setError((err as Error).message));
     return () => {
       cancelled = true;
     };
-  }, [ready, queryString]);
+  }, [ready, queryString, overdueOnly]);
 
   if (!ready) return <main className="mx-auto max-w-4xl px-6 py-12">Loading...</main>;
 
@@ -65,20 +70,31 @@ export default function AdminTicketsPage() {
         </Link>
       </div>
 
-      <div className="mt-6 max-w-xs">
-        <label className="mb-1 block text-sm font-medium">Status</label>
-        <select
-          className="w-full rounded border px-3 py-2"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as typeof status)}
-        >
-          <option value="">(all — scan)</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s.replace(/_/g, " ")}
-            </option>
-          ))}
-        </select>
+      <div className="mt-6 flex flex-wrap items-end gap-4">
+        <label className="block max-w-xs flex-1">
+          <span className="mb-1 block text-sm font-medium">Status</span>
+          <select
+            className="w-full rounded border px-3 py-2 disabled:opacity-50"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as typeof status)}
+            disabled={overdueOnly}
+          >
+            <option value="">(all — scan)</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={overdueOnly}
+            onChange={(e) => setOverdueOnly(e.target.checked)}
+          />
+          SLA-overdue only
+        </label>
       </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -98,6 +114,11 @@ export default function AdminTicketsPage() {
                     #{t.ticketId} · {t.category.replace(/_/g, " ")} · priority {t.priority} · updated{" "}
                     {new Date(t.updatedAt).toLocaleString()}
                   </div>
+                  {t.slaDeadline && new Date(t.slaDeadline) < new Date() && (
+                    <div className="mt-0.5 text-xs font-medium text-red-600">
+                      SLA overdue (deadline {new Date(t.slaDeadline).toLocaleString()})
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs uppercase">{t.status.replace(/_/g, " ")}</span>
               </Link>
