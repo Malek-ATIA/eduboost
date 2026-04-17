@@ -72,3 +72,9 @@ export {
   type ForumVoteTarget,
   type ForumVoteDirection,
 } from "./forum.js";
+export {
+  WallPostEntity,
+  WallCommentEntity,
+  makeWallPostId,
+  makeWallCommentId,
+} from "./wall.js";

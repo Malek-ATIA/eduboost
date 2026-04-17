@@ -262,6 +262,19 @@ export class ApiStack extends cdk.Stack {
       integration,
     });
 
+    // Wall browsing is public (list + single post hydrated). Write endpoints
+    // (create post, comment, delete) hit /{proxy+} with Cognito auth.
+    api.addRoutes({
+      path: "/wall/{teacherId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/wall/posts/{postId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
     this.apiUrl = api.apiEndpoint;
 
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });

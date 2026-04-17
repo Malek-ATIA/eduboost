@@ -31,14 +31,25 @@ type Review = {
   createdAt: string;
 };
 
+type WallPost = {
+  postId: string;
+  teacherId: string;
+  body: string;
+  commentCount: number;
+  createdAt: string;
+};
+
 export default function TeacherDetailPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
   const [data, setData] = useState<TeacherResponse | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [wall, setWall] = useState<WallPost[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerSub, setViewerSub] = useState<string | null>(null);
   const [viewerIsAdmin, setViewerIsAdmin] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [wallDraft, setWallDraft] = useState("");
+  const [wallSubmitting, setWallSubmitting] = useState(false);
 
   const fetchTeacher = useCallback(() => {
     return api<TeacherResponse>(`/teachers/${userId}`)
@@ -52,9 +63,16 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
       .catch(() => setReviews([]));
   }, [userId]);
 
+  const fetchWall = useCallback(() => {
+    return api<{ items: WallPost[] }>(`/wall/${userId}`)
+      .then((r) => setWall(r.items))
+      .catch(() => setWall([]));
+  }, [userId]);
+
   useEffect(() => {
     fetchTeacher();
     fetchReviews();
+    fetchWall();
     // Identify viewer for delete-button visibility. Anonymous visitors get
     // viewerSub === null and viewerIsAdmin === false, so no delete UI renders.
     currentSession().then((s) => {
@@ -62,7 +80,25 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
       setViewerSub((s.getIdToken().payload.sub as string) ?? null);
       setViewerIsAdmin(isAdmin(s));
     });
-  }, [fetchTeacher, fetchReviews]);
+  }, [fetchTeacher, fetchReviews, fetchWall]);
+
+  async function postToWall(e: React.FormEvent) {
+    e.preventDefault();
+    if (!wallDraft.trim()) return;
+    setWallSubmitting(true);
+    try {
+      await api(`/wall/posts`, {
+        method: "POST",
+        body: JSON.stringify({ body: wallDraft.trim() }),
+      });
+      setWallDraft("");
+      await fetchWall();
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setWallSubmitting(false);
+    }
+  }
 
   async function onDelete(reviewId: string) {
     if (!confirm("Delete this review? This cannot be undone.")) return;
@@ -142,6 +178,58 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
           Request a lesson
         </Link>
       </div>
+
+      <section id="wall" className="mt-16">
+        <h2 className="text-xl font-semibold">Wall</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Updates, achievements, and posts from {user.displayName}.
+        </p>
+
+        {viewerSub === userId && (
+          <form onSubmit={postToWall} className="mt-4 space-y-2">
+            <textarea
+              rows={3}
+              maxLength={4000}
+              className="w-full rounded border px-3 py-2 text-sm"
+              value={wallDraft}
+              onChange={(e) => setWallDraft(e.target.value)}
+              placeholder="Share an update with your students..."
+            />
+            <button
+              type="submit"
+              disabled={wallSubmitting || !wallDraft.trim()}
+              className="rounded bg-black px-4 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            >
+              {wallSubmitting ? "Posting..." : "Post to wall"}
+            </button>
+          </form>
+        )}
+
+        {wall === null && <p className="mt-4 text-sm text-gray-500">Loading wall...</p>}
+        {wall && wall.length === 0 && (
+          <p className="mt-4 text-sm text-gray-500">No posts yet.</p>
+        )}
+        {wall && wall.length > 0 && (
+          <ul className="mt-4 space-y-3">
+            {wall.map((p) => (
+              <li key={p.postId} className="rounded border p-4">
+                <Link
+                  href={`/wall/posts/${p.postId}` as never}
+                  className="block hover:underline"
+                >
+                  <div className="text-xs text-gray-500">
+                    {new Date(p.createdAt).toLocaleString()}
+                  </div>
+                  <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm">{p.body}</p>
+                  <div className="mt-2 text-xs text-gray-500">
+                    {p.commentCount} comment{p.commentCount === 1 ? "" : "s"}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section id="reviews" className="mt-16">
         <div className="flex items-center justify-between">

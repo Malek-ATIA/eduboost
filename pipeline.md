@@ -402,6 +402,16 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2D #2 pass (Teacher wall)
+
+**Teacher wall (posts + comment section)** — signed off
+- WallPostEntity (byTeacher gsi1 by createdAt) + WallCommentEntity (pk=postId + sk=commentId, byAuthor gsi1). Cached commentCount best-effort.
+- Public reads: GET /wall/:teacherId (list) + GET /wall/posts/:postId (hydrated with author names for post and commenters).
+- Authenticated writes: POST /wall/posts (teacher-only, on own wall), POST /wall/posts/:id/comments (any authenticated user), DELETE post (owner-only), DELETE comment (author OR wall owner for moderation).
+- UI: inline Wall section on /teachers/[userId] with owner-only compose form + link to /wall/posts/[postId] detail page with comment thread and delete controls.
+- **Critical verifier catch**: `wallRoutes.use("/posts/:postId/comments", requireAuth)` is a PARAMETRIC segment-count match — it does NOT match the 4-segment `/posts/:postId/comments/:commentId` DELETE path. The DELETE comment handler was reachable WITHOUT Hono's requireAuth middleware running (still protected by API Gateway JWT, but `c.get("auth")` would crash with 500 on a real request). Fixed by switching to a `/posts/*` wildcard, matching the same pattern used in marketplace.ts for `/orders/*`. Same-class bug that any future route file with nested paths should watch for.
+- MVP tradeoffs (deferred): post/comment editing, media attachments, notifications on new comments, rate limiting, orphaned-comment cleanup after post delete, soft-delete.
+
 ### 2026-04-17 — Phase 2D #1 pass (Forum)
 
 **Forum (Reddit-style posts/comments/votes)** — signed off
