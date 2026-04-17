@@ -60,6 +60,21 @@ paymentRoutes.get(
       return c.json({ error: "payment_not_succeeded" }, 409);
     }
 
+    // Marketplace orders reuse PaymentEntity.bookingId to store the orderId
+    // (IDs prefixed "ord_"). Invoice generation for marketplace payments is
+    // out of scope for v0 — buyers receive their purchase via the signed
+    // download URL from the listing instead. Short-circuit here so we don't
+    // mis-fetch a non-existent BookingEntity and return a confusing 404.
+    if (payment.data.bookingId.startsWith("ord_")) {
+      return c.json(
+        {
+          error: "marketplace_invoice_not_supported",
+          hint: "Download the purchased file from /orders; marketplace invoices are not available in v0.",
+        },
+        409,
+      );
+    }
+
     const [booking, payer, payee] = await Promise.all([
       BookingEntity.get({ bookingId: payment.data.bookingId }).go(),
       UserEntity.get({ userId: payment.data.payerId }).go(),

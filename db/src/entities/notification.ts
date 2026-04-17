@@ -19,6 +19,7 @@ export const NOTIFICATION_TYPES = [
   "child_link_rejected",
   "session_scheduled",
   "session_reminder",
+  "listing_sold",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

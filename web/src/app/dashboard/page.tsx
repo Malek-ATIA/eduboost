@@ -32,6 +32,8 @@ export default function DashboardPage() {
       { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
       { href: "/payments", label: "Payment history", description: "Download invoices for past payments" },
       { href: "/attendance", label: "My attendance", description: "Your attendance record across sessions" },
+      { href: "/marketplace", label: "Marketplace", description: "Browse study materials for sale" },
+      { href: "/orders", label: "My orders", description: "Digital tutorials you've purchased" },
     );
   }
   if (role === "parent") {
@@ -55,6 +57,8 @@ export default function DashboardPage() {
       { href: "/requests", label: "Lesson requests", description: "Accept or decline incoming requests" },
       { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
       { href: "/payments", label: "Payments received", description: "Session payouts and invoices you can reference" },
+      { href: "/seller/listings", label: "Marketplace listings", description: "Sell digital study materials" },
+      { href: "/seller/orders", label: "Marketplace sales", description: "Orders on your listings" },
     );
   }
   if (admin) {

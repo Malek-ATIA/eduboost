@@ -214,6 +214,22 @@ export class ApiStack extends cdk.Stack {
       integration,
     });
 
+    // Marketplace browse is public (no auth). Use single-segment {listingId} so that
+    // authenticated subpaths (/marketplace/listings/mine, /marketplace/listings/:id/upload-url,
+    // /marketplace/listings/:id/download-url, /marketplace/orders/*) still route through
+    // the authenticated /{proxy+} catch-all. Note: "/marketplace/listings/mine" is a
+    // separate static route added below to preempt the parametric public route.
+    api.addRoutes({
+      path: "/marketplace/listings",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/marketplace/listings/{listingId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
     this.apiUrl = api.apiEndpoint;
 
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });

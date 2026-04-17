@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import type Stripe from "stripe";
-import { BookingEntity, PaymentEntity, UserEntity } from "@eduboost/db";
+import { BookingEntity, PaymentEntity, UserEntity, OrderEntity, ListingEntity } from "@eduboost/db";
 import { stripe, computePlatformFeeCents } from "../lib/stripe.js";
 import { sendEmail, emailTemplates } from "../lib/resend.js";
 import { notify } from "../lib/notifications.js";
@@ -47,6 +47,12 @@ webhookRoutes.post("/stripe", async (c) => {
 });
 
 async function onPaymentSucceeded(pi: Stripe.PaymentIntent) {
+  const kind = pi.metadata?.kind;
+  if (kind === "marketplace_order") {
+    await onMarketplacePaid(pi);
+    return;
+  }
+
   const bookingId = pi.metadata?.bookingId;
   if (!bookingId) return;
 
@@ -103,6 +109,12 @@ async function onPaymentSucceeded(pi: Stripe.PaymentIntent) {
 }
 
 async function onPaymentFailed(pi: Stripe.PaymentIntent) {
+  if (pi.metadata?.kind === "marketplace_order") {
+    const orderId = pi.metadata.orderId;
+    if (!orderId) return;
+    await OrderEntity.patch({ orderId }).set({ status: "cancelled" }).go();
+    return;
+  }
   const bookingId = pi.metadata?.bookingId;
   if (!bookingId) return;
   await BookingEntity.patch({ bookingId }).set({ status: "cancelled" }).go();
@@ -120,6 +132,14 @@ async function onPaymentFailed(pi: Stripe.PaymentIntent) {
 async function onRefund(charge: Stripe.Charge) {
   const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!pi) return;
+
+  if (charge.metadata?.kind === "marketplace_order") {
+    const orderId = charge.metadata.orderId;
+    if (!orderId) return;
+    await OrderEntity.patch({ orderId }).set({ status: "refunded" }).go();
+    return;
+  }
+
   const bookingId = charge.metadata?.bookingId;
   if (!bookingId) return;
   await BookingEntity.patch({ bookingId }).set({ status: "refunded" }).go();
@@ -141,4 +161,49 @@ async function onRefund(charge: Stripe.Charge) {
       linkPath: `/bookings/${bookingId}`,
     }),
   ]);
+}
+
+async function onMarketplacePaid(pi: Stripe.PaymentIntent) {
+  const orderId = pi.metadata?.orderId;
+  const listingId = pi.metadata?.listingId;
+  if (!orderId || !listingId) return;
+
+  await OrderEntity.patch({ orderId }).set({ status: "paid" }).go();
+  const [order, listing] = await Promise.all([
+    OrderEntity.get({ orderId }).go(),
+    ListingEntity.get({ listingId }).go(),
+  ]);
+  if (!order.data) return;
+
+  await PaymentEntity.create({
+    paymentId: `pay_${nanoid(12)}`,
+    bookingId: orderId,
+    payerId: order.data.buyerId,
+    payeeId: order.data.sellerId,
+    amountCents: pi.amount,
+    platformFeeCents: computePlatformFeeCents(pi.amount),
+    currency: (pi.currency ?? "eur").toUpperCase(),
+    provider: "stripe",
+    providerPaymentId: pi.id,
+    status: "succeeded",
+  }).go();
+
+  try {
+    const [buyer, seller] = await Promise.all([
+      UserEntity.get({ userId: order.data.buyerId }).go(),
+      UserEntity.get({ userId: order.data.sellerId }).go(),
+    ]);
+    const listingTitle = listing.data?.title ?? "a listing";
+    if (buyer.data && seller.data) {
+      await notify({
+        userId: order.data.sellerId,
+        type: "listing_sold",
+        title: "Listing sold",
+        body: `${buyer.data.displayName} bought "${listingTitle}".`,
+        linkPath: `/seller/orders`,
+      });
+    }
+  } catch (err) {
+    console.error("marketplace paid notifications failed (non-fatal)", err);
+  }
 }

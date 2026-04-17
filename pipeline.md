@@ -402,6 +402,21 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2C #1 pass (Marketplace v0)
+
+**Marketplace v0 (digital tutorials only)** — signed off
+- ListingEntity (bySeller gsi1, byStatus gsi2) + OrderEntity (byListing gsi1, byBuyer gsi2, bySeller gsi3); new listing_sold notification type.
+- Routes: public GET /marketplace/listings (filter: subject/price/seller); public GET /marketplace/listings/:id; authenticated POST/PATCH/DELETE /marketplace/listings (teacher role + sellerId authz); GET /marketplace/listings/mine; presigned PUT /marketplace/listings/:id/upload-url (max 100MB, stores fileS3Key+mimeType+sizeBytes); presigned GET /marketplace/listings/:id/download-url (seller always; buyer must have paid order); POST /marketplace/orders (Stripe PaymentIntent with kind=marketplace_order metadata; blocks self-purchase + double-purchase); GET /marketplace/orders/mine + /as-seller + /:id.
+- Webhook discriminator: onPaymentSucceeded routes marketplace_order → onMarketplacePaid (patches order=paid, creates PaymentEntity, notifies seller); onPaymentFailed and onRefund branch on kind.
+- CDK: public GET /marketplace/listings and /marketplace/listings/{listingId} (single-segment parametric so sub-paths like /mine, /upload-url, /download-url still route through the authenticated /{proxy+} catch-all). Hono static-beats-parametric handles /listings/mine correctly both at API Gateway and at the Hono router layer.
+- UI: /marketplace browse + filter, /marketplace/listings/[id] detail, /marketplace/buy/[id] Stripe Elements checkout, /orders buyer history with download buttons, /seller/listings manage + publish/archive toggle, /seller/listings/new 3-step flow (create draft → presigned PUT → PATCH active), /seller/orders sales; dashboard links per role.
+- Verifier catches:
+  - Unused `notify` import in marketplace.ts removed.
+  - **Real integration bug**: `PaymentEntity.bookingId` was being reused to store `orderId` for marketplace payments, so GET /payments/:id/invoice broke for marketplace buyers (BookingEntity lookup returned 404). Fixed with a short-circuit: if `payment.bookingId.startsWith("ord_")` the invoice route returns 409 `marketplace_invoice_not_supported` with a hint pointing to /orders for the file download. Documented inline as MVP tradeoff; post-MVP should add `kind` discriminator to PaymentEntity.
+- MVP tradeoffs: concurrent duplicate pending orders (only first paid wins); archived-during-pending still delivers file (intentional); no Stripe Connect payout yet; physical goods/events/reviews/commercial-org selling explicitly deferred.
+
+
+
 ### 2026-04-16 — first retrospective pass (features 1–12)
 
 **Auditor findings:**
