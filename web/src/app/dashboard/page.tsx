@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession, isAdmin, signOut, type Role } from "@/lib/cognito";
 import { NotificationBell } from "@/components/NotificationBell";
+import { api } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -20,6 +21,34 @@ export default function DashboardPage() {
       setEmail(s.getIdToken().payload.email as string);
       setRole(currentRole(s));
       setAdmin(isAdmin(s));
+
+      // Auto-claim referral code captured from ?ref= on the signup page.
+      // sessionStorage persists across the signup → confirm → login → dashboard
+      // flow within a single tab. We consume the key best-effort: success is
+      // silent (the user will see the referrer on /referrals), and we drop the
+      // key regardless of outcome so we never retry (the backend endpoint is
+      // one-shot anyway — a second POST would just return already_claimed).
+      if (typeof window !== "undefined") {
+        let pendingRef: string | null = null;
+        try {
+          pendingRef = sessionStorage.getItem("eduboost_pending_ref");
+        } catch {
+          /* storage disabled */
+        }
+        if (pendingRef) {
+          try {
+            sessionStorage.removeItem("eduboost_pending_ref");
+          } catch {
+            /* ignore */
+          }
+          api<{ referrerDisplayName: string }>(`/referrals/claim`, {
+            method: "POST",
+            body: JSON.stringify({ code: pendingRef }),
+          }).catch(() => {
+            /* swallow: already_claimed, unknown_code, self-referral, etc. */
+          });
+        }
+      }
     });
   }, [router]);
 
@@ -71,6 +100,11 @@ export default function DashboardPage() {
     href: "/forum",
     label: "Forum",
     description: "Community Q&A and discussion",
+  });
+  links.push({
+    href: "/referrals",
+    label: "Invite a friend",
+    description: "Share your referral code",
   });
   links.push({
     href: "/membership",

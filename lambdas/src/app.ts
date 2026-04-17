@@ -23,6 +23,7 @@ import { membershipRoutes } from "./routes/memberships.js";
 import { reportRoutes } from "./routes/reports.js";
 import { forumRoutes } from "./routes/forum.js";
 import { wallRoutes } from "./routes/wall.js";
+import { referralRoutes } from "./routes/referrals.js";
 
 export const app = new Hono();
 
@@ -57,6 +58,7 @@ app.route("/memberships", membershipRoutes);
 app.route("/reports", reportRoutes);
 app.route("/forum", forumRoutes);
 app.route("/wall", wallRoutes);
+app.route("/referrals", referralRoutes);
 
 app.onError((err, c) => {
   console.error(err);

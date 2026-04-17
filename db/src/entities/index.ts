@@ -82,3 +82,4 @@ export {
   makeWallPostId,
   makeWallCommentId,
 } from "./wall.js";
+export { ReferralEntity, makeReferralCode } from "./referral.js";

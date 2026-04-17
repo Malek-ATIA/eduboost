@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { signUp, confirmSignUp, type Role } from "@/lib/cognito";
 
-export default function SignupPage() {
+function SignupInner() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<"credentials" | "confirm">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,6 +14,22 @@ export default function SignupPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Capture ?ref= from the signup share link and stash it in sessionStorage so
+  // the dashboard can auto-claim it once the user completes signup + login.
+  // sessionStorage survives page reloads within the same tab (signup → confirm
+  // → login → dashboard) but not cross-tab/cross-browser flows — acceptable for
+  // MVP since the user can always paste the code manually on /referrals.
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("eduboost_pending_ref", ref.trim().toUpperCase());
+      } catch {
+        /* storage disabled — silent no-op */
+      }
+    }
+  }, [searchParams]);
 
   async function onSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -129,5 +147,22 @@ export default function SignupPage() {
         </form>
       )}
     </main>
+  );
+}
+
+// Next.js 15 requires useSearchParams consumers to be wrapped in Suspense so
+// the page can statically render while the query string is resolved on client.
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-sm px-6 py-16">
+          <h1 className="text-2xl font-bold">Sign up</h1>
+          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        </main>
+      }
+    >
+      <SignupInner />
+    </Suspense>
   );
 }

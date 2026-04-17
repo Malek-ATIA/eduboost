@@ -402,6 +402,17 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2E #3 pass (Referrals — invite a friend)
+
+**Referral tracking** — signed off
+- UserEntity extended with `referralCode` + `referredByCode`; new byReferralCode GSI on gsi3.
+- ReferralEntity (pk=referrerId + sk=referredId, byReferred gsi1) records each claim pairing with a stub `rewardedAt` field for future reward hooks.
+- `makeReferralCode()` generates 8-char codes with an unambiguous alphabet (no 0/O/1/I).
+- Routes: `GET /referrals/mine` (lazy code generation with 5-retry collision handling against the byReferralCode GSI), `POST /referrals/claim` (one-time, case-normalized, blocks self-referral), `GET /referrals/list` (referrer-scoped enrichment of invitee display names).
+- UI: /referrals page with copy-to-clipboard share link, one-time claim form (hidden after claim), invitees list showing reward status.
+- Verifier catch: the signup share link's `?ref=` param was being dropped. Fixed by having `/signup` stash the code in `sessionStorage["eduboost_pending_ref"]` and `/dashboard` auto-POST to `/referrals/claim` on first load, best-effort (silently swallows already_claimed / unknown_code / self-referral). sessionStorage survives the signup → confirm → login → dashboard flow within a single tab; cross-tab flows still fall back to manual paste on /referrals.
+- MVP tradeoffs (deferred): rare-collision GSI uniqueness (1-in-1-trillion, mitigated by limit(1) in claim), reward mechanics (rewardedAt stub never set), rate limiting, fraud revocation.
+
 ### 2026-04-17 — Phase 2E #2 pass (Support ticket attachments)
 
 **Ticket attachments** — signed off
