@@ -27,6 +27,16 @@ export default function BookingsPage() {
   const router = useRouter();
   const [items, setItems] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const r = await api<{ items: Booking[] }>(`/bookings/mine`);
+      setItems(r.items);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -35,14 +45,38 @@ export default function BookingsPage() {
         router.replace("/login");
         return;
       }
-      try {
-        const r = await api<{ items: Booking[] }>(`/bookings/mine`);
-        setItems(r.items);
-      } catch (err) {
-        setError((err as Error).message);
-      }
+      await load();
     })();
   }, [router]);
+
+  async function cancelBooking(bookingId: string) {
+    const reason = prompt(
+      "Cancel this booking. Tell us briefly why — if the session is more than 24h away you'll be auto-refunded; otherwise this opens a support ticket.",
+    );
+    if (!reason || reason.trim().length < 10) {
+      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
+      return;
+    }
+    setCancellingId(bookingId);
+    setError(null);
+    try {
+      const r = await api<{ outcome: "auto_refunded" | "dispute_created"; ticketId?: string }>(
+        `/bookings/${bookingId}/cancel`,
+        { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
+      );
+      if (r.outcome === "auto_refunded") {
+        alert("Booking cancelled and refund issued.");
+      } else {
+        alert(`A dispute ticket was opened: ${r.ticketId}. An admin will review it.`);
+        if (r.ticketId) router.push(`/support/${r.ticketId}` as never);
+      }
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
@@ -58,6 +92,7 @@ export default function BookingsPage() {
         <ul className="mt-6 divide-y rounded border">
           {items.map((b) => {
             const canReview = b.status === "confirmed" || b.status === "completed";
+            const canCancel = b.status === "pending" || b.status === "confirmed";
             return (
               <li key={b.bookingId} className="flex items-center justify-between p-4">
                 <div>
@@ -81,6 +116,15 @@ export default function BookingsPage() {
                     >
                       Review
                     </Link>
+                  )}
+                  {canCancel && (
+                    <button
+                      onClick={() => cancelBooking(b.bookingId)}
+                      disabled={cancellingId === b.bookingId}
+                      className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950"
+                    >
+                      {cancellingId === b.bookingId ? "..." : "Cancel"}
+                    </button>
                   )}
                 </div>
               </li>

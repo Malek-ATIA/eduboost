@@ -27,19 +27,53 @@ export default function OrdersPage() {
   const [items, setItems] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const r = await api<{ items: Order[] }>(`/marketplace/orders/mine`);
+      setItems(r.items);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   useEffect(() => {
     (async () => {
       const session = await currentSession();
       if (!session) return router.replace("/login");
-      try {
-        const r = await api<{ items: Order[] }>(`/marketplace/orders/mine`);
-        setItems(r.items);
-      } catch (err) {
-        setError((err as Error).message);
-      }
+      await load();
     })();
   }, [router]);
+
+  async function requestRefund(orderId: string) {
+    const reason = prompt(
+      "Request a refund. Within 1 hour of purchase AND before you download, refunds are automatic. Otherwise this opens a support ticket.",
+    );
+    if (!reason || reason.trim().length < 10) {
+      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
+      return;
+    }
+    setRefundingId(orderId);
+    setError(null);
+    try {
+      const r = await api<{ outcome: "auto_refunded" | "dispute_created"; ticketId?: string }>(
+        `/marketplace/orders/${orderId}/refund-request`,
+        { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
+      );
+      if (r.outcome === "auto_refunded") {
+        alert("Refund issued.");
+      } else {
+        alert(`A dispute ticket was opened: ${r.ticketId}.`);
+        if (r.ticketId) router.push(`/support/${r.ticketId}` as never);
+      }
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setRefundingId(null);
+    }
+  }
 
   async function downloadFile(listingId: string) {
     setDownloadingId(listingId);
@@ -85,13 +119,22 @@ export default function OrdersPage() {
               <div className="flex items-center gap-3">
                 <span className={`text-xs uppercase ${STATUS_COLORS[o.status]}`}>{o.status}</span>
                 {o.status === "paid" && (
-                  <button
-                    onClick={() => downloadFile(o.listingId)}
-                    disabled={downloadingId === o.listingId}
-                    className="rounded border px-3 py-1 text-xs disabled:opacity-50"
-                  >
-                    {downloadingId === o.listingId ? "..." : "Download"}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => downloadFile(o.listingId)}
+                      disabled={downloadingId === o.listingId}
+                      className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                    >
+                      {downloadingId === o.listingId ? "..." : "Download"}
+                    </button>
+                    <button
+                      onClick={() => requestRefund(o.orderId)}
+                      disabled={refundingId === o.orderId}
+                      className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950"
+                    >
+                      {refundingId === o.orderId ? "..." : "Refund"}
+                    </button>
+                  </>
                 )}
               </div>
             </li>

@@ -350,7 +350,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Quiz on teacher's performance
 - Non-AI assessment exams (graded + timed tests — AI grading of free-text submissions is shipped as 2F.1)
 - Review session between teachers and students/parents (structured post-course retrospective meetings — distinct from the star-review system)
-- Money-back guarantee policy (UX flow + automated refund logic — manual admin refunds shipped as 2F.4)
 - Minimum wage enforcement for teachers (price floors on listings/bookings)
 - Study materials portal with exam sharing (peer-to-peer exam bank — distinct from marketplace digital goods)
 - Mailbox (parent↔teacher async inbox with a threaded UI beyond DM)
@@ -378,6 +377,7 @@ These rows were in the deferred list earlier in the project and have since lande
 - Comprehensive dispute system — shipped 2F.4
 - Whiteboard — shipped 2F.3
 - Breakout rooms — shipped 2F.2
+- Money-back guarantee policy (UX + backend) — shipped 2G.1
 
 ## In-scope MVP features (must pass audit)
 
@@ -403,6 +403,19 @@ These rows were in the deferred list earlier in the project and have since lande
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2G #1 pass (Money-back guarantee)
+
+**Booking cancellation + marketplace order refund flow with dispute fallback** — signed off
+- Booking refund window: a student/parent calling `POST /bookings/:bookingId/cancel` (in `lambdas/src/routes/bookings.ts`) within 24h of the scheduled start gets an automatic Stripe refund. Webhook-created `PaymentEntity` rows are looked up via `byBooking`, and the most recent `succeeded` payment is refunded with `stripe.refunds.create({ payment_intent })`. On success the booking moves to `cancelled`, the payment to `refunded`, and a `booking_refunded` notification fires. Outside the 24h window the route creates a `SupportTicketEntity` (category `payment_dispute`) + initial `TicketMessageEntity` so the Phase 2F.4 resolve flow picks it up — no separate admin plumbing needed.
+- Marketplace refund window: `POST /marketplace/orders/:orderId/refund-request` auto-refunds only when BOTH the order is under 1h old AND the buyer has not yet downloaded the file. To track that second condition, `OrderEntity` gained an optional `firstDownloadedAt?: string` attribute (`db/src/entities/marketplace.ts`), stamped non-fatally on the first successful signed-URL issuance in `GET /marketplace/listings/:listingId/download-url`. Sellers downloading their own file skip the order lookup entirely, so the stamping branch is gated on `buyerOrder && !buyerOrder.firstDownloadedAt`.
+- Outside either window (or already-downloaded marketplace orders), the same Phase 2F.4 support-ticket pipeline kicks in: ticket + auto-escalation message recording the reason (`buyer already downloaded the file` or `order is older than 1h`) and the user's free-text reason. Resolution is handled by admins using the existing ticket-resolve actions — no new admin UI.
+- UI: `web/src/app/bookings/page.tsx` adds a "Cancel booking" button on each active booking using `window.prompt()` for the reason (MVP-acceptable — same pattern the ticket system uses). `web/src/app/orders/page.tsx` adds a matching "Request refund" button on `paid` orders. Both handle `auto_refunded` vs `dispute_created` branches with distinct user-facing messages. `web/src/app/faq/page.tsx` gained a refund-policy section documenting the two windows and the dispute fallback.
+- Auditor's should-fix (confirmed by Verifier reading `lambdas/src/routes/marketplace.ts` lines 413–422 and `lambdas/src/routes/bookings.ts` line 221): the marketplace dispute-ticket branch omitted `bookingId: orderId` on the `SupportTicketEntity.create()` call, while the booking branch set `bookingId: bookingId`. `SupportTicketEntity` has an optional `bookingId` attribute (`db/src/entities/support.ts` line 47), and admin queries for related tickets-by-id rely on it.
+- Verifier fix: added `bookingId: orderId,` to the marketplace dispute `SupportTicketEntity.create()` call. Both refund-dispute surfaces now populate `bookingId` consistently so admin queries-by-id land tickets from either source.
+- Independent Verifier sanity checks: (1) grepped `booking_refunded` — type is defined in `db/src/entities/notification.ts` union, allowed by `lambdas/src/lib/notifications.ts`, and fired from both `lambdas/src/routes/webhooks.ts` (admin-refund path) and `lambdas/src/routes/bookings.ts` (self-cancel path); (2) confirmed the download-url seller path never touches `buyerOrder` — the variable starts as `null` and only the buyer branch populates it, so the subsequent `if (buyerOrder && !buyerOrder.firstDownloadedAt)` guard is safe; (3) confirmed `lambdas/src/routes/webhooks.ts` line 254 persists `PaymentEntity.bookingId = orderId` for marketplace orders, so the refund branch's `byBooking` lookup finds the right payment row.
+- MVP trade-offs: refund windows are compile-time constants (24h for bookings, 1h for marketplace) — not configurable per teacher or per listing; no partial-refund self-service button (admins can issue partial refunds via 2F.4 resolve flow); cancellation policy does not vary by booking type (trial vs paid, individual vs group) even though MVP spec could plausibly carve trials out. All acceptable for MVP; upgradeable later by lifting the constants into `SettingsEntity` and adding a `refundPolicy` attribute on `TeacherProfileEntity` / `ListingEntity`.
+- Typecheck: `npm run --workspace db typecheck`, `npm run --workspace lambdas typecheck`, `npm run --workspace web typecheck`, `npm run --workspace cdk typecheck` all pass after fix.
 
 ### 2026-04-17 — Phase 2F #7 pass (Commercial-org marketplace)
 

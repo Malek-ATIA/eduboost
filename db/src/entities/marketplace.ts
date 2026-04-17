@@ -67,6 +67,10 @@ export const OrderEntity = new Entity(
       currency: { type: "string", default: "EUR" },
       status: { type: ORDER_STATUSES, default: "pending" },
       stripePaymentIntentId: { type: "string" },
+      // Set the first time the buyer's client fetches a presigned download URL.
+      // Used to gate the 1-hour auto-refund window so an admin can tell whether
+      // the buyer actually consumed the file before asking for a refund.
+      firstDownloadedAt: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
     },

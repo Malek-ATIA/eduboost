@@ -51,6 +51,21 @@ const FOR_TEACHERS: FAQ[] = [
   },
 ];
 
+const REFUND_POLICY: FAQ[] = [
+  {
+    q: "Can I cancel a booking and get a refund?",
+    a: "Yes. Cancel from My bookings. If the session is more than 24 hours away (or no session has been scheduled yet), the refund is issued automatically to your original payment method. Closer than 24h we open a support ticket so a human can review the circumstances.",
+  },
+  {
+    q: "What about marketplace purchases?",
+    a: "You can request a refund from My orders. Refunds are automatic if you ask within 1 hour of purchase AND haven't downloaded the file yet. After either of those, we open a support ticket and an admin will work with the seller on a case-by-case basis.",
+  },
+  {
+    q: "How long do refunds take to land in my bank?",
+    a: "Stripe typically returns funds to the original card within 5–10 business days. You can track the refund status on the linked payment in Payment history.",
+  },
+];
+
 const CONTACT = [
   { label: "Email", value: "support@eduboost.com", href: "mailto:support@eduboost.com" },
   { label: "WhatsApp", value: "+353 1 000 0000", href: "https://wa.me/35310000000" },
@@ -84,6 +99,12 @@ export default function FaqPage() {
 
       <Section title="For teachers">
         {FOR_TEACHERS.map((f) => (
+          <Item key={f.q} {...f} />
+        ))}
+      </Section>
+
+      <Section title="Refunds & money-back guarantee">
+        {REFUND_POLICY.map((f) => (
           <Item key={f.q} {...f} />
         ))}
       </Section>

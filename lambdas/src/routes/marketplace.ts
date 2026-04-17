@@ -13,9 +13,14 @@ import {
   UserEntity,
   OrganizationEntity,
   OrganizationMembershipEntity,
+  PaymentEntity,
+  SupportTicketEntity,
+  TicketMessageEntity,
   LISTING_STATUSES,
   makeListingId,
   makeOrderId,
+  makeTicketId,
+  makeTicketMessageId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { stripe, computePlatformFeeCents } from "../lib/stripe.js";
@@ -229,6 +234,7 @@ marketplaceRoutes.get(
     if (!listing.data.fileS3Key) return c.json({ error: "no_file" }, 404);
 
     // Seller can always download their own file; buyer needs a paid order.
+    let buyerOrder: { orderId: string; firstDownloadedAt?: string } | null = null;
     if (listing.data.sellerId !== sub) {
       const orders = await OrderEntity.query
         .byBuyer({ buyerId: sub })
@@ -237,6 +243,7 @@ marketplaceRoutes.get(
         )
         .go({ limit: 1 });
       if (!orders.data[0]) return c.json({ error: "not_purchased" }, 403);
+      buyerOrder = orders.data[0];
     }
 
     const cmd = new GetObjectCommand({
@@ -244,6 +251,19 @@ marketplaceRoutes.get(
       Key: listing.data.fileS3Key,
     });
     const downloadUrl = await getSignedUrl(s3, cmd, { expiresIn: 900 });
+
+    // Stamp the first-download timestamp so the refund window can detect
+    // consumed files. Non-fatal — a failed stamp must not block the download.
+    if (buyerOrder && !buyerOrder.firstDownloadedAt) {
+      try {
+        await OrderEntity.patch({ orderId: buyerOrder.orderId })
+          .set({ firstDownloadedAt: new Date().toISOString() })
+          .go();
+      } catch (err) {
+        console.error("download: first-download stamp failed (non-fatal)", err);
+      }
+    }
+
     return c.json({ downloadUrl });
   },
 );
@@ -330,5 +350,88 @@ marketplaceRoutes.get(
       return c.json({ error: "forbidden" }, 403);
     }
     return c.json(order.data);
+  },
+);
+
+// Money-back guarantee for marketplace orders. Auto-refunds when:
+//   - the order was paid within the last hour, AND
+//   - the buyer has not yet fetched a presigned download URL (firstDownloadedAt
+//     is unset — the file hasn't been consumed yet).
+// Otherwise a dispute ticket is opened so the seller + admin can review.
+const ORDER_AUTO_REFUND_WINDOW_HOURS = 1;
+
+marketplaceRoutes.post(
+  "/orders/:orderId/refund-request",
+  zValidator("param", z.object({ orderId: z.string().min(1) })),
+  zValidator("json", z.object({ reason: z.string().trim().min(10).max(1000) })),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { orderId } = c.req.valid("param");
+    const { reason } = c.req.valid("json");
+
+    const order = await OrderEntity.get({ orderId }).go();
+    if (!order.data) return c.json({ error: "not_found" }, 404);
+    if (order.data.buyerId !== sub) return c.json({ error: "not_your_order" }, 403);
+    if (order.data.status !== "paid") return c.json({ error: "not_paid" }, 409);
+
+    const createdMs = order.data.createdAt ? new Date(order.data.createdAt).getTime() : 0;
+    const withinWindow =
+      Date.now() - createdMs < ORDER_AUTO_REFUND_WINDOW_HOURS * 3600 * 1000;
+    const notDownloaded = !order.data.firstDownloadedAt;
+
+    if (withinWindow && notDownloaded) {
+      // Marketplace payments stored PaymentEntity.bookingId = orderId (prefix
+      // "ord_") when the webhook recorded them. Find by that shared id.
+      const payments = await PaymentEntity.query
+        .byBooking({ bookingId: orderId })
+        .go({ limit: 5 });
+      const succeeded = payments.data.find((p) => p.status === "succeeded");
+      if (succeeded?.providerPaymentId) {
+        try {
+          await stripe().refunds.create({
+            payment_intent: succeeded.providerPaymentId,
+          });
+          await PaymentEntity.patch({ paymentId: succeeded.paymentId })
+            .set({ status: "refunded" })
+            .go();
+        } catch (err) {
+          console.error("order.refund: stripe refund failed", err);
+          return c.json({ error: "refund_failed", message: (err as Error).message }, 502);
+        }
+      }
+      await OrderEntity.patch({ orderId }).set({ status: "refunded" }).go();
+      return c.json({ outcome: "auto_refunded" });
+    }
+
+    // Outside window or already downloaded — route to dispute system.
+    const payments = await PaymentEntity.query
+      .byBooking({ bookingId: orderId })
+      .go({ limit: 5 });
+    const relatedPaymentId = payments.data.find((p) => p.status === "succeeded")?.paymentId;
+    const ticketId = makeTicketId();
+    const slaDeadline = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+    await SupportTicketEntity.create({
+      ticketId,
+      userId: sub,
+      subject: `Refund request for order ${orderId}`,
+      category: "payment_dispute",
+      priority: "normal",
+      bookingId: orderId,
+      relatedPaymentId,
+      slaDeadline,
+      status: "open",
+    }).go();
+    const escalationReason = !notDownloaded
+      ? "buyer already downloaded the file"
+      : `order is older than ${ORDER_AUTO_REFUND_WINDOW_HOURS}h`;
+    await TicketMessageEntity.create({
+      ticketId,
+      messageId: makeTicketMessageId(),
+      authorId: sub,
+      authorRole: "user",
+      body: `Auto-escalated from order refund request (${escalationReason}). Buyer reason:\n\n${reason}`,
+      attachments: [],
+    }).go();
+    return c.json({ outcome: "dispute_created", ticketId });
   },
 );
