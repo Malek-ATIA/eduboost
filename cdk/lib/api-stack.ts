@@ -239,6 +239,29 @@ export class ApiStack extends cdk.Stack {
       integration,
     });
 
+    // Forum browsing is public (channels + posts list + single post). Mutating
+    // endpoints (create post/comment, vote) hit /{proxy+} with Cognito auth.
+    api.addRoutes({
+      path: "/forum/channels",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/forum/channels/{channelId}/posts",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/forum/posts/{postId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/forum/posts/{postId}/hydrated",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
     this.apiUrl = api.apiEndpoint;
 
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });

@@ -68,6 +68,11 @@ export default function DashboardPage() {
     );
   }
   links.push({
+    href: "/forum",
+    label: "Forum",
+    description: "Community Q&A and discussion",
+  });
+  links.push({
     href: "/membership",
     label: "Membership",
     description: "Upgrade your account for extra features",

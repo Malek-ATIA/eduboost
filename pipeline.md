@@ -402,6 +402,20 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2D #1 pass (Forum)
+
+**Forum (Reddit-style posts/comments/votes)** — signed off
+- Three new entities: `ForumPostEntity` (primary + byChannel gsi1 + byAuthor gsi2, cached `upvotes`/`downvotes`/`score`/`commentCount`), `ForumCommentEntity` (pk=postId + sk=commentId, byAuthor gsi1), `ForumVoteEntity` (pk=targetId + sk=userId, direction + targetType).
+- 6 hardcoded channels (general, mathematics, sciences, languages, test-prep, teachers-lounge) in `lambdas/src/lib/forum-channels.ts`; admin-managed channels deferred.
+- Public routes (no auth): `GET /forum/channels`, `GET /forum/channels/:id/posts?sort=new|top`, `GET /forum/posts/:id`, `GET /forum/posts/:id/hydrated` (enriches post + comments with authorName).
+- Authenticated routes: `POST /forum/posts`, `POST /forum/posts/:id/comments`, `POST /forum/posts/:id/vote`, `POST /forum/comments/:id/vote?postId=…`, `GET /forum/my-votes?ids=…` (hydrate UI vote state for up to 100 targets).
+- Vote arithmetic verified across six cases (new up/down, retract same, switch). `castVote` uses a single `.add()` on the cached post/comment counters (upvotes/downvotes/score) to stay atomic.
+- UI: /forum channel list, /forum/[channelId] post list with new/top toggle, /forum/posts/[postId] with VoteCol arrows + inline comment form, /forum/posts/new Suspense-wrapped form; dashboard link for all roles.
+- Verifier catches:
+  - `/forum/posts/:id/hydrated` was not in the CDK public route list — guests hit the auth wall even though the data is public. Added explicit public `GET /forum/posts/{postId}/hydrated` route.
+  - Double-click race on `castVote.create()` threw a ConditionalCheckFailed which bubbled to 500. Wrapped in try/catch that re-reads the vote on conflict and routes through the idempotent retract/switch branches.
+- MVP tradeoffs (deferred): admin-managed channels, post/comment editing and deletion, report-for-moderation, media uploads, threading / nested comments, full-text search, hot-score ranking.
+
 ### 2026-04-17 — Phase 2C #3 pass (Teacher financial reporting)
 
 **Teacher earnings + CSV export** — signed off

@@ -21,6 +21,7 @@ import { attendanceRoutes } from "./routes/attendance.js";
 import { marketplaceRoutes } from "./routes/marketplace.js";
 import { membershipRoutes } from "./routes/memberships.js";
 import { reportRoutes } from "./routes/reports.js";
+import { forumRoutes } from "./routes/forum.js";
 
 export const app = new Hono();
 
@@ -53,6 +54,7 @@ app.route("/attendance", attendanceRoutes);
 app.route("/marketplace", marketplaceRoutes);
 app.route("/memberships", membershipRoutes);
 app.route("/reports", reportRoutes);
+app.route("/forum", forumRoutes);
 
 app.onError((err, c) => {
   console.error(err);

@@ -61,3 +61,14 @@ export {
   type SubscriptionStatus,
   type PlanId,
 } from "./subscription.js";
+export {
+  ForumPostEntity,
+  ForumCommentEntity,
+  ForumVoteEntity,
+  FORUM_VOTE_TARGETS,
+  FORUM_VOTE_DIRECTIONS,
+  makePostId,
+  makeCommentId,
+  type ForumVoteTarget,
+  type ForumVoteDirection,
+} from "./forum.js";
