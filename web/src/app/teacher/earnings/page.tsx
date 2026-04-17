@@ -1,0 +1,151 @@
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { currentRole, currentSession } from "@/lib/cognito";
+import { api } from "@/lib/api";
+import { env } from "@/lib/env";
+
+type Totals = { gross: number; fee: number; net: number; count: number };
+type Breakdown = { booking: Totals; marketplace: Totals };
+type Summary = {
+  currency: string;
+  paymentCount: number;
+  generatedAt: string;
+  buckets: {
+    allTime: Breakdown;
+    ytd: Breakdown;
+    thisMonth: Breakdown;
+    prevMonth: Breakdown;
+  };
+};
+
+export default function EarningsPage() {
+  const router = useRouter();
+  const [data, setData] = useState<Summary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const session = await currentSession();
+      if (!session) return router.replace("/login");
+      if (currentRole(session) !== "teacher") return router.replace("/dashboard");
+      try {
+        const r = await api<Summary>(`/reports/teacher/summary`);
+        setData(r);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    })();
+  }, [router]);
+
+  async function downloadCsv() {
+    setDownloading(true);
+    try {
+      const session = await currentSession();
+      if (!session) throw new Error("Not authenticated");
+      const token = session.getAccessToken().getJwtToken();
+      const res = await fetch(`${env.apiUrl}/reports/teacher/export.csv`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`CSV export failed: ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `eduboost-earnings-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-12">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Earnings</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Session and marketplace income, net of the 15% platform fee.
+          </p>
+        </div>
+        <button
+          onClick={downloadCsv}
+          disabled={downloading || !data}
+          className="rounded border px-3 py-2 text-sm disabled:opacity-50"
+        >
+          {downloading ? "..." : "Download CSV"}
+        </button>
+      </div>
+
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {data === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+
+      {data && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <Bucket label="This month" breakdown={data.buckets.thisMonth} currency={data.currency} />
+          <Bucket label="Previous month" breakdown={data.buckets.prevMonth} currency={data.currency} />
+          <Bucket label="Year to date" breakdown={data.buckets.ytd} currency={data.currency} />
+          <Bucket label="All time" breakdown={data.buckets.allTime} currency={data.currency} />
+        </div>
+      )}
+
+      <p className="mt-8 text-sm">
+        <Link href="/dashboard" className="text-gray-500 underline">
+          ← Dashboard
+        </Link>
+      </p>
+    </main>
+  );
+}
+
+function Bucket({
+  label,
+  breakdown,
+  currency,
+}: {
+  label: string;
+  breakdown: Breakdown;
+  currency: string;
+}) {
+  const total = {
+    gross: breakdown.booking.gross + breakdown.marketplace.gross,
+    fee: breakdown.booking.fee + breakdown.marketplace.fee,
+    net: breakdown.booking.net + breakdown.marketplace.net,
+    count: breakdown.booking.count + breakdown.marketplace.count,
+  };
+  return (
+    <div className="rounded border p-4">
+      <div className="text-xs uppercase text-gray-500">{label}</div>
+      <div className="mt-2 text-3xl font-bold">
+        {currency} {(total.net / 100).toFixed(2)}
+      </div>
+      <div className="mt-1 text-xs text-gray-500">
+        {total.count} payment{total.count === 1 ? "" : "s"} · gross{" "}
+        {(total.gross / 100).toFixed(2)} · fee {(total.fee / 100).toFixed(2)}
+      </div>
+      <dl className="mt-4 space-y-1 text-sm">
+        <Row label="Sessions" t={breakdown.booking} currency={currency} />
+        <Row label="Marketplace" t={breakdown.marketplace} currency={currency} />
+      </dl>
+    </div>
+  );
+}
+
+function Row({ label, t, currency }: { label: string; t: Totals; currency: string }) {
+  return (
+    <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
+      <dt>{label}</dt>
+      <dd>
+        {currency} {(t.net / 100).toFixed(2)}{" "}
+        <span className="text-xs text-gray-400">({t.count})</span>
+      </dd>
+    </div>
+  );
+}

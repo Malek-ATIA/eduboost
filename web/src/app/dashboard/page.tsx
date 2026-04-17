@@ -59,6 +59,7 @@ export default function DashboardPage() {
       { href: "/payments", label: "Payments received", description: "Session payouts and invoices you can reference" },
       { href: "/seller/listings", label: "Marketplace listings", description: "Sell digital study materials" },
       { href: "/seller/orders", label: "Marketplace sales", description: "Orders on your listings" },
+      { href: "/teacher/earnings", label: "Earnings", description: "Gross, fee, and net income across sessions and marketplace" },
     );
   }
   if (admin) {
