@@ -14,6 +14,10 @@ export const ListingEntity = new Entity(
     attributes: {
       listingId: { type: "string", required: true },
       sellerId: { type: "string", required: true },
+      // Optional attribution to a commercial organization. When set, the org is
+      // the "brand" seller even though payouts still flow to the sellerId's
+      // Stripe account; UI surfaces display the org name next to the listing.
+      sellerOrgId: { type: "string" },
       kind: { type: LISTING_KINDS, default: "digital" },
       title: { type: "string", required: true },
       description: { type: "string" },

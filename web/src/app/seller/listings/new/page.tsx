@@ -9,6 +9,13 @@ type NewListing = {
   listingId: string;
 };
 
+type MyOrg = {
+  orgId: string;
+  name: string;
+  kind: "educational" | "commercial";
+  myRole: "owner" | "admin" | "teacher" | "student";
+};
+
 export default function NewSellerListingPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -20,6 +27,8 @@ export default function NewSellerListingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  const [commercialOrgs, setCommercialOrgs] = useState<MyOrg[]>([]);
+  const [sellerOrgId, setSellerOrgId] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -27,6 +36,17 @@ export default function NewSellerListingPage() {
       if (!session) return router.replace("/login");
       if (currentRole(session) !== "teacher") return router.replace("/dashboard");
       setReady(true);
+      try {
+        const r = await api<{ items: MyOrg[] }>(`/orgs/mine`);
+        setCommercialOrgs(
+          r.items.filter(
+            (o) =>
+              o.kind === "commercial" && (o.myRole === "owner" || o.myRole === "admin"),
+          ),
+        );
+      } catch {
+        /* orgs are optional — silently fall back to individual selling */
+      }
     })();
   }, [router]);
 
@@ -51,6 +71,7 @@ export default function NewSellerListingPage() {
             .filter(Boolean),
           priceCents: Math.round(Number(priceEur) * 100),
           currency: "EUR",
+          sellerOrgId: sellerOrgId || undefined,
         }),
       });
 
@@ -143,6 +164,25 @@ export default function NewSellerListingPage() {
             onChange={(e) => setPriceEur(e.target.value)}
           />
         </label>
+        {commercialOrgs.length > 0 && (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">
+              Sell as (optional)
+            </span>
+            <select
+              value={sellerOrgId}
+              onChange={(e) => setSellerOrgId(e.target.value)}
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="">Myself (individual seller)</option>
+              {commercialOrgs.map((o) => (
+                <option key={o.orgId} value={o.orgId}>
+                  {o.name} (commercial org)
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="block">
           <span className="mb-1 block text-sm font-medium">File</span>
           <input

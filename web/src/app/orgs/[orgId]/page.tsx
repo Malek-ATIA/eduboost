@@ -35,6 +35,14 @@ type Classroom = {
   teacherId: string;
 };
 
+type OrgListing = {
+  listingId: string;
+  title: string;
+  priceCents: number;
+  currency: string;
+  status: string;
+};
+
 const ROLE_CHOICES: Exclude<Role, "owner">[] = ["admin", "teacher", "student"];
 
 export default function OrgDetailPage({
@@ -46,6 +54,7 @@ export default function OrgDetailPage({
   const router = useRouter();
   const [data, setData] = useState<OrgResponse | null>(null);
   const [classrooms, setClassrooms] = useState<Classroom[] | null>(null);
+  const [listings, setListings] = useState<OrgListing[] | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Exclude<Role, "owner">>("teacher");
   const [linkClassroomId, setLinkClassroomId] = useState("");
@@ -54,12 +63,14 @@ export default function OrgDetailPage({
 
   const load = useCallback(async () => {
     try {
-      const [r, lr] = await Promise.all([
+      const [r, lr, ml] = await Promise.all([
         api<OrgResponse>(`/orgs/${orgId}`),
         api<{ items: Classroom[] }>(`/orgs/${orgId}/classrooms`),
+        api<{ items: OrgListing[] }>(`/marketplace/orgs/${orgId}/listings`),
       ]);
       setData(r);
       setClassrooms(lr.items);
+      setListings(ml.items);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -234,6 +245,52 @@ export default function OrgDetailPage({
           </ul>
         )}
       </section>
+
+      {org.kind === "commercial" && (
+        <section className="mt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              Marketplace listings ({listings?.length ?? 0})
+            </h2>
+            {canManage && (
+              <Link
+                href="/seller/listings/new"
+                className="text-sm text-gray-500 underline"
+              >
+                Add listing →
+              </Link>
+            )}
+          </div>
+          {listings && listings.length === 0 && (
+            <p className="mt-4 text-sm text-gray-500">
+              No active listings under this organization.
+            </p>
+          )}
+          {listings && listings.length > 0 && (
+            <ul className="mt-4 divide-y rounded border">
+              {listings.map((l) => (
+                <li
+                  key={l.listingId}
+                  className="flex items-center justify-between p-3 text-sm"
+                >
+                  <div>
+                    <Link
+                      href={`/marketplace/listings/${l.listingId}` as never}
+                      className="font-medium underline"
+                    >
+                      {l.title}
+                    </Link>
+                    <div className="text-xs text-gray-500">status {l.status}</div>
+                  </div>
+                  <span className="font-mono">
+                    {l.currency} {(l.priceCents / 100).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </main>
   );
 }

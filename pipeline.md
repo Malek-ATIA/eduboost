@@ -355,7 +355,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Review session between teachers and students/parents
 - Profile checking by team (manual verification workflow)
 - Money-back guarantee policy (UX + backend)
-- Commercial organization marketplace
 - Membership plans / paid extras
 - Financial reporting dashboards for teachers
 - Minimum wage enforcement for teachers
@@ -395,6 +394,26 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #7 pass (Commercial-org marketplace)
+
+**Commercial organizations can sell marketplace listings under the org's name** — signed off
+- `ListingEntity` gains an optional `sellerOrgId?: string` attribute in `db/src/entities/marketplace.ts`. Existing individual-seller listings are unaffected (attribute simply absent).
+- `POST /marketplace/listings` (in `lambdas/src/routes/marketplace.ts`) accepts the optional `sellerOrgId` in the create schema. When present, the route independently fetches the org and the caller's membership, and rejects with: `org_not_found` (404), `not_a_commercial_org` (400 — educational orgs can't sell), `not_an_org_member` (403), or `not_org_admin` (403 — role must be `owner` or `admin`). `sellerId` remains the teacher's `sub` so payouts still route to the teacher's Stripe account.
+- New `GET /marketplace/orgs/:orgId/listings` returns active listings filtered by `sellerOrgId === orgId`. Public read, matching the existing `/listings` and `/listings/:listingId` surface — all rows returned have `status === "active"`, so no private data to gate on.
+- UI: `web/src/app/seller/listings/new/page.tsx` fetches `/orgs/mine` on mount, filters to `kind === "commercial"` with `myRole ∈ {owner, admin}`, and renders a "Sell as" dropdown only when at least one such org exists. `sellerOrgId` state starts empty (default option "Myself (individual seller)") and is sent as `undefined` when empty so the backend treats the create as an individual listing. `/orgs/mine` failures are swallowed so a user with no orgs never sees an error.
+- UI: `web/src/app/orgs/[orgId]/page.tsx` grew a "Marketplace listings" section rendered only when `org.kind === "commercial"`. Section calls `/marketplace/orgs/${orgId}/listings` in the same `Promise.all` as the existing org/classroom loads, shows an empty-state copy, and owner/admin members see an "Add listing →" shortcut.
+- Auditor's blocker 1 (confirmed by Verifier reading `lambdas/src/routes/marketplace.ts`): the comment above `GET /orgs/:orgId/listings` said "Open to any authenticated user" but the route has no `requireAuth` guard. Matches the pattern of `GET /listings` (line 36) and `GET /listings/:listingId` (line 50), both of which are public reads. The code is correct — the comment was misleading.
+- Verifier fix: rewrote the comment to "Public read, matching the existing /listings and /listings/:listingId endpoints — all rows returned are filtered to status === 'active', so there is no private data to gate on." Did NOT add `requireAuth` — would have broken consistency with the rest of the marketplace browse surface.
+- Auditor's blocker 2 (confirmed by Verifier reading `web/src/app/orgs/[orgId]/page.tsx` and `web/src/app/marketplace/listings/[listingId]/page.tsx`): the listing `<Link>` in the org detail page pointed at `/marketplace/${l.listingId}`, but the actual detail page lives at `/marketplace/listings/[listingId]`. The wrong href would 404.
+- Verifier fix: changed the href to `/marketplace/listings/${l.listingId}` so the link resolves to the existing detail route.
+- Auditor's should-fix #3 (accepted): `PATCH /listings/:listingId` does not allow updating `sellerOrgId`. Intentional for MVP — a teacher can't re-attribute an existing listing to a different org after creation. Added a one-line code comment above the PATCH handler documenting the design intent; behaviour unchanged.
+- Independent Verifier checks (beyond the Auditor):
+  - Confirmed the "Sell as" dropdown defaults to `<option value="">Myself (individual seller)</option>` and `sellerOrgId` is initialized to `""` in state. The submit builds the POST body with `sellerOrgId: sellerOrgId || undefined`, so an empty string is coerced to omitted — the backend's optional schema then treats it as an individual-seller listing.
+  - Confirmed the `/orgs/mine` call is wrapped in `try/catch` with a silent fallback comment — 403/404 on orgs never surfaces an error to the user; the dropdown simply stays hidden.
+  - Grepped `sellerOrgId` across the repo: appears only in `db/src/entities/marketplace.ts` (entity), `lambdas/src/routes/marketplace.ts` (create validation + authz), and `web/src/app/seller/listings/new/page.tsx` (form). No other route or UI references the field — including `GET /listings` (the general browse), which does not yet surface an org badge. Flagged only: a future pass could render the commercial-org name next to listings in the marketplace browse so buyers see the seller org. Not required for this phase.
+- MVP trade-offs (deferred): no `byOrg` GSI on `ListingEntity`, so `GET /orgs/:orgId/listings` uses a scan — acceptable since the existing `GET /listings` browse uses scan too, and will be revisited when the marketplace grows; payouts are still individual (listing's `sellerId` is the teacher's `sub`, not the org) — a commercial-org Stripe Connect model is a separate phase; `sellerOrgId` is intentionally not patchable in MVP — re-attribution requires deleting and recreating the listing; no org badge on the main `/marketplace` browse yet.
+- **Typecheck status:** db / lambdas / web / cdk all PASS.
 
 ### 2026-04-17 — Phase 2F #6 pass (Organization team admin)
 

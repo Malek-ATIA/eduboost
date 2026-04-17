@@ -11,6 +11,8 @@ import {
   ListingEntity,
   OrderEntity,
   UserEntity,
+  OrganizationEntity,
+  OrganizationMembershipEntity,
   LISTING_STATUSES,
   makeListingId,
   makeOrderId,
@@ -77,6 +79,10 @@ const createListingSchema = z.object({
   subjects: z.array(z.string().trim().min(1).max(100)).max(10).default([]),
   priceCents: z.number().int().min(50),
   currency: z.string().length(3).default("EUR"),
+  // Optional commercial-org attribution. When present, caller must be
+  // owner/admin of a commercial org; the listing displays the org as seller
+  // while payouts still route to the caller's Stripe account.
+  sellerOrgId: z.string().trim().min(1).optional(),
 });
 
 marketplaceRoutes.post("/listings", requireAuth, zValidator("json", createListingSchema), async (c) => {
@@ -85,6 +91,24 @@ marketplaceRoutes.post("/listings", requireAuth, zValidator("json", createListin
   const user = await UserEntity.get({ userId: sub }).go();
   if (!user.data) return c.json({ error: "user_not_found" }, 404);
   if (user.data.role !== "teacher") return c.json({ error: "only_teachers_can_sell" }, 403);
+
+  if (body.sellerOrgId) {
+    const [org, membership] = await Promise.all([
+      OrganizationEntity.get({ orgId: body.sellerOrgId }).go(),
+      OrganizationMembershipEntity.get({
+        orgId: body.sellerOrgId,
+        userId: sub,
+      }).go(),
+    ]);
+    if (!org.data) return c.json({ error: "org_not_found" }, 404);
+    if (org.data.kind !== "commercial") {
+      return c.json({ error: "not_a_commercial_org" }, 400);
+    }
+    if (!membership.data) return c.json({ error: "not_an_org_member" }, 403);
+    if (membership.data.role !== "owner" && membership.data.role !== "admin") {
+      return c.json({ error: "not_org_admin" }, 403);
+    }
+  }
 
   const listingId = makeListingId();
   const listing = await ListingEntity.create({
@@ -96,6 +120,21 @@ marketplaceRoutes.post("/listings", requireAuth, zValidator("json", createListin
   return c.json(listing.data, 201);
 });
 
+// Org-scoped listing feed. Public read, matching the existing /listings and
+// /listings/:listingId endpoints — all rows returned are filtered to
+// status === "active", so there is no private data to gate on.
+marketplaceRoutes.get(
+  "/orgs/:orgId/listings",
+  zValidator("param", z.object({ orgId: z.string().min(1) })),
+  async (c) => {
+    const { orgId } = c.req.valid("param");
+    const result = await ListingEntity.scan
+      .where((attr, op) => `${op.eq(attr.sellerOrgId, orgId)} AND ${op.eq(attr.status, "active")}`)
+      .go({ limit: 100 });
+    return c.json({ items: result.data });
+  },
+);
+
 const patchListingSchema = z.object({
   title: z.string().trim().min(3).max(200).optional(),
   description: z.string().trim().max(4000).optional(),
@@ -104,6 +143,8 @@ const patchListingSchema = z.object({
   status: z.enum(LISTING_STATUSES).optional(),
 });
 
+// Note: `sellerOrgId` is intentionally not patchable in MVP — a teacher
+// cannot re-attribute an existing listing to a different org after creation.
 marketplaceRoutes.patch(
   "/listings/:listingId",
   requireAuth,
