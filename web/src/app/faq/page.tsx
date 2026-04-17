@@ -156,7 +156,7 @@ function Item({ q, a }: FAQ) {
         <span>{q}</span>
         <span className="text-ink-faded transition group-open:rotate-45">+</span>
       </summary>
-      <p className="px-4 pb-4 text-sm text-ink-soft">{a}</p>
+      <p className="px-4 pb-4 text-sm leading-relaxed text-ink-soft">{a}</p>
     </details>
   );
 }

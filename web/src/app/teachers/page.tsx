@@ -85,7 +85,7 @@ export default function TeachersPage() {
   }, [queryString]);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-20 pt-16">
+    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
       <div>
         <p className="eyebrow">Directory</p>
         <h1 className="mt-1 font-display text-4xl tracking-tight text-ink sm:text-5xl">

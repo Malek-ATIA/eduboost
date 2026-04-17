@@ -131,6 +131,7 @@ export default function TakeAssessmentPage({
                       onChange={() =>
                         setAnswers(answers.map((a, idx) => (idx === i ? oi : a)))
                       }
+                      className="accent-seal"
                     />
                     <span>{o}</span>
                   </label>

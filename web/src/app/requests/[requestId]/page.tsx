@@ -141,7 +141,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
         <button
           onClick={() => act("cancel")}
           disabled={submitting}
-          className="btn-ghost mt-8 -ml-3"
+          className="btn-ghost mt-8 -ml-3 text-seal"
         >
           Cancel this request
         </button>

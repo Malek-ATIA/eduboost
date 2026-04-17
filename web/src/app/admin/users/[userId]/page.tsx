@@ -136,7 +136,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
           ) : user.role === "admin" ? (
             <p className="mt-8 text-sm text-ink-soft">Admins cannot be banned from this interface.</p>
           ) : (
-            <form onSubmit={onBan} className="card mt-8 space-y-3 p-6">
+            <form onSubmit={onBan} className="card mt-8 space-y-4 p-6">
               <label className="block">
                 <span className="label">Ban reason</span>
                 <textarea

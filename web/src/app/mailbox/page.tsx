@@ -76,7 +76,7 @@ export default function MailboxPage() {
 
       <section className="card mt-8 p-4">
         <h2 className="font-display text-base text-ink">New message</h2>
-        <form onSubmit={compose} className="mt-3 space-y-2">
+        <form onSubmit={compose} className="mt-3 space-y-4">
           <input
             required
             value={recipientId}

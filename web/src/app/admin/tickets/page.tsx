@@ -95,6 +95,7 @@ export default function AdminTicketsPage() {
             type="checkbox"
             checked={overdueOnly}
             onChange={(e) => setOverdueOnly(e.target.checked)}
+            className="accent-seal"
           />
           SLA-overdue only
         </label>

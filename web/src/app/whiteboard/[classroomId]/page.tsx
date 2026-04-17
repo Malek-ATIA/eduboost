@@ -243,6 +243,7 @@ export default function WhiteboardPage({
             max={40}
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
+            className="accent-seal"
           />
           <span className="w-6 text-xs text-ink">{width}</span>
         </div>

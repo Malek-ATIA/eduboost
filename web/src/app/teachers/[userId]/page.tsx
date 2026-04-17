@@ -193,7 +193,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
       </div>
 
       <section id="wall" className="mt-16">
-        <h2 className="font-display text-2xl text-ink">Wall</h2>
+        <h2 className="font-display text-xl text-ink">Wall</h2>
         <p className="mt-1 text-sm text-ink-soft">
           Updates, achievements, and posts from {user.displayName}.
         </p>
@@ -246,7 +246,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
 
       <section id="reviews" className="mt-16">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-2xl text-ink">Reviews</h2>
+          <h2 className="font-display text-xl text-ink">Reviews</h2>
           {reviews && reviews.length > 0 && profile.ratingCount > 0 && (
             <span className="text-sm text-ink-soft">
               ★ {profile.ratingAvg.toFixed(1)} · {profile.ratingCount}

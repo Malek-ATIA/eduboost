@@ -103,7 +103,7 @@ export default function TeacherQuizPage({
               onChange={(e) =>
                 setScores({ ...scores, [d.key]: Number(e.target.value) })
               }
-              className="w-full"
+              className="w-full accent-seal"
             />
           </label>
         ))}
@@ -113,6 +113,7 @@ export default function TeacherQuizPage({
             type="checkbox"
             checked={wouldRecommend}
             onChange={(e) => setWouldRecommend(e.target.checked)}
+            className="accent-seal"
           />
           I would recommend this teacher to a friend.
         </label>

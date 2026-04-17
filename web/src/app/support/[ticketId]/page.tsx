@@ -296,7 +296,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
       </div>
 
       {!closed && (
-        <form onSubmit={onReply} className="card mt-6 space-y-2 p-4">
+        <form onSubmit={onReply} className="card mt-6 space-y-4 p-4">
           <textarea
             rows={4}
             maxLength={8000}
@@ -351,7 +351,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             thread, and (for refund/review_removed outcomes) executes the
             relevant side effect.
           </p>
-          <form onSubmit={resolveTicket} className="mt-4 space-y-3">
+          <form onSubmit={resolveTicket} className="mt-4 space-y-4">
             <label className="block">
               <span className="label">Outcome</span>
               <select

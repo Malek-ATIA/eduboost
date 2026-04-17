@@ -156,6 +156,7 @@ export default function NewAssessmentPage() {
                         checked={q.correctIndex === oi}
                         onChange={() => updateQuestion(i, { correctIndex: oi })}
                         aria-label={`Correct option ${oi + 1}`}
+                        className="accent-seal"
                       />
                       <input
                         required

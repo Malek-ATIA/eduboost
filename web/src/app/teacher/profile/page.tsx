@@ -239,6 +239,7 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.trialSession}
             onChange={(e) => setForm({ ...form, trialSession: e.target.checked })}
+            className="accent-seal"
           />
           Offer a free or discounted trial session
         </label>
@@ -247,6 +248,7 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.individualSessions}
             onChange={(e) => setForm({ ...form, individualSessions: e.target.checked })}
+            className="accent-seal"
           />
           Offer 1-on-1 individual sessions
         </label>
@@ -255,6 +257,7 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.groupSessions}
             onChange={(e) => setForm({ ...form, groupSessions: e.target.checked })}
+            className="accent-seal"
           />
           Offer group sessions
         </label>

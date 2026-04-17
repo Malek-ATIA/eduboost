@@ -152,7 +152,7 @@ export default function ReferralsPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-2xl text-ink">People you've invited</h2>
+        <h2 className="font-display text-xl text-ink">People you&apos;ve invited</h2>
         {list === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
         {list && list.length === 0 && (
           <p className="mt-4 text-sm text-ink-soft">No one has claimed your code yet.</p>
