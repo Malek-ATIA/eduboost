@@ -220,17 +220,28 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     <main className="mx-auto max-w-6xl px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Classroom · {sessionId}</h1>
-        {isTeacher && (
-          <button
-            onClick={toggleRecording}
-            disabled={status !== "joined"}
-            className={`rounded px-3 py-1 text-sm ${
-              recording ? "bg-red-600 text-white" : "border"
-            } disabled:opacity-50`}
-          >
-            {recording ? "Stop recording" : "Start recording"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {classroomId && (
+            <Link
+              href={`/whiteboard/${classroomId}` as never}
+              target="_blank"
+              className="rounded border px-3 py-1 text-sm hover:border-black dark:hover:border-white"
+            >
+              Whiteboard
+            </Link>
+          )}
+          {isTeacher && (
+            <button
+              onClick={toggleRecording}
+              disabled={status !== "joined"}
+              className={`rounded px-3 py-1 text-sm ${
+                recording ? "bg-red-600 text-white" : "border"
+              } disabled:opacity-50`}
+            >
+              {recording ? "Stop recording" : "Start recording"}
+            </button>
+          )}
+        </div>
       </div>
       <p className="mt-2 text-sm text-gray-500">Status: {status}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

@@ -27,6 +27,7 @@ import { referralRoutes } from "./routes/referrals.js";
 import { smsRoutes } from "./routes/sms.js";
 import { googleRoutes } from "./routes/google.js";
 import { aiGradeRoutes } from "./routes/ai-grades.js";
+import { whiteboardRoutes } from "./routes/whiteboard.js";
 
 export const app = new Hono();
 
@@ -65,6 +66,7 @@ app.route("/referrals", referralRoutes);
 app.route("/sms", smsRoutes);
 app.route("/google", googleRoutes);
 app.route("/ai-grades", aiGradeRoutes);
+app.route("/whiteboard", whiteboardRoutes);
 
 app.onError((err, c) => {
   console.error(err);

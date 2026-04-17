@@ -89,3 +89,4 @@ export {
 } from "./google-integration.js";
 export { AiGradeEntity, makeGradeId } from "./ai-grade.js";
 export { BreakoutRoomEntity, makeBreakoutId } from "./breakout.js";
+export { WhiteboardEntity } from "./whiteboard.js";

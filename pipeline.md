@@ -346,7 +346,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Marketplace (digital/printed tutorials, goods, events)
 - Event planning services (venue, dates, ticketing, organization)
 - Forum (Reddit-style posts, comments, votes, channels)
-- Whiteboard
 - Note-keeping of key learning points
 - Integrations: Google Drive/Docs/Slides/Calendar, WhatsApp, social media, external educational tools
 - Suggested T&Os (paid advertisements)
@@ -399,6 +398,31 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #3 pass (Shared whiteboard)
+
+**Per-classroom shared whiteboard** — signed off
+- New `WhiteboardEntity` (pk=classroomId, sk=empty) holds `strokes: list<any>`, `version: number`, plus `updatedAt`/`createdAt`. Each stored stroke is `{ points: [[x,y], ...], color, width, authorId, at }`. Canvas coordinate space is a fixed 10000×5625 grid rendered to a 1000×562 DOM canvas, so stored points are resolution-independent.
+- Three routes on `lambdas/src/routes/whiteboard.ts` mounted at `/whiteboard` (all auth-gated via `requireAuth`):
+  - `GET /classroom/:classroomId` (teacher OR classroom member): returns `{ classroomId, strokes, version }` — empty list + version 0 if the board hasn't been touched yet.
+  - `POST /classroom/:classroomId/strokes` (teacher OR classroom member): validates via zod (`points` tuple of ints 0..10000, 6-hex color, width 1..40) and appends.
+  - `DELETE /classroom/:classroomId` (teacher-only): clears the list and bumps version.
+- UI: `/whiteboard/[classroomId]` page with 6-color palette + width slider, pointer-event drawing with optimistic rendering, and a 2.5s poll that merges server strokes. `/classroom/[sessionId]` links to the whiteboard via a new-tab button.
+- Auditor blockers — both confirmed by Verifier after reading `db/src/entities/whiteboard.ts` and `lambdas/src/routes/whiteboard.ts`:
+  - **DDB 400KB item-size math was wrong.** Route capped `MAX_STROKES=200` with the stroke zod schema allowing `.max(500)` points. Worst case ≈ 200 strokes × 500 points × ~20 bytes/point ≈ 2MB, 5× over DDB's 400KB cap.
+  - **Lost-update race on concurrent writes.** POST /strokes did a read → in-memory append → patch write, so two clients posting at the same moment would clobber each other's stroke.
+- Verifier fixes:
+  - `MAX_STROKES` reduced to 50 and a new `MAX_POINTS_PER_STROKE = 250` constant gates both the zod `points.max(...)` and the client's in-flight-stroke drop cutoff. Worst case is now 50 × 250 × ~20 bytes ≈ 250KB — comfortable margin under 400KB. Comment in `whiteboard.ts` rewritten to reflect the real math.
+  - Hot path rewritten to use ElectroDB's atomic `.upsert().append({ strokes: [newStroke] }).add({ version: 1 }).go()` — this compiles to a single DDB `UpdateItem` with `list_append` + `ADD` (verified against `node_modules/electrodb@3.7.5/README.md` lines 60-115, and the `append`/`add` clauses on `UpsertRecordOperationOptions` in `index.d.ts`). Two concurrent clients now both land their strokes; neither read-modifies-over the other.
+- ElectroDB atomic-append verdict: **supported**. `.append({ listAttr: [item] })` is exposed on both `.update()` and `.upsert()` and translates to `SET #attr = list_append(#attr, :val)`. `.add({ numAttr: N })` is the corresponding atomic numeric increment on a number attribute.
+- MVP trade-off: the `MAX_STROKES` trim still requires a read-modify-write because DDB can't express "append then keep last N" in one expression. That path only fires when the board already has 50+ strokes (the cap), so normal-case writes are fully atomic. Strokes dropped to a concurrent writer during the trim boundary is an acceptable MVP gap — the same board would hit the cap again anyway.
+- Should-fix items: client-side `disabled` on the Clear button for non-teachers (now fetches `/classrooms/:classroomId` on mount, compares `teacherId` with the Cognito `sub`, gates the button and also adds a title hover tooltip for clarity); the `(s.width * DISPLAY_W / CANVAS_W) * 10` line-width formula that algebraically reduced to `s.width * 1` was collapsed to `s.width` with a comment noting widths are stored in display pixels in this MVP.
+- Nit: client refresh `r.version >= versionRef.current` was redundant-rerendering on identical-version polls; tightened to `>`.
+- Independent Verifier checks:
+  - Confirmed `app.ts` mounts `/whiteboard` (line 69) and `canAccess()` correctly uses `ClassroomEntity` + `ClassroomMembershipEntity` keyed by `{classroomId, userId}`.
+  - Confirmed `GET /classrooms/:classroomId` in `classrooms.ts` returns the full row (including `teacherId`) for any authenticated caller — sufficient for the client-side isTeacher check.
+  - `MAX_POINTS_PER_STROKE` is enforced by zod on the server AND by the client's onPointerMove drop cutoff, so a misbehaving client can't push the server cap above 250 points per stroke.
+- **Typecheck status:** db / lambdas / web / cdk all PASS.
 
 ### 2026-04-17 — Phase 2F #2 pass (Breakout rooms via Chime sub-meetings)
 
