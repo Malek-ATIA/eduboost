@@ -29,6 +29,7 @@ import { googleRoutes } from "./routes/google.js";
 import { aiGradeRoutes } from "./routes/ai-grades.js";
 import { whiteboardRoutes } from "./routes/whiteboard.js";
 import { analyticsRoutes } from "./routes/analytics.js";
+import { organizationRoutes } from "./routes/organizations.js";
 
 export const app = new Hono();
 
@@ -69,6 +70,7 @@ app.route("/google", googleRoutes);
 app.route("/ai-grades", aiGradeRoutes);
 app.route("/whiteboard", whiteboardRoutes);
 app.route("/analytics", analyticsRoutes);
+app.route("/orgs", organizationRoutes);
 
 app.onError((err, c) => {
   console.error(err);

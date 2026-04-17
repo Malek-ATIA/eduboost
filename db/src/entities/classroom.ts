@@ -12,6 +12,7 @@ export const ClassroomEntity = new Entity(
       subject: { type: "string", required: true },
       description: { type: "string" },
       maxStudents: { type: "number", default: 1 },
+      orgId: { type: "string" },
       status: { type: ["draft", "active", "archived"] as const, default: "draft" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },

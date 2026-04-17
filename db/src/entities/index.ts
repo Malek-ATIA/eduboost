@@ -92,3 +92,12 @@ export {
 export { AiGradeEntity, makeGradeId } from "./ai-grade.js";
 export { BreakoutRoomEntity, makeBreakoutId } from "./breakout.js";
 export { WhiteboardEntity } from "./whiteboard.js";
+export {
+  OrganizationEntity,
+  OrganizationMembershipEntity,
+  ORG_KINDS,
+  ORG_MEMBER_ROLES,
+  makeOrgId,
+  type OrgKind,
+  type OrgMemberRole,
+} from "./organization.js";

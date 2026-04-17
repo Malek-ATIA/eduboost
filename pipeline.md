@@ -355,7 +355,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Review session between teachers and students/parents
 - Profile checking by team (manual verification workflow)
 - Money-back guarantee policy (UX + backend)
-- Private educational organization team admin (assign students per classroom)
 - Commercial organization marketplace
 - Membership plans / paid extras
 - Financial reporting dashboards for teachers
@@ -396,6 +395,31 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #6 pass (Organization team admin)
+
+**Private educational organization team admin: orgs, memberships, linked classrooms** — signed off
+- New `OrganizationEntity` (pk=orgId; attrs `name`, `ownerId`, `createdAt`) and `OrganizationMembershipEntity` (pk=orgId, sk=userId; `role ∈ {owner, admin, teacher, student}`, `joinedAt`) in `db/src/entities/organization.ts`; both exported from `db/src/entities/index.ts`. `ClassroomEntity` gains an optional `orgId` attribute (unset for existing non-org classrooms, patched on link).
+- `lambdas/src/routes/organizations.ts` mounted at `/organizations` in `app.ts`, file-level `requireAuth`. Routes:
+  - `POST /` (teacher-only): creates org + owner membership atomically via `makeOrgId()`.
+  - `GET /` (any auth): lists orgs the caller is a member of (query membership byUser GSI, fan out OrganizationEntity.get per orgId).
+  - `GET /:orgId`: member-only detail view, includes membership list hydrated with user display names.
+  - `POST /:orgId/members` (owner/admin): add by email, resolves to userId via UserEntity byEmail GSI, rejects unknown emails with `user_not_found` (no pending-invite flow in MVP).
+  - `DELETE /:orgId/members/:userId`: self-leave is always allowed; owner removal blocked with `cannot_remove_owner`; admin-removing-admin blocked with `admin_cannot_remove_admin` via secondary fetch of target membership.
+  - `POST /:orgId/classrooms/:classroomId` (owner/admin OR cognito `admin` group): links an existing classroom to the org. Requires the classroom's teacher to be a member of the org, and rejects re-linking if the classroom already has a different `orgId`.
+  - `GET /:orgId/classrooms`: lists linked classrooms — teachers get their own rooms filtered to this orgId; owner/admin fans out across all teacher members.
+- UI: `/orgs` (list + create CTA), `/orgs/new` (name form), `/orgs/[orgId]` (detail with members table, add-member form, linked classrooms list). Teacher-only "Organizations" link added at `web/src/app/dashboard/page.tsx` line 96.
+- Role hierarchy: owner > admin > teacher > student. Owner is the single creator and cannot be removed; admins manage members and link classrooms but cannot remove other admins (prevents lateral admin-nuking from a compromised admin). Teachers/students are passive members.
+- Classroom linking constraints: a classroom's teacher MUST already be an org member before it can be linked (so owners can't silently claim someone else's room); a classroom can only be owned by ONE org (re-link to a different org is rejected with 409 `classroom_in_other_org`); the existing teacher-owner check still gates every classroom action — `orgId` is additive, never a back-door.
+- Auditor's should-fix (confirmed by Verifier reading `web/src/app/orgs/[orgId]/page.tsx` line 188): the Remove-member guard was `{(canManage || m.userId === org.ownerId) && m.userId !== org.ownerId && ...}` — the `|| m.userId === org.ownerId` disjunct was dead code because the outer `&& m.userId !== org.ownerId` always fails when that disjunct is true. Harmless but misleading.
+- Verifier fix: simplified the JSX to `{canManage && m.userId !== org.ownerId && ...}` at `web/src/app/orgs/[orgId]/page.tsx:188`. Same behaviour, no more dead branch.
+- Independent Verifier checks (beyond the Auditor):
+  - Re-verified the `admin_cannot_remove_admin` gate in `lambdas/src/routes/organizations.ts` lines 188-193: the actor's role is `mine.role` (already fetched at line 176); when the actor is admin AND removing someone other than themselves, the route fetches the TARGET membership via `OrganizationMembershipEntity.get({ orgId, userId })` and returns 403 if `target.data?.role === "admin"`. Optional-chaining on `.data?` cleanly handles a target who isn't even a member (which would be a no-op delete anyway). Gate is correct.
+  - Grepped `orgId` across `lambdas/src/` — only `organizations.ts` touches `classroom.orgId` (read at line 236 for the `classroom_in_other_org` check, write at line 240 via patch). No other route reads the field, so existing non-org classrooms with `orgId === undefined` are unaffected by this change.
+  - Grepped `.orgId` repo-wide — outside `organizations.ts` only the new UI pages (`/orgs/page.tsx`, `/orgs/new/page.tsx`) reference it, confirming no other surface tries to enforce org ownership on a classroom.
+  - Dashboard wiring: `/orgs` link is inside the `role === "teacher"` block (line 96), so students/parents never see it. Owner-only UI actions on `/orgs/[orgId]` are gated by `canManage = mine?.role === "owner" || mine?.role === "admin"`.
+- MVP trade-offs (deferred): no ownership-transfer endpoint — once ownerId is set it's permanent until the org is deleted (out of scope); no `byOrg` GSI on ClassroomEntity, so `GET /:orgId/classrooms` for an owner/admin fans out per teacher-member (fine at MVP scale, will need a GSI before large orgs); no pending-invite flow — adding a member requires that user to already have an EduBoost account (returns `user_not_found` otherwise); no commercial-marketplace integration yet (commercial orgs remain under the Deferred list); no per-classroom student assignment UI yet — the linking endpoint adopts the classroom as-is with its existing teacher/student relationships intact.
+- **Typecheck status:** db / lambdas / web / cdk all PASS.
 
 ### 2026-04-17 — Phase 2F #5 pass (Parent/student analytics)
 

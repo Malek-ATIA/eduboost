@@ -93,6 +93,7 @@ export default function DashboardPage() {
       { href: "/teacher/earnings", label: "Earnings", description: "Gross, fee, and net income across sessions and marketplace" },
       { href: "/teacher/grader", label: "AI grader", description: "Score submissions with Claude + a rubric" },
       { href: "/grades", label: "Grades given", description: "History of your AI-graded submissions" },
+      { href: "/orgs", label: "Organizations", description: "Manage teams and linked classrooms" },
     );
   }
   if (admin) {
