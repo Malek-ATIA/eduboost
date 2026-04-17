@@ -360,7 +360,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Membership plans / paid extras
 - Financial reporting dashboards for teachers
 - Minimum wage enforcement for teachers
-- Parent/student analytics space
 - Teacher wall (posts + comments)
 - Study materials portal with exam sharing
 - Mailbox (parent↔teacher async inbox beyond DM)
@@ -397,6 +396,23 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2F #5 pass (Parent/student analytics)
+
+**Parent/student analytics space: spend, attendance, grades, and activity aggregated per user and per household** — signed off
+- New `lambdas/src/routes/analytics.ts` mounted at `/analytics` in `app.ts` (line 71), file-level `requireAuth`.
+- Shared `metricsFor(userId)` computes in one Promise.all fan-out: `sessionsAttended` (present+late), `attendanceRate` ((present+late)/marked, null on no marks), `totalHoursAttended` (attended count, 1h-per-session approximation), `totalSpentCents` (sum of `status === "succeeded"` payments, refunded rows excluded), `currency` (first succeeded row, EUR fallback), `bookingCount`, `reviewsLeft`, `aiGradeAvg` ((score/maxScore)*100 averaged, filtered to `maxScore > 0`), `aiGradeCount`, plus `displayName` from UserEntity. Each entity read uses its byUser / byPayer / byStudent / byReviewer GSI with `limit: 1000`.
+- `GET /analytics/student` (role ∈ {student, parent}): returns the caller's own `UserMetrics`. Parents are allowed so they can see their personal activity alone — redundant with the `self` block on `/parent`, but the endpoint is useful for per-role testing and a future student-only view.
+- `GET /analytics/parent` (role === parent): queries `ParentChildLinkEntity.query.primary({ parentId })` with `limit: 50`, filters to `status === "accepted"` (IDOR-safe — no user-supplied childId), fans out `metricsFor` across accepted children + self, returns `{ self, children, summary }`. `summary.totalSpentCents` and `summary.sessionsAttended` sum across `self + children`; `summary.currency` mirrors `self.currency`.
+- UI: `web/src/app/analytics/page.tsx` — role-gated (redirects non-student/parent to `/dashboard`), calls `/analytics/parent` or `/analytics/student` based on role, renders `MetricsGrid` sections (own stats for student; household summary + self + per-child for parent) with loading/error states and an empty-children CTA linking to `/parent/children`. Dashboard link added at `web/src/app/dashboard/page.tsx` line 67 inside the `student || parent` block.
+- Auditor's should-fix (confirmed by Verifier reading `lambdas/src/routes/analytics.ts`): the `/parent` 403 payload was `{ error: "only_parents" }` (line 109) while `/student`'s 403 used `{ error: "not_available_for_role" }` (line 96). Two payloads for the same job — frontend never discriminates on the exact string, but consumers should see one shape.
+- Verifier fix: changed the `/parent` 403 to `{ error: "not_available_for_role" }` so both endpoints return the same shape on role rejection. Grepped `only_parents` across the repo before changing — no UI/test/client code depended on the string. Also applied the nit: removed the dead `g.maxScore ?? 1` guard (dead because `gradedValid` is already filtered to `maxScore > 0`), simplified to `g.score / g.maxScore!` with a comment flagging why the non-null assertion is safe.
+- Independent Verifier checks (beyond the Auditor):
+  - Grepped `aiGradeAvg` across the repo: only `lambdas/src/routes/analytics.ts` (server computation) and `web/src/app/analytics/page.tsx` (display) reference it, and the UI already nil-guards via `m.aiGradeAvg === null ? "—" : ...`. No other surface needs updating.
+  - Confirmed the frontend's role branch in `analytics/page.tsx` lines 50-56 calls `/analytics/parent` when `r === "parent"` and `/analytics/student` otherwise — parents never hit `/student` from the UI, so allowing parents on `/student` is an unused-but-harmless capability, not a redundant double call.
+  - `metricsFor` on the parent's own `sub`: `AttendanceEntity.query.byUser` and `ReviewEntity.query.byReviewer` will typically be empty for parents (they don't attend or review), which cleanly yields `attendanceRate: null`, `reviewsLeft: 0`, etc. `PaymentEntity.query.byPayer` correctly picks up parent-funded bookings, so `self.totalSpentCents` is meaningful. No logic hazard.
+- MVP trade-offs: `totalHoursAttended` is an attended-session count, not real duration (avoids N SessionEntity lookups per user); `summary.currency` shows only the first succeeded payment's currency — mixed-currency households surface just one symbol until a multi-currency aggregator is designed; no teacher-facing view (teachers' earnings already live under `/teacher/earnings`).
+- **Typecheck status:** db / lambdas / web / cdk all PASS.
 
 ### 2026-04-17 — Phase 2F #4 pass (Dispute system with SLAs)
 

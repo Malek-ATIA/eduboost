@@ -64,6 +64,7 @@ export default function DashboardPage() {
       { href: "/marketplace", label: "Marketplace", description: "Browse study materials for sale" },
       { href: "/orders", label: "My orders", description: "Digital tutorials you've purchased" },
       { href: "/grades", label: "My grades", description: "Feedback from AI-graded submissions" },
+      { href: "/analytics", label: "Analytics", description: "Your spend, attendance, grades, and activity" },
     );
   }
   if (role === "parent") {
