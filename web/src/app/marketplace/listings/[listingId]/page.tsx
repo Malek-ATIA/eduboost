@@ -26,31 +26,32 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
       .catch((e) => setError((e as Error).message));
   }, [listingId]);
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 py-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/marketplace" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href="/marketplace" className="btn-ghost -ml-3">
         ← Marketplace
       </Link>
-      <h1 className="mt-4 text-3xl font-bold">{data.title}</h1>
+      <p className="eyebrow mt-4">Listing</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{data.title}</h1>
       <div className="mt-2 flex flex-wrap gap-1">
         {data.subjects.map((s) => (
-          <span key={s} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+          <span key={s} className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs text-ink-soft">
             {s}
           </span>
         ))}
       </div>
       {data.description && (
-        <p className="mt-6 whitespace-pre-wrap leading-relaxed">{data.description}</p>
+        <p className="mt-6 whitespace-pre-wrap leading-relaxed text-ink">{data.description}</p>
       )}
-      <div className="mt-8 rounded border p-4">
-        <div className="text-xl font-bold">
+      <div className="card mt-8 p-4">
+        <div className="font-display text-xl text-ink">
           {data.currency} {(data.priceCents / 100).toFixed(2)}
         </div>
         {data.fileMimeType && (
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-ink-faded">
             {data.fileMimeType}
             {data.fileSizeBytes
               ? ` · ${(data.fileSizeBytes / 1024 / 1024).toFixed(1)} MB`
@@ -59,7 +60,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
         )}
         <Link
           href={`/marketplace/buy/${data.listingId}`}
-          className="mt-4 inline-block rounded bg-black px-5 py-2 text-white dark:bg-white dark:text-black"
+          className="btn-seal mt-4"
         >
           Buy
         </Link>

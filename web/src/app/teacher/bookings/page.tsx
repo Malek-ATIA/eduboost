@@ -17,11 +17,11 @@ type Booking = {
 };
 
 const STATUS_COLORS: Record<Booking["status"], string> = {
-  pending: "text-yellow-700",
-  confirmed: "text-green-700",
-  cancelled: "text-gray-500",
-  refunded: "text-gray-500",
-  completed: "text-blue-700",
+  pending: "text-ink-faded",
+  confirmed: "text-ink",
+  cancelled: "text-ink-faded",
+  refunded: "text-ink-faded",
+  completed: "text-seal",
 };
 
 export default function TeacherBookingsPage() {
@@ -44,40 +44,41 @@ export default function TeacherBookingsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Bookings (as teacher)</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Teacher</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Bookings (as teacher)</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Schedule a session against confirmed bookings.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No bookings yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No bookings yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((b) => {
             const canSchedule = b.status === "confirmed";
             return (
               <li key={b.bookingId} className="flex items-center justify-between p-4">
                 <div>
-                  <div className="font-medium capitalize">{b.type} session</div>
-                  <div className="text-xs text-gray-500">
-                    #{b.bookingId} · booked {new Date(b.createdAt).toLocaleDateString()}
+                  <div className="font-display text-base text-ink capitalize">{b.type} session</div>
+                  <div className="text-xs text-ink-faded">
+                    <span className="font-mono">#{b.bookingId}</span> · booked {new Date(b.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-right">
                   <div>
-                    <div className="font-medium">€{(b.amountCents / 100).toFixed(2)}</div>
-                    <div className={`text-xs uppercase ${STATUS_COLORS[b.status]}`}>
+                    <div className="font-display text-base text-ink">€{(b.amountCents / 100).toFixed(2)}</div>
+                    <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>
                       {b.status}
                     </div>
                   </div>
                   {canSchedule && (
                     <Link
                       href={`/sessions/new?bookingId=${b.bookingId}`}
-                      className="rounded bg-black px-3 py-1 text-xs text-white dark:bg-white dark:text-black"
+                      className="btn-seal"
                     >
                       Schedule
                     </Link>

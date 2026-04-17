@@ -67,25 +67,26 @@ export default function EarningsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Earnings</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="eyebrow">Teacher</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Earnings</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             Session and marketplace income, net of the 15% platform fee.
           </p>
         </div>
         <button
           onClick={downloadCsv}
           disabled={downloading || !data}
-          className="rounded border px-3 py-2 text-sm disabled:opacity-50"
+          className="btn-secondary"
         >
           {downloading ? "..." : "Download CSV"}
         </button>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {data === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {data === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
       {data && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -97,7 +98,7 @@ export default function EarningsPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>
@@ -121,12 +122,12 @@ function Bucket({
     count: breakdown.booking.count + breakdown.marketplace.count,
   };
   return (
-    <div className="rounded border p-4">
-      <div className="text-xs uppercase text-gray-500">{label}</div>
-      <div className="mt-2 text-3xl font-bold">
+    <div className="card p-4">
+      <div className="eyebrow">{label}</div>
+      <div className="mt-2 font-display text-3xl text-ink">
         {currency} {(total.net / 100).toFixed(2)}
       </div>
-      <div className="mt-1 text-xs text-gray-500">
+      <div className="mt-1 text-xs text-ink-faded">
         {total.count} payment{total.count === 1 ? "" : "s"} · gross{" "}
         {(total.gross / 100).toFixed(2)} · fee {(total.fee / 100).toFixed(2)}
       </div>
@@ -140,11 +141,11 @@ function Bucket({
 
 function Row({ label, t, currency }: { label: string; t: Totals; currency: string }) {
   return (
-    <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
+    <div className="flex items-center justify-between text-ink-soft">
       <dt>{label}</dt>
       <dd>
         {currency} {(t.net / 100).toFixed(2)}{" "}
-        <span className="text-xs text-gray-400">({t.count})</span>
+        <span className="text-xs text-ink-faded">({t.count})</span>
       </dd>
     </div>
   );

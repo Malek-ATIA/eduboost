@@ -69,17 +69,18 @@ export default function TakeAssessmentPage({
   }
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-2xl px-6 py-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (!exam) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   if (result) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-12 text-center">
-        <h1 className="text-2xl font-bold">Submitted</h1>
-        <p className="mt-2 text-sm text-gray-500">
+      <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-center">
+        <p className="eyebrow">Result</p>
+        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Submitted</h1>
+        <p className="mt-2 text-sm text-ink-soft">
           {exam.title}: auto-graded MCQ score{" "}
-          <span className="font-mono">{result.autoScore}/{result.maxMcqScore}</span>.
+          <span className="font-mono text-ink">{result.autoScore}/{result.maxMcqScore}</span>.
           {result.maxMcqScore < exam.questions.length && (
             <>
               {" "}
@@ -89,7 +90,7 @@ export default function TakeAssessmentPage({
         </p>
         <Link
           href="/assessments"
-          className="mt-6 inline-block rounded border px-4 py-2 text-sm"
+          className="btn-secondary mt-6"
         >
           Back to assessments
         </Link>
@@ -105,23 +106,24 @@ export default function TakeAssessmentPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">{exam.title}</h1>
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Assessment</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{exam.title}</h1>
       {exam.description && (
-        <p className="mt-1 text-sm text-gray-500">{exam.description}</p>
+        <p className="mt-1 text-sm text-ink-soft">{exam.description}</p>
       )}
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
         {exam.questions.map((q, i) => (
-          <div key={i} className="rounded border p-4">
-            <div className="text-xs font-medium uppercase text-gray-500">
+          <div key={i} className="card p-4">
+            <div className="eyebrow">
               Q{i + 1} · {q.kind === "mcq" ? "Multiple choice" : "Short answer"}
             </div>
-            <p className="mt-1 text-sm">{q.prompt}</p>
+            <p className="mt-1 text-sm text-ink">{q.prompt}</p>
             {q.kind === "mcq" ? (
               <div className="mt-3 space-y-2">
                 {q.options.map((o, oi) => (
-                  <label key={oi} className="flex items-center gap-2 text-sm">
+                  <label key={oi} className="flex items-center gap-2 text-sm text-ink">
                     <input
                       type="radio"
                       name={`q-${i}`}
@@ -144,24 +146,24 @@ export default function TakeAssessmentPage({
                     answers.map((a, idx) => (idx === i ? e.target.value : a)),
                   )
                 }
-                className="mt-3 w-full rounded border px-3 py-2 text-sm"
+                className="input mt-3"
                 placeholder="Your answer..."
               />
             )}
           </div>
         ))}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting || unanswered}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Submitting..." : "Submit attempt"}
         </button>
         {unanswered && (
-          <p className="text-xs text-gray-500">Answer every question to submit.</p>
+          <p className="text-xs text-ink-faded">Answer every question to submit.</p>
         )}
       </form>
     </main>

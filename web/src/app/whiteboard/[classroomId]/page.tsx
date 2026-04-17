@@ -32,7 +32,7 @@ const DISPLAY_H = 562;
 const POLL_MS = 2500;
 const MAX_POINTS_PER_STROKE = 250;
 
-const PALETTE = ["#111111", "#d72638", "#1f7a8c", "#f79824", "#4caf50", "#ffffff"];
+const PALETTE = ["#4b3621", "#8b3a3a", "#1f7a8c", "#c57b3a", "#4caf50", "#f1e9d2"];
 
 export default function WhiteboardPage({
   params,
@@ -56,7 +56,7 @@ export default function WhiteboardPage({
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#fdf8ea";
     ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
     const all: Stroke[] = [
       ...strokesRef.current,
@@ -198,11 +198,12 @@ export default function WhiteboardPage({
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-8">
+    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Whiteboard</h1>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="eyebrow">Board</p>
+          <h1 className="mt-1 font-display text-3xl text-ink">Whiteboard</h1>
+          <p className="mt-1 text-xs text-ink-faded">
             Classroom <span className="font-mono">{classroomId}</span> · changes
             sync every {POLL_MS / 1000}s.
           </p>
@@ -211,23 +212,23 @@ export default function WhiteboardPage({
           onClick={clearBoard}
           disabled={clearing || !isTeacher}
           title={!isTeacher ? "Only the classroom teacher can clear the board" : undefined}
-          className="rounded border px-3 py-1 text-sm text-red-600 disabled:opacity-50"
+          className="btn-secondary text-seal"
         >
           {clearing ? "Clearing..." : "Clear board (teacher)"}
         </button>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded border px-3 py-2">
+      <div className="card mt-4 flex flex-wrap items-center gap-3 px-3 py-2">
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-500">Color:</span>
+          <span className="text-xs text-ink-soft">Color:</span>
           {PALETTE.map((c) => (
             <button
               key={c}
               onClick={() => setColor(c)}
               className={`h-6 w-6 rounded border-2 ${
-                c === color ? "border-black dark:border-white" : "border-transparent"
+                c === color ? "border-seal" : "border-transparent"
               }`}
               style={{ backgroundColor: c }}
               aria-label={`color ${c}`}
@@ -235,7 +236,7 @@ export default function WhiteboardPage({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Width:</span>
+          <span className="text-xs text-ink-soft">Width:</span>
           <input
             type="range"
             min={1}
@@ -243,11 +244,11 @@ export default function WhiteboardPage({
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
           />
-          <span className="w-6 text-xs">{width}</span>
+          <span className="w-6 text-xs text-ink">{width}</span>
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded border bg-white">
+      <div className="card mt-4 overflow-hidden">
         <canvas
           ref={canvasRef}
           width={DISPLAY_W}
@@ -261,7 +262,7 @@ export default function WhiteboardPage({
       </div>
 
       <p className="mt-6 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

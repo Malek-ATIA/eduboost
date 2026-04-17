@@ -160,40 +160,38 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 py-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href={`/forum/${data.post.channelId}` as never} className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href={`/forum/${data.post.channelId}` as never} className="btn-ghost -ml-3">
         ← Channel
       </Link>
 
-      <article className="mt-4 flex gap-4 rounded border p-4">
+      <article className="card mt-4 flex gap-4 p-4">
         <VoteCol
           score={data.post.score}
           myVote={votes[data.post.postId]}
           onVote={votePost}
         />
         <div className="flex-1">
-          <h1 className="text-xl font-bold">{data.post.title}</h1>
-          <div className="mt-1 text-xs text-gray-500">
+          <h1 className="font-display text-2xl text-ink">{data.post.title}</h1>
+          <div className="mt-1 text-xs text-ink-faded">
             {data.post.authorName} · {new Date(data.post.createdAt).toLocaleString()}
           </div>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">{data.post.body}</p>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink">{data.post.body}</p>
         </div>
       </article>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase text-gray-500">
-          Comments ({data.comments.length})
-        </h2>
+        <h2 className="eyebrow">Comments ({data.comments.length})</h2>
 
         <form onSubmit={addComment} className="mt-3 space-y-2">
           <textarea
             rows={3}
             maxLength={4000}
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Add a comment..."
@@ -201,7 +199,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
           <button
             type="submit"
             disabled={submitting || !draft.trim()}
-            className="rounded bg-black px-4 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             {submitting ? "Posting..." : "Post"}
           </button>
@@ -209,17 +207,17 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
 
         <ul className="mt-6 space-y-3">
           {data.comments.map((cm) => (
-            <li key={cm.commentId} className="flex gap-3 rounded border p-3">
+            <li key={cm.commentId} className="card flex gap-3 p-3">
               <VoteCol
                 score={cm.score}
                 myVote={votes[cm.commentId]}
                 onVote={(d) => voteComment(cm.commentId, d)}
               />
               <div className="flex-1">
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-ink-faded">
                   {cm.authorName} · {new Date(cm.createdAt).toLocaleString()}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm">{cm.body}</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{cm.body}</p>
               </div>
             </li>
           ))}
@@ -242,15 +240,15 @@ function VoteCol({
     <div className="flex min-w-[2.5rem] flex-col items-center text-sm">
       <button
         onClick={() => onVote("up")}
-        className={`text-lg ${myVote === "up" ? "text-orange-600" : "text-gray-400 hover:text-gray-700"}`}
+        className={`text-lg ${myVote === "up" ? "text-ink" : "text-ink-faded hover:text-ink"}`}
         aria-label="Upvote"
       >
         ▲
       </button>
-      <span className="font-bold">{score}</span>
+      <span className="font-display text-base text-ink">{score}</span>
       <button
         onClick={() => onVote("down")}
-        className={`text-lg ${myVote === "down" ? "text-blue-600" : "text-gray-400 hover:text-gray-700"}`}
+        className={`text-lg ${myVote === "down" ? "text-seal" : "text-ink-faded hover:text-ink"}`}
         aria-label="Downvote"
       >
         ▼

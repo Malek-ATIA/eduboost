@@ -19,10 +19,10 @@ const STATUSES = ["pending", "verified", "rejected", "unsubmitted"] as const;
 type Status = (typeof STATUSES)[number];
 
 const STATUS_COLORS: Record<Status, string> = {
-  pending: "text-yellow-700",
-  verified: "text-green-700",
-  rejected: "text-red-700",
-  unsubmitted: "text-gray-500",
+  pending: "text-ink-faded",
+  verified: "text-ink",
+  rejected: "text-seal",
+  unsubmitted: "text-ink-faded",
 };
 
 export default function AdminVerificationsPage() {
@@ -86,55 +86,60 @@ export default function AdminVerificationsPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-3xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Teacher verifications</h1>
-        <Link href="/admin" className="text-sm text-gray-500 underline">
+        <div>
+          <p className="eyebrow">Admin</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Teacher verifications</h1>
+        </div>
+        <Link href="/admin" className="btn-ghost">
           ← Admin hub
         </Link>
       </div>
 
       <div className="mt-6 max-w-xs">
-        <label className="mb-1 block text-sm font-medium">Filter by status</label>
-        <select
-          className="w-full rounded border px-3 py-2"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as Status)}
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <label className="block">
+          <span className="label">Filter by status</span>
+          <select
+            className="input"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as Status)}
+          >
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No teachers in this status.</p>
+        <p className="mt-6 text-sm text-ink-soft">No teachers in this status.</p>
       )}
 
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((r) => (
             <li key={r.userId} className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-display text-base text-ink">
                     {r.user?.displayName ?? r.userId}{" "}
-                    <span className={`ml-2 text-xs uppercase ${STATUS_COLORS[r.verificationStatus]}`}>
+                    <span className={`ml-2 text-xs uppercase tracking-widest ${STATUS_COLORS[r.verificationStatus]}`}>
                       {r.verificationStatus}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="mt-0.5 text-xs text-ink-faded">
                     {r.user?.email ?? ""} · subjects: {r.subjects.join(", ") || "—"}
                   </div>
                   {r.verificationNotes && (
-                    <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-xs text-ink-soft">
                       Notes: {r.verificationNotes}
                     </p>
                   )}
@@ -142,7 +147,7 @@ export default function AdminVerificationsPage() {
                 <div className="flex flex-col gap-1">
                   <Link
                     href={`/teachers/${r.userId}` as never}
-                    className="text-xs underline"
+                    className="text-xs underline text-ink-soft"
                   >
                     View profile
                   </Link>
@@ -150,13 +155,13 @@ export default function AdminVerificationsPage() {
                     <>
                       <button
                         onClick={() => approve(r.userId)}
-                        className="rounded bg-green-700 px-3 py-1 text-xs text-white"
+                        className="btn-seal"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => reject(r.userId)}
-                        className="rounded border border-red-400 px-3 py-1 text-xs text-red-700"
+                        className="btn-secondary text-seal"
                       >
                         Reject
                       </button>

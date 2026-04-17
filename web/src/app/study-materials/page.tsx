@@ -33,27 +33,30 @@ export default function StudyMaterialsPage() {
   }, [kind, subject]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Study materials portal</h1>
+        <div>
+          <p className="eyebrow">Library</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Study materials portal</h1>
+        </div>
         <Link
           href="/study-materials/new"
-          className="rounded border px-3 py-1 text-sm"
+          className="btn-seal"
         >
           Share material
         </Link>
       </div>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-ink-soft">
         Free peer-shared exams, notes, and answer keys.
       </p>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <label className="flex flex-col text-xs">
-          <span className="mb-1 text-gray-500">Kind</span>
+          <span className="label">Kind</span>
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value as typeof kind)}
-            className="rounded border px-2 py-1 text-sm"
+            className="input"
           >
             <option value="">All</option>
             {KINDS.map((k) => (
@@ -64,37 +67,37 @@ export default function StudyMaterialsPage() {
           </select>
         </label>
         <label className="flex flex-col text-xs">
-          <span className="mb-1 text-gray-500">Subject</span>
+          <span className="label">Subject</span>
           <input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="rounded border px-2 py-1 text-sm"
+            className="input"
             placeholder="e.g. Mathematics"
           />
         </label>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No matching materials.</p>
+        <p className="mt-6 text-sm text-ink-soft">No matching materials.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((m) => (
             <li key={m.materialId}>
               <Link
                 href={`/study-materials/${m.materialId}` as never}
-                className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="block p-4 transition hover:bg-parchment-shade"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">{m.title}</div>
-                    <div className="mt-0.5 text-xs text-gray-500">
+                    <div className="font-display text-base text-ink">{m.title}</div>
+                    <div className="mt-0.5 text-xs text-ink-faded">
                       {m.kind} · {m.subject} · {new Date(m.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <span className="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+                  <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
                     {m.kind}
                   </span>
                 </div>
@@ -104,7 +107,7 @@ export default function StudyMaterialsPage() {
         </ul>
       )}
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

@@ -68,11 +68,12 @@ export default function BreakoutPage({
   }, [sessionId, breakoutId]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-8">
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Breakout · {label || breakoutId}</h1>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="eyebrow">Breakout</p>
+          <h1 className="mt-1 font-display text-3xl text-ink">Breakout · {label || breakoutId}</h1>
+          <p className="mt-1 text-xs text-ink-faded">
             Parent session:{" "}
             <Link
               href={`/classroom/${sessionId}` as never}
@@ -83,10 +84,10 @@ export default function BreakoutPage({
           </p>
         </div>
       </div>
-      <p className="mt-2 text-sm text-gray-500">Status: {status}</p>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      <p className="mt-2 text-sm text-ink-soft">Status: {status}</p>
+      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
 
-      <div className="mt-6 aspect-video w-full overflow-hidden rounded bg-black">
+      <div className="mt-6 aspect-video w-full overflow-hidden rounded-md bg-ink/90">
         <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
       </div>
 

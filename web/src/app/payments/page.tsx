@@ -18,10 +18,10 @@ type Payment = {
 };
 
 const STATUS_COLORS: Record<Payment["status"], string> = {
-  pending: "text-yellow-700",
-  succeeded: "text-green-700",
-  failed: "text-red-700",
-  refunded: "text-gray-500",
+  pending: "text-ink-faded",
+  succeeded: "text-ink",
+  failed: "text-seal",
+  refunded: "text-ink-faded",
 };
 
 export default function PaymentsPage() {
@@ -75,30 +75,31 @@ export default function PaymentsPage() {
 
   const isTeacher = role === "teacher";
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Ledger</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
         {isTeacher ? "Payments received" : "Payment history"}
       </h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-ink-soft">
         {isTeacher
           ? "Session payouts paid to you. Download invoices for your records."
           : "All payments you\u2019ve made. Download invoices for your records."}
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No payments yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No payments yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((p) => (
             <li key={p.paymentId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-medium">
+                <div className="font-display text-base text-ink">
                   {p.currency} {(p.amountCents / 100).toFixed(2)}
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">
+                <div className="mt-0.5 text-xs text-ink-faded">
                   {new Date(p.createdAt).toLocaleString()} · booking{" "}
                   <Link href={`/bookings`} className="font-mono underline">
                     {p.bookingId}
@@ -106,14 +107,14 @@ export default function PaymentsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs uppercase ${STATUS_COLORS[p.status]}`}>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[p.status]}`}>
                   {p.status}
                 </span>
                 {p.status === "succeeded" && (
                   <button
                     onClick={() => downloadInvoice(p.paymentId)}
                     disabled={downloadingId === p.paymentId}
-                    className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                    className="btn-secondary"
                   >
                     {downloadingId === p.paymentId ? "..." : "Invoice"}
                   </button>
@@ -124,7 +125,7 @@ export default function PaymentsPage() {
                       pathname: "/support/new",
                       query: { category: "payment_dispute", paymentId: p.paymentId, bookingId: p.bookingId },
                     }}
-                    className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                    className="btn-secondary text-seal"
                   >
                     Dispute
                   </Link>

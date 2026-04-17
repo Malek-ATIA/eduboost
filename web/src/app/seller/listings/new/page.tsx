@@ -110,69 +110,68 @@ export default function NewSellerListingPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/seller/listings" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href="/seller/listings" className="btn-ghost -ml-3">
         ← My listings
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">New listing</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="eyebrow mt-4">Seller</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New listing</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Upload a PDF, slides, or any digital study material. Max 100 MB.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Title</span>
+          <span className="label">Title</span>
           <input
             required
             minLength={3}
             maxLength={200}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Description</span>
+          <span className="label">Description</span>
           <textarea
             rows={4}
             maxLength={4000}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Subjects (comma separated)</span>
+          <span className="label">Subjects (comma separated)</span>
           <input
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={subjects}
             onChange={(e) => setSubjects(e.target.value)}
             placeholder="Mathematics, Calculus"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Price (EUR)</span>
+          <span className="label">Price (EUR)</span>
           <input
             required
             type="number"
             min={1}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={priceEur}
             onChange={(e) => setPriceEur(e.target.value)}
           />
         </label>
         {commercialOrgs.length > 0 && (
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">
-              Sell as (optional)
-            </span>
+            <span className="label">Sell as (optional)</span>
             <select
               value={sellerOrgId}
               onChange={(e) => setSellerOrgId(e.target.value)}
-              className="w-full rounded border px-3 py-2"
+              className="input"
             >
               <option value="">Myself (individual seller)</option>
               {commercialOrgs.map((o) => (
@@ -184,22 +183,23 @@ export default function NewSellerListingPage() {
           </label>
         )}
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">File</span>
+          <span className="label">File</span>
           <input
             required
             type="file"
             accept="application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.zip"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="text-ink"
           />
         </label>
 
-        {progress && <p className="text-sm text-gray-600">{progress}</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {progress && <p className="text-sm text-ink-soft">{progress}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Publishing..." : "Publish listing"}
         </button>

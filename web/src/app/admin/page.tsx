@@ -23,12 +23,13 @@ export default function AdminHubPage() {
     })();
   }, [router]);
 
-  if (!ready) return <main className="mx-auto max-w-3xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Admin</h1>
-      <p className="mt-2 text-sm text-gray-500">Internal tools for platform operations.</p>
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Internal</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Admin</h1>
+      <p className="mt-2 text-sm text-ink-soft">Internal tools for platform operations.</p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         <AdminCard
@@ -55,10 +56,10 @@ function AdminCard({ href, label, description }: { href: string; label: string; 
   return (
     <Link
       href={href as never}
-      className="block rounded border p-4 transition hover:border-black dark:hover:border-white"
+      className="card-interactive block p-4"
     >
-      <div className="font-medium">{label}</div>
-      <div className="mt-1 text-sm text-gray-500">{description}</div>
+      <div className="font-display text-base text-ink">{label}</div>
+      <div className="mt-1 text-sm text-ink-soft">{description}</div>
     </Link>
   );
 }

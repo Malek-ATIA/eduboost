@@ -58,51 +58,52 @@ export default function ResultsPage({
   }, [examId, router]);
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-3xl px-6 py-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-3xl px-6 py-12">Loading...</main>;
+  if (!exam) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Results · {exam.title}</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Results</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Results · {exam.title}</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         {exam.questions.length} questions ·{" "}
         <span className="font-mono">{examId}</span>
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
       {attempts && attempts.length === 0 && (
-        <p className="mt-8 text-sm text-gray-500">No attempts yet.</p>
+        <p className="mt-8 text-sm text-ink-soft">No attempts yet.</p>
       )}
 
       {attempts && attempts.length > 0 && (
         <ul className="mt-8 space-y-4">
           {attempts.map((a) => (
-            <li key={a.studentId} className="rounded border p-4">
+            <li key={a.studentId} className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-display text-base text-ink">
                     {a.student?.displayName ?? a.studentId}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-ink-faded">
                     Submitted {new Date(a.submittedAt).toLocaleString()}
                   </div>
                 </div>
-                <div className="font-mono text-lg font-bold">
+                <div className="font-mono text-lg font-bold text-ink">
                   {a.autoScore}/{a.maxMcqScore}
                 </div>
               </div>
               <details className="mt-3">
-                <summary className="cursor-pointer text-xs text-gray-500 underline">
+                <summary className="cursor-pointer text-xs text-ink-soft underline">
                   Show answers
                 </summary>
                 <ol className="mt-3 space-y-2">
                   {exam.questions.map((q, i) => {
                     const ans = a.answers[i];
                     return (
-                      <li key={i} className="rounded bg-gray-50 p-3 text-sm dark:bg-gray-900">
-                        <div className="text-xs text-gray-500">Q{i + 1}</div>
+                      <li key={i} className="rounded-md bg-parchment/50 p-3 text-sm text-ink">
+                        <div className="text-xs text-ink-faded">Q{i + 1}</div>
                         <div>{q.prompt}</div>
                         <div className="mt-1 text-xs">
                           {q.kind === "mcq" ? (
@@ -112,9 +113,9 @@ export default function ResultsPage({
                                 ? q.options[ans]
                                 : "(skipped)"}{" "}
                               {typeof ans === "number" && ans === q.correctIndex ? (
-                                <span className="text-green-700">✓</span>
+                                <span className="text-ink">✓</span>
                               ) : (
-                                <span className="text-red-600">✗</span>
+                                <span className="text-seal">✗</span>
                               )}
                             </>
                           ) : (
@@ -137,7 +138,7 @@ export default function ResultsPage({
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/assessments" className="text-gray-500 underline">
+        <Link href="/assessments" className="text-ink-soft underline">
           ← Assessments
         </Link>
       </p>

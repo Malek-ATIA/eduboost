@@ -99,30 +99,31 @@ export default function SmsSettingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-12">
-      <h1 className="text-2xl font-bold">SMS notifications</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Settings</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">SMS notifications</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Get texted for time-sensitive updates: session reminders, confirmed
         bookings, payment issues, support replies.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {info && <p className="mt-4 text-sm text-green-700">{info}</p>}
-      {prefs === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {info && <p className="mt-4 text-sm text-ink">{info}</p>}
+      {prefs === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
       {prefs && (
         <section className="mt-6 space-y-6">
-          <form onSubmit={sendCode} className="rounded border p-4">
+          <form onSubmit={sendCode} className="card p-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">Phone number</span>
+              <span className="label">Phone number</span>
               <input
                 type="tel"
-                className="w-full rounded border px-3 py-2 font-mono"
+                className="input font-mono"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+35318001234"
               />
-              <span className="mt-1 block text-xs text-gray-500">
+              <span className="mt-1 block text-xs text-ink-faded">
                 International format (E.164), starting with +.
               </span>
             </label>
@@ -130,12 +131,12 @@ export default function SmsSettingsPage() {
               <button
                 type="submit"
                 disabled={sendingCode || !phone.trim().startsWith("+")}
-                className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+                className="btn-seal"
               >
                 {sendingCode ? "Sending..." : prefs.phoneVerifiedAt ? "Update & re-verify" : "Send code"}
               </button>
               {prefs.phoneVerifiedAt && (
-                <span className="text-xs text-green-700">
+                <span className="text-xs italic text-ink-soft">
                   Verified {new Date(prefs.phoneVerifiedAt).toLocaleDateString()}
                 </span>
               )}
@@ -143,26 +144,26 @@ export default function SmsSettingsPage() {
           </form>
 
           {(codeSent || !prefs.phoneVerifiedAt) && prefs.phoneNumber && (
-            <form onSubmit={verify} className="rounded border p-4">
+            <form onSubmit={verify} className="card p-4">
               <label className="block">
-                <span className="mb-1 block text-sm font-medium">Verification code</span>
+                <span className="label">Verification code</span>
                 <input
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
-                  className="w-full rounded border px-3 py-2 font-mono text-lg tracking-widest"
+                  className="input font-mono text-lg tracking-widest"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   placeholder="123456"
                 />
-                <span className="mt-1 block text-xs text-gray-500">
+                <span className="mt-1 block text-xs text-ink-faded">
                   6-digit code from the SMS we sent you. Expires in 10 minutes.
                 </span>
               </label>
               <button
                 type="submit"
                 disabled={verifying || code.length !== 6}
-                className="mt-3 rounded border px-4 py-2 text-sm disabled:opacity-50"
+                className="btn-secondary mt-3"
               >
                 {verifying ? "Verifying..." : "Verify"}
               </button>
@@ -170,26 +171,22 @@ export default function SmsSettingsPage() {
           )}
 
           {prefs.phoneVerifiedAt && (
-            <div className="rounded border p-4">
+            <div className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold">SMS notifications</div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="font-display text-base text-ink">SMS notifications</div>
+                  <div className="mt-0.5 text-xs text-ink-faded">
                     Currently {prefs.smsOptIn ? "enabled" : "disabled"}.
                   </div>
                 </div>
                 <button
                   onClick={() => toggleOptIn(!prefs.smsOptIn)}
-                  className={`rounded px-4 py-2 text-sm ${
-                    prefs.smsOptIn
-                      ? "border"
-                      : "bg-black text-white dark:bg-white dark:text-black"
-                  }`}
+                  className={prefs.smsOptIn ? "btn-secondary" : "btn-seal"}
                 >
                   {prefs.smsOptIn ? "Turn off" : "Turn on"}
                 </button>
               </div>
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-3 text-xs text-ink-faded">
                 Standard SMS rates may apply. You can reply STOP to any message to
                 immediately disable. Only transactional messages are sent — never
                 marketing.
@@ -200,7 +197,7 @@ export default function SmsSettingsPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

@@ -16,11 +16,11 @@ type Booking = {
 };
 
 const STATUS_COLORS: Record<Booking["status"], string> = {
-  pending: "text-yellow-700",
-  confirmed: "text-green-700",
-  cancelled: "text-gray-500",
-  refunded: "text-gray-500",
-  completed: "text-blue-700",
+  pending: "text-ink-faded",
+  confirmed: "text-ink",
+  cancelled: "text-ink-faded",
+  refunded: "text-ink-faded",
+  completed: "text-seal",
 };
 
 export default function BookingsPage() {
@@ -79,25 +79,26 @@ export default function BookingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">My bookings</h1>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Schedule</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My bookings</h1>
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="mt-4 text-sm text-ink-soft">
           No bookings yet. <Link className="underline" href="/teachers">Find a teacher</Link>.
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((b) => {
             const canReview = b.status === "confirmed" || b.status === "completed";
             const canCancel = b.status === "pending" || b.status === "confirmed";
             return (
               <li key={b.bookingId} className="flex items-center justify-between p-4">
                 <div>
-                  <div className="font-medium capitalize">{b.type} session</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="font-display text-base text-ink capitalize">{b.type} session</div>
+                  <div className="text-sm text-ink-soft">
                     {new Date(b.createdAt).toLocaleString()} ·{" "}
                     <Link className="underline" href={`/teachers/${b.teacherId}` as never}>
                       teacher
@@ -106,20 +107,20 @@ export default function BookingsPage() {
                 </div>
                 <div className="flex items-center gap-3 text-right">
                   <div>
-                    <div className="font-medium">€{(b.amountCents / 100).toFixed(2)}</div>
-                    <div className={`text-xs uppercase ${STATUS_COLORS[b.status]}`}>{b.status}</div>
+                    <div className="font-display text-base text-ink">€{(b.amountCents / 100).toFixed(2)}</div>
+                    <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>{b.status}</div>
                   </div>
                   {canReview && (
                     <>
                       <Link
                         href={`/reviews/new?bookingId=${b.bookingId}`}
-                        className="rounded border px-3 py-1 text-xs"
+                        className="btn-secondary"
                       >
                         Review
                       </Link>
                       <Link
                         href={`/quiz/${b.bookingId}` as never}
-                        className="rounded border px-3 py-1 text-xs"
+                        className="btn-secondary"
                       >
                         Rate teacher
                       </Link>
@@ -136,7 +137,7 @@ export default function BookingsPage() {
                             alert((err as Error).message);
                           }
                         }}
-                        className="rounded border px-3 py-1 text-xs"
+                        className="btn-secondary"
                       >
                         Review session
                       </button>
@@ -146,7 +147,7 @@ export default function BookingsPage() {
                     <button
                       onClick={() => cancelBooking(b.bookingId)}
                       disabled={cancellingId === b.bookingId}
-                      className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950"
+                      className="btn-secondary text-seal"
                     >
                       {cancellingId === b.bookingId ? "..." : "Cancel"}
                     </button>

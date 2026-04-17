@@ -117,50 +117,51 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
     }
   }
 
-  if (error) return <main className="mx-auto max-w-3xl px-6 py-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-3xl px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   const { user, profile } = data;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-start justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">{user.displayName}</h1>
+          <p className="eyebrow">Teacher</p>
+          <div className="mt-1 flex items-center gap-2">
+            <h1 className="font-display text-4xl tracking-tight text-ink">{user.displayName}</h1>
             {profile.verificationStatus === "verified" && (
               <span
                 title="Verified by EduBoost"
-                className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                className="rounded-sm border border-seal/40 bg-seal/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-seal"
               >
-                ✓ Verified
+                Verified
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-ink-soft">
             {profile.city ? `${profile.city}, ` : ""}
             {profile.country ?? ""} · {profile.yearsExperience} yrs experience
           </p>
           <div className="mt-3 flex flex-wrap gap-1">
             {profile.subjects.map((s) => (
-              <span key={s} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+              <span key={s} className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs text-ink-soft">
                 {s}
               </span>
             ))}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold">€{Math.round(profile.hourlyRateCents / 100)}</div>
-          <div className="text-sm text-gray-500">per hour</div>
+          <div className="font-display text-3xl text-ink">€{Math.round(profile.hourlyRateCents / 100)}</div>
+          <div className="text-sm text-ink-soft">per hour</div>
           {profile.ratingCount > 0 && (
-            <div className="mt-2 text-sm">
+            <div className="mt-2 text-sm text-ink">
               ★ {profile.ratingAvg.toFixed(1)} ({profile.ratingCount})
             </div>
           )}
         </div>
       </div>
 
-      {profile.bio && <p className="mt-8 whitespace-pre-wrap leading-relaxed">{profile.bio}</p>}
+      {profile.bio && <p className="mt-8 whitespace-pre-wrap leading-relaxed text-ink">{profile.bio}</p>}
 
       <dl className="mt-8 grid grid-cols-2 gap-4 text-sm">
         <Fact label="Languages" value={profile.languages.join(", ") || "—"} />
@@ -172,28 +173,28 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
         {profile.trialSession && (
           <Link
             href={`/book/${userId}?type=trial`}
-            className="rounded bg-black px-5 py-2 text-white dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             Book trial session
           </Link>
         )}
         <Link
           href={`/book/${userId}?type=single`}
-          className="rounded border px-5 py-2"
+          className="btn-secondary"
         >
           Book a single session
         </Link>
         <Link
           href={`/requests/new?teacherId=${userId}`}
-          className="rounded border px-5 py-2"
+          className="btn-secondary"
         >
           Request a lesson
         </Link>
       </div>
 
       <section id="wall" className="mt-16">
-        <h2 className="text-xl font-semibold">Wall</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="font-display text-2xl text-ink">Wall</h2>
+        <p className="mt-1 text-sm text-ink-soft">
           Updates, achievements, and posts from {user.displayName}.
         </p>
 
@@ -202,7 +203,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
             <textarea
               rows={3}
               maxLength={4000}
-              className="w-full rounded border px-3 py-2 text-sm"
+              className="input"
               value={wallDraft}
               onChange={(e) => setWallDraft(e.target.value)}
               placeholder="Share an update with your students..."
@@ -210,30 +211,30 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
             <button
               type="submit"
               disabled={wallSubmitting || !wallDraft.trim()}
-              className="rounded bg-black px-4 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               {wallSubmitting ? "Posting..." : "Post to wall"}
             </button>
           </form>
         )}
 
-        {wall === null && <p className="mt-4 text-sm text-gray-500">Loading wall...</p>}
+        {wall === null && <p className="mt-4 text-sm text-ink-soft">Loading wall...</p>}
         {wall && wall.length === 0 && (
-          <p className="mt-4 text-sm text-gray-500">No posts yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">No posts yet.</p>
         )}
         {wall && wall.length > 0 && (
           <ul className="mt-4 space-y-3">
             {wall.map((p) => (
-              <li key={p.postId} className="rounded border p-4">
+              <li key={p.postId} className="card-interactive p-4">
                 <Link
                   href={`/wall/posts/${p.postId}` as never}
-                  className="block hover:underline"
+                  className="block"
                 >
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-ink-faded">
                     {new Date(p.createdAt).toLocaleString()}
                   </div>
-                  <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm">{p.body}</p>
-                  <div className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-ink">{p.body}</p>
+                  <div className="mt-2 text-xs text-ink-faded">
                     {p.commentCount} comment{p.commentCount === 1 ? "" : "s"}
                   </div>
                 </Link>
@@ -245,32 +246,32 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
 
       <section id="reviews" className="mt-16">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Reviews</h2>
+          <h2 className="font-display text-2xl text-ink">Reviews</h2>
           {reviews && reviews.length > 0 && profile.ratingCount > 0 && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-ink-soft">
               ★ {profile.ratingAvg.toFixed(1)} · {profile.ratingCount}
               {profile.ratingCount === 1 ? " review" : " reviews"}
             </span>
           )}
         </div>
 
-        {reviews === null && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+        {reviews === null && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
         {reviews && reviews.length === 0 && (
-          <p className="mt-4 text-sm text-gray-500">No reviews yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">No reviews yet.</p>
         )}
         {reviews && reviews.length > 0 && (
           <ul className="mt-4 space-y-4">
             {reviews.map((r) => {
               const canDelete = viewerIsAdmin || (viewerSub !== null && viewerSub === r.reviewerId);
               return (
-                <li key={r.reviewId} className="rounded border p-4">
+                <li key={r.reviewId} className="card p-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm" aria-label={`${r.rating} of 5 stars`}>
+                    <div className="text-sm text-seal" aria-label={`${r.rating} of 5 stars`}>
                       {"★".repeat(r.rating)}
-                      <span className="text-gray-300">{"★".repeat(5 - r.rating)}</span>
+                      <span className="text-ink-faded/40">{"★".repeat(5 - r.rating)}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-ink-faded">
                         {new Date(r.createdAt).toLocaleDateString()}
                       </div>
                       {canDelete && (
@@ -278,7 +279,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
                           type="button"
                           onClick={() => onDelete(r.reviewId)}
                           disabled={deletingId === r.reviewId}
-                          className="text-xs text-red-600 underline disabled:opacity-50"
+                          className="btn-ghost text-seal disabled:opacity-50"
                         >
                           {deletingId === r.reviewId ? "Deleting..." : "Delete"}
                         </button>
@@ -286,7 +287,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
                     </div>
                   </div>
                   {r.comment && (
-                    <p className="mt-2 whitespace-pre-wrap text-sm">{r.comment}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-ink">{r.comment}</p>
                   )}
                 </li>
               );
@@ -301,8 +302,8 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="mt-1 font-medium">{value}</dd>
+      <dt className="text-ink-soft">{label}</dt>
+      <dd className="mt-1 font-medium text-ink">{value}</dd>
     </div>
   );
 }

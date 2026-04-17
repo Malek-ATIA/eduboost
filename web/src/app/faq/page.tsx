@@ -13,7 +13,7 @@ const GENERAL: FAQ[] = [
   },
   {
     q: "Can I try a session before committing?",
-    a: "Many teachers offer a free or discounted trial session. Look for the green \"Trial\" badge on the teacher browse page.",
+    a: "Many teachers offer a free or discounted trial session. Look for the \"Trial\" badge on the teacher browse page.",
   },
   {
     q: "What if a session doesn't meet my expectations?",
@@ -79,9 +79,10 @@ export const metadata = {
 
 export default function FaqPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-3xl font-bold">FAQ & Contact</h1>
-      <p className="mt-2 text-gray-600 dark:text-gray-400">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Help</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">FAQ & Contact</h1>
+      <p className="mt-2 text-ink-soft">
         Quick answers, and how to reach us if you need more help.
       </p>
 
@@ -110,8 +111,8 @@ export default function FaqPage() {
       </Section>
 
       <section className="mt-12">
-        <h2 className="text-xl font-semibold">Still need help?</h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <h2 className="font-display text-xl text-ink">Still need help?</h2>
+        <p className="mt-2 text-sm text-ink-soft">
           For payment, booking, or account issues the fastest route is{" "}
           <Link href="/support/new" className="underline">
             opening a support ticket
@@ -119,10 +120,10 @@ export default function FaqPage() {
           — it reaches our team directly and we can link it to your booking. For general questions you can
           also reach us at:
         </p>
-        <dl className="mt-4 divide-y rounded border">
+        <dl className="card mt-4 divide-y divide-ink-faded/30">
           {CONTACT.map((c) => (
             <div key={c.label} className="flex items-center justify-between p-3 text-sm">
-              <dt className="font-medium">{c.label}</dt>
+              <dt className="font-medium text-ink">{c.label}</dt>
               <dd>
                 <a href={c.href} className="underline">
                   {c.value}
@@ -131,7 +132,7 @@ export default function FaqPage() {
             </div>
           ))}
         </dl>
-        <p className="mt-4 text-xs text-gray-500">
+        <p className="mt-4 text-xs text-ink-faded">
           Office hours: Mon–Fri, 09:00–17:00 Ireland time. Response time within 2 business days.
         </p>
       </section>
@@ -142,8 +143,8 @@ export default function FaqPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <div className="mt-4 divide-y rounded border">{children}</div>
+      <h2 className="font-display text-xl text-ink">{title}</h2>
+      <div className="card mt-4 divide-y divide-ink-faded/30">{children}</div>
     </section>
   );
 }
@@ -151,11 +152,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Item({ q, a }: FAQ) {
   return (
     <details className="group">
-      <summary className="flex cursor-pointer items-center justify-between gap-2 p-4 text-sm font-medium">
+      <summary className="flex cursor-pointer items-center justify-between gap-2 p-4 text-sm font-medium text-ink">
         <span>{q}</span>
-        <span className="text-gray-500 transition group-open:rotate-45">+</span>
+        <span className="text-ink-faded transition group-open:rotate-45">+</span>
       </summary>
-      <p className="px-4 pb-4 text-sm text-gray-600 dark:text-gray-400">{a}</p>
+      <p className="px-4 pb-4 text-sm text-ink-soft">{a}</p>
     </details>
   );
 }

@@ -74,27 +74,28 @@ export default function EventDetailPage({
   }
 
   if (error && !event) {
-    return <main className="mx-auto max-w-2xl px-6 py-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
   }
-  if (!event) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (!event) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">{event.title}</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Event</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{event.title}</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         {new Date(event.startsAt).toLocaleString()} –{" "}
         {new Date(event.endsAt).toLocaleTimeString()} · {event.venue}
       </p>
 
       {event.description && (
-        <p className="mt-6 whitespace-pre-wrap text-sm">{event.description}</p>
+        <p className="mt-6 whitespace-pre-wrap text-sm text-ink">{event.description}</p>
       )}
 
-      <div className="mt-8 rounded border p-4">
+      <div className="card mt-8 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs text-gray-500">Ticket</div>
-            <div className="font-mono text-lg font-bold">
+            <div className="eyebrow">Ticket</div>
+            <div className="font-mono text-lg font-bold text-ink">
               {event.priceCents === 0
                 ? "Free"
                 : `${event.currency} ${(event.priceCents / 100).toFixed(2)}`}
@@ -103,7 +104,7 @@ export default function EventDetailPage({
           <button
             onClick={buyTicket}
             disabled={buying || event.status !== "published"}
-            className="rounded bg-black px-5 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             {buying
               ? "Reserving..."
@@ -113,16 +114,16 @@ export default function EventDetailPage({
           </button>
         </div>
         {event.status !== "published" && (
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-ink-faded">
             This event is not currently accepting tickets ({event.status}).
           </p>
         )}
-        {message && <p className="mt-3 text-sm text-green-700">{message}</p>}
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {message && <p className="mt-3 text-sm text-ink">{message}</p>}
+        {error && <p className="mt-3 text-sm text-seal">{error}</p>}
       </div>
 
       <p className="mt-8 text-sm">
-        <Link href="/events" className="text-gray-500 underline">
+        <Link href="/events" className="text-ink-soft underline">
           ← All events
         </Link>
       </p>

@@ -84,31 +84,32 @@ export default function ReferralsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Invite a friend</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Referrals</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Invite a friend</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Share your code to invite students, parents, or teachers to EduBoost.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
       {mine && (
-        <section className="mt-8 rounded border p-4">
-          <div className="text-xs uppercase text-gray-500">Your code</div>
-          <div className="mt-2 font-mono text-3xl font-bold tracking-widest">
+        <section className="card mt-8 p-4">
+          <div className="eyebrow">Your code</div>
+          <div className="mt-2 font-mono text-3xl font-bold tracking-widest text-ink">
             {mine.referralCode}
           </div>
           <div className="mt-4">
-            <label className="mb-1 block text-xs text-gray-500">Share link</label>
+            <label className="label">Share link</label>
             <div className="flex gap-2">
               <input
                 readOnly
                 value={mine.shareUrl}
-                className="flex-1 rounded border px-3 py-2 text-sm"
+                className="input flex-1"
               />
               <button
                 onClick={copyShareLink}
-                className="rounded border px-3 py-2 text-sm"
+                className="btn-secondary"
               >
                 {copied ? "Copied" : "Copy"}
               </button>
@@ -118,9 +119,9 @@ export default function ReferralsPage() {
       )}
 
       {mine && !mine.referredByCode && (
-        <section className="mt-6 rounded border p-4">
-          <h2 className="text-sm font-semibold">Got invited?</h2>
-          <p className="mt-1 text-xs text-gray-500">
+        <section className="card mt-6 p-4">
+          <h2 className="font-display text-base text-ink">Got invited?</h2>
+          <p className="mt-1 text-xs text-ink-faded">
             Enter the code a friend shared with you. (One-time; can't change later.)
           </p>
           <form onSubmit={claim} className="mt-3 flex gap-2">
@@ -129,49 +130,49 @@ export default function ReferralsPage() {
               onChange={(e) => setClaimCode(e.target.value.toUpperCase())}
               placeholder="ABCD1234"
               maxLength={16}
-              className="flex-1 rounded border px-3 py-2 font-mono uppercase"
+              className="input flex-1 font-mono uppercase"
             />
             <button
               type="submit"
               disabled={claimCode.trim().length < 4}
-              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               Claim
             </button>
           </form>
-          {claimError && <p className="mt-2 text-sm text-red-600">{claimError}</p>}
-          {claimSuccess && <p className="mt-2 text-sm text-green-700">{claimSuccess}</p>}
+          {claimError && <p className="mt-2 text-sm text-seal">{claimError}</p>}
+          {claimSuccess && <p className="mt-2 text-sm text-ink">{claimSuccess}</p>}
         </section>
       )}
 
       {mine?.referredByCode && (
-        <p className="mt-4 text-xs text-gray-500">
+        <p className="mt-4 text-xs text-ink-faded">
           You were referred with code <span className="font-mono">{mine.referredByCode}</span>.
         </p>
       )}
 
       <section className="mt-8">
-        <h2 className="text-xl font-semibold">People you've invited</h2>
-        {list === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+        <h2 className="font-display text-2xl text-ink">People you've invited</h2>
+        {list === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
         {list && list.length === 0 && (
-          <p className="mt-4 text-sm text-gray-500">No one has claimed your code yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">No one has claimed your code yet.</p>
         )}
         {list && list.length > 0 && (
-          <ul className="mt-4 divide-y rounded border">
+          <ul className="card mt-4 divide-y divide-ink-faded/30">
             {list.map((r) => (
               <li key={r.referredId} className="flex items-center justify-between p-3">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-display text-base text-ink">
                     {r.referred?.displayName ?? "(unknown)"}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-ink-faded">
                     Joined {new Date(r.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 {r.rewardedAt ? (
-                  <span className="text-xs text-green-700">Rewarded</span>
+                  <span className="text-xs uppercase tracking-widest text-ink">Rewarded</span>
                 ) : (
-                  <span className="text-xs text-gray-400">Pending</span>
+                  <span className="text-xs uppercase tracking-widest text-ink-faded">Pending</span>
                 )}
               </li>
             ))}
@@ -180,7 +181,7 @@ export default function ReferralsPage() {
       </section>
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

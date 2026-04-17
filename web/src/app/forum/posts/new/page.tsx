@@ -51,18 +51,19 @@ function NewPostForm() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/forum" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href="/forum" className="btn-ghost -ml-3">
         ← Forum
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">New post</h1>
+      <p className="eyebrow mt-4">Forum</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New post</h1>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Channel</span>
+          <span className="label">Channel</span>
           <select
             required
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={channelId}
             onChange={(e) => setChannelId(e.target.value)}
           >
@@ -74,33 +75,33 @@ function NewPostForm() {
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Title</span>
+          <span className="label">Title</span>
           <input
             required
             minLength={3}
             maxLength={200}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Body</span>
+          <span className="label">Body</span>
           <textarea
             required
             minLength={1}
             maxLength={10_000}
             rows={8}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
         <button
           type="submit"
           disabled={submitting || !channelId || !title.trim() || !body.trim()}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Posting..." : "Post"}
         </button>
@@ -113,9 +114,10 @@ export default function NewPostPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-6 py-12">
-          <h1 className="text-2xl font-bold">New post</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+          <p className="eyebrow">Forum</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New post</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >

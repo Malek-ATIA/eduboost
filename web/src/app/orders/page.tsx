@@ -16,10 +16,10 @@ type Order = {
 };
 
 const STATUS_COLORS: Record<Order["status"], string> = {
-  pending: "text-yellow-700",
-  paid: "text-green-700",
-  refunded: "text-gray-500",
-  cancelled: "text-red-700",
+  pending: "text-ink-faded",
+  paid: "text-ink",
+  refunded: "text-ink-faded",
+  cancelled: "text-seal",
 };
 
 export default function OrdersPage() {
@@ -90,47 +90,48 @@ export default function OrdersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">My orders</h1>
-      <p className="mt-1 text-sm text-gray-500">Marketplace purchases. Download links expire after 15 minutes.</p>
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Library</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My orders</h1>
+      <p className="mt-1 text-sm text-ink-soft">Marketplace purchases. Download links expire after 15 minutes.</p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-ink-soft">
           No purchases yet. <Link className="underline" href="/marketplace">Browse the marketplace</Link>.
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((o) => (
             <li key={o.orderId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-medium">
-                  <Link href={`/marketplace/listings/${o.listingId}` as never} className="underline">
+                <div className="font-display text-base text-ink">
+                  <Link href={`/marketplace/listings/${o.listingId}` as never} className="font-mono underline">
                     {o.listingId}
                   </Link>
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">
+                <div className="mt-0.5 text-xs text-ink-faded">
                   {new Date(o.createdAt).toLocaleString()} · {o.currency}{" "}
                   {(o.priceCents / 100).toFixed(2)}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs uppercase ${STATUS_COLORS[o.status]}`}>{o.status}</span>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[o.status]}`}>{o.status}</span>
                 {o.status === "paid" && (
                   <>
                     <button
                       onClick={() => downloadFile(o.listingId)}
                       disabled={downloadingId === o.listingId}
-                      className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                      className="btn-secondary"
                     >
                       {downloadingId === o.listingId ? "..." : "Download"}
                     </button>
                     <button
                       onClick={() => requestRefund(o.orderId)}
                       disabled={refundingId === o.orderId}
-                      className="rounded border px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950"
+                      className="btn-secondary text-seal"
                     >
                       {refundingId === o.orderId ? "..." : "Refund"}
                     </button>

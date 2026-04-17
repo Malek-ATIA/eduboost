@@ -67,21 +67,22 @@ export default function MailboxPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Mailbox</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Mailbox</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Mailbox</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Threaded async messages with parents, students, or teachers.
       </p>
 
-      <section className="mt-8 rounded border p-4">
-        <h2 className="text-sm font-medium">New message</h2>
+      <section className="card mt-8 p-4">
+        <h2 className="font-display text-base text-ink">New message</h2>
         <form onSubmit={compose} className="mt-3 space-y-2">
           <input
             required
             value={recipientId}
             onChange={(e) => setRecipientId(e.target.value)}
             placeholder="Recipient user ID (sub_...)"
-            className="w-full rounded border px-3 py-2 font-mono text-sm"
+            className="input font-mono"
           />
           <input
             required
@@ -89,7 +90,7 @@ export default function MailboxPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Subject"
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="input"
           />
           <textarea
             required
@@ -98,30 +99,30 @@ export default function MailboxPage() {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Write your message..."
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="input"
           />
           <button
             type="submit"
             disabled={sending || !body.trim() || !recipientId.trim() || !subject.trim()}
-            className="rounded bg-black px-4 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             {sending ? "Sending..." : "Send"}
           </button>
         </form>
       </section>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
       <section className="mt-8">
-        <h2 className="text-sm font-medium">Your threads</h2>
+        <h2 className="eyebrow">Your threads</h2>
         {items === null && !error && (
-          <p className="mt-3 text-sm text-gray-500">Loading...</p>
+          <p className="mt-3 text-sm text-ink-soft">Loading...</p>
         )}
         {items && items.length === 0 && (
-          <p className="mt-3 text-sm text-gray-500">No threads yet.</p>
+          <p className="mt-3 text-sm text-ink-soft">No threads yet.</p>
         )}
         {items && items.length > 0 && (
-          <ul className="mt-3 divide-y rounded border">
+          <ul className="card mt-3 divide-y divide-ink-faded/30">
             {items.map((t) => {
               const counterparty =
                 t.participantA === sub ? t.participantB : t.participantA;
@@ -129,17 +130,17 @@ export default function MailboxPage() {
                 <li key={t.threadId}>
                   <Link
                     href={`/mailbox/${t.threadId}` as never}
-                    className="block p-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-900"
+                    className="block p-3 text-sm transition hover:bg-parchment-shade"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="font-medium">{t.subject}</div>
+                      <div className="font-display text-base text-ink">{t.subject}</div>
                       {t.lastMessageAt && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-ink-faded">
                           {new Date(t.lastMessageAt).toLocaleString()}
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 text-xs text-gray-500">
+                    <div className="mt-0.5 text-xs text-ink-faded">
                       with <span className="font-mono">{counterparty.slice(0, 10)}</span>
                       {t.lastMessageBody && ` · ${t.lastMessageBody.slice(0, 80)}`}
                     </div>
@@ -152,7 +153,7 @@ export default function MailboxPage() {
       </section>
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

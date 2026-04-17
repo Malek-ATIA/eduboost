@@ -16,9 +16,9 @@ type Listing = {
 };
 
 const STATUS_COLORS: Record<Listing["status"], string> = {
-  draft: "text-yellow-700",
-  active: "text-green-700",
-  archived: "text-gray-500",
+  draft: "text-ink-faded",
+  active: "text-ink",
+  archived: "text-ink-faded",
 };
 
 export default function SellerListingsPage() {
@@ -63,45 +63,48 @@ export default function SellerListingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My listings</h1>
+        <div>
+          <p className="eyebrow">Seller</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My listings</h1>
+        </div>
         <Link
           href="/seller/listings/new"
-          className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           New listing
         </Link>
       </div>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-ink-soft">
         Digital study materials you sell on the marketplace.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No listings yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No listings yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((l) => (
             <li key={l.listingId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-medium">{l.title}</div>
-                <div className="mt-0.5 text-xs text-gray-500">
+                <div className="font-display text-base text-ink">{l.title}</div>
+                <div className="mt-0.5 text-xs text-ink-faded">
                   {l.currency} {(l.priceCents / 100).toFixed(2)} · created{" "}
                   {new Date(l.createdAt).toLocaleDateString()}
                   {!l.fileS3Key && " · file not uploaded"}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs uppercase ${STATUS_COLORS[l.status]}`}>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[l.status]}`}>
                   {l.status}
                 </span>
                 {l.status !== "archived" && (
                   <button
                     onClick={() => toggleStatus(l)}
-                    className="rounded border px-3 py-1 text-xs"
+                    className="btn-secondary"
                   >
                     {l.status === "active" ? "Archive" : "Publish"}
                   </button>

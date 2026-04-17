@@ -43,43 +43,46 @@ export default function AssessmentsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Assessments</h1>
+        <div>
+          <p className="eyebrow">Study</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Assessments</h1>
+        </div>
         {role === "teacher" && (
           <Link
             href="/assessments/new"
-            className="rounded border px-3 py-1 text-sm"
+            className="btn-seal"
           >
             New exam
           </Link>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
       {role === "teacher" && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold">My exams</h2>
+          <h2 className="font-display text-xl text-ink">My exams</h2>
           {mine === null ? (
-            <p className="mt-3 text-sm text-gray-500">Loading...</p>
+            <p className="mt-3 text-sm text-ink-soft">Loading...</p>
           ) : mine.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-500">No exams yet.</p>
+            <p className="mt-3 text-sm text-ink-soft">No exams yet.</p>
           ) : (
-            <ul className="mt-3 divide-y rounded border">
+            <ul className="card mt-3 divide-y divide-ink-faded/30">
               {mine.map((e) => (
                 <li key={e.examId}>
                   <Link
                     href={`/assessments/${e.examId}/results` as never}
-                    className="flex items-center justify-between p-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-900"
+                    className="flex items-center justify-between p-3 text-sm transition hover:bg-parchment-shade"
                   >
                     <div>
-                      <div className="font-medium">{e.title}</div>
-                      <div className="mt-0.5 text-xs text-gray-500">
+                      <div className="font-display text-base text-ink">{e.title}</div>
+                      <div className="mt-0.5 text-xs text-ink-faded">
                         {e.questionCount} questions · status {e.status}
                       </div>
                     </div>
-                    <span className="font-mono text-xs text-gray-400">{e.examId}</span>
+                    <span className="font-mono text-xs text-ink-faded">{e.examId}</span>
                   </Link>
                 </li>
               ))}
@@ -89,24 +92,24 @@ export default function AssessmentsPage() {
       )}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Published exams</h2>
+        <h2 className="font-display text-xl text-ink">Published exams</h2>
         {published === null && !error && (
-          <p className="mt-3 text-sm text-gray-500">Loading...</p>
+          <p className="mt-3 text-sm text-ink-soft">Loading...</p>
         )}
         {published && published.length === 0 && (
-          <p className="mt-3 text-sm text-gray-500">No exams available.</p>
+          <p className="mt-3 text-sm text-ink-soft">No exams available.</p>
         )}
         {published && published.length > 0 && (
-          <ul className="mt-3 divide-y rounded border">
+          <ul className="card mt-3 divide-y divide-ink-faded/30">
             {published.map((e) => (
               <li key={e.examId}>
                 <Link
                   href={`/assessments/${e.examId}` as never}
-                  className="flex items-center justify-between p-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-900"
+                  className="flex items-center justify-between p-3 text-sm transition hover:bg-parchment-shade"
                 >
                   <div>
-                    <div className="font-medium">{e.title}</div>
-                    <div className="mt-0.5 text-xs text-gray-500">
+                    <div className="font-display text-base text-ink">{e.title}</div>
+                    <div className="mt-0.5 text-xs text-ink-faded">
                       {e.questionCount} questions · by teacher{" "}
                       <span className="font-mono">{e.teacherId.slice(0, 8)}</span>
                     </div>
@@ -119,7 +122,7 @@ export default function AssessmentsPage() {
       </section>
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

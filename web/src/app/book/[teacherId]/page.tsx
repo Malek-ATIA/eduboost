@@ -62,13 +62,17 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
     })();
   }, [teacherId, type, router]);
 
-  if (error) return <main className="mx-auto max-w-md px-6 py-12 text-red-600">{error}</main>;
-  if (!teacher || !clientSecret) return <main className="mx-auto max-w-md px-6 py-12">Preparing checkout...</main>;
+  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!teacher || !clientSecret)
+    return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Preparing checkout...</main>;
 
   return (
-    <main className="mx-auto max-w-md px-6 py-12">
-      <h1 className="text-2xl font-bold">Book with {teacher.user.displayName}</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+      <p className="eyebrow">Checkout</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+        Book with {teacher.user.displayName}
+      </h1>
+      <p className="mt-2 text-sm text-ink-soft">
         <span className="capitalize">{type}</span> session · €{(amountCents / 100).toFixed(2)}
       </p>
 
@@ -103,13 +107,13 @@ function CheckoutForm({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-4">
+    <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
       <PaymentElement />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-seal">{error}</p>}
       <button
         type="submit"
         disabled={!stripe || submitting}
-        className="w-full rounded bg-black py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="btn-seal w-full"
       >
         {submitting ? "Processing..." : "Pay now"}
       </button>

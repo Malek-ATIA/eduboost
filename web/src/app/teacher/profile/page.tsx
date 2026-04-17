@@ -101,56 +101,57 @@ export default function TeacherProfilePage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (loading) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   const vStatus = form.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Teacher profile</h1>
-      <p className="mt-1 text-sm text-gray-500">This is what students and parents see.</p>
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Teacher</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Teacher profile</h1>
+      <p className="mt-1 text-sm text-ink-soft">This is what students and parents see.</p>
 
-      <section className="mt-6 rounded border p-4">
+      <section className="card mt-6 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold">Verification</div>
-            <div className="mt-0.5 text-xs text-gray-500">
+            <div className="font-display text-base text-ink">Verification</div>
+            <div className="mt-0.5 text-xs text-ink-faded">
               Verified teachers get a badge and rank higher in search results.
             </div>
           </div>
           <span
-            className={`rounded-full px-3 py-1 text-xs uppercase ${
+            className={`rounded-sm border px-3 py-1 text-xs uppercase tracking-widest ${
               vStatus === "verified"
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                ? "border-seal/40 bg-seal/10 text-seal"
                 : vStatus === "pending"
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                  ? "border-ink-faded/50 bg-parchment/40 text-ink-faded"
                   : vStatus === "rejected"
-                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                    ? "border-seal/40 bg-seal/10 text-seal"
+                    : "border-ink-faded/50 bg-parchment/40 text-ink-soft"
             }`}
           >
             {vStatus.replace("_", " ")}
           </span>
         </div>
         {vStatus === "rejected" && form.verificationNotes && (
-          <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+          <p className="mt-3 text-sm text-ink">
             <span className="font-medium">Reviewer notes:</span> {form.verificationNotes}
           </p>
         )}
         {(vStatus === "unsubmitted" || vStatus === "rejected") && (
           <button
             onClick={submitVerification}
-            className="mt-3 rounded border px-3 py-1 text-xs"
+            className="btn-secondary mt-3"
           >
             {vStatus === "rejected" ? "Resubmit for review" : "Submit for review"}
           </button>
         )}
       </section>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <Field label="Bio">
           <textarea
-            className="w-full rounded border px-3 py-2"
+            className="input"
             rows={4}
             value={form.bio ?? ""}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
@@ -160,7 +161,7 @@ export default function TeacherProfilePage() {
 
         <Field label="Subjects (comma separated)">
           <input
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={form.subjects.join(", ")}
             onChange={(e) =>
               setForm({
@@ -177,7 +178,7 @@ export default function TeacherProfilePage() {
 
         <Field label="Languages (comma separated)">
           <input
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={form.languages.join(", ")}
             onChange={(e) =>
               setForm({
@@ -198,7 +199,7 @@ export default function TeacherProfilePage() {
               type="number"
               min={0}
               max={80}
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={form.yearsExperience}
               onChange={(e) => setForm({ ...form, yearsExperience: Number(e.target.value) })}
             />
@@ -207,7 +208,7 @@ export default function TeacherProfilePage() {
             <input
               type="number"
               min={1}
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={Math.round(form.hourlyRateCents / 100)}
               onChange={(e) => setForm({ ...form, hourlyRateCents: Number(e.target.value) * 100 })}
             />
@@ -217,7 +218,7 @@ export default function TeacherProfilePage() {
         <div className="grid grid-cols-2 gap-4">
           <Field label="City">
             <input
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={form.city ?? ""}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
             />
@@ -225,7 +226,7 @@ export default function TeacherProfilePage() {
           <Field label="Country (2 letters)">
             <input
               maxLength={2}
-              className="w-full rounded border px-3 py-2 uppercase"
+              className="input uppercase"
               value={form.country ?? ""}
               onChange={(e) => setForm({ ...form, country: e.target.value.toUpperCase() })}
               placeholder="IE"
@@ -233,7 +234,7 @@ export default function TeacherProfilePage() {
           </Field>
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={form.trialSession}
@@ -241,7 +242,7 @@ export default function TeacherProfilePage() {
           />
           Offer a free or discounted trial session
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={form.individualSessions}
@@ -249,7 +250,7 @@ export default function TeacherProfilePage() {
           />
           Offer 1-on-1 individual sessions
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={form.groupSessions}
@@ -258,12 +259,12 @@ export default function TeacherProfilePage() {
           Offer group sessions
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {saved && <p className="text-sm text-green-700">Saved.</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
+        {saved && <p className="text-sm text-ink">Saved.</p>}
 
         <button
           disabled={saving}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {saving ? "Saving..." : "Save profile"}
         </button>
@@ -275,7 +276,7 @@ export default function TeacherProfilePage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium">{label}</span>
+      <span className="label">{label}</span>
       {children}
     </label>
   );

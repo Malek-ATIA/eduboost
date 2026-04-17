@@ -66,9 +66,10 @@ function NewSessionForm() {
 
   if (!bookingId && !classroomId) {
     return (
-      <main className="mx-auto max-w-md px-6 py-12">
-        <h1 className="text-2xl font-bold">Schedule a session</h1>
-        <p className="mt-4 text-sm text-red-600">
+      <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+        <p className="eyebrow">Session</p>
+        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Schedule a session</h1>
+        <p className="mt-4 text-sm text-seal">
           Missing bookingId or classroomId in the URL.
         </p>
       </main>
@@ -76,49 +77,54 @@ function NewSessionForm() {
   }
 
   return (
-    <main className="mx-auto max-w-md px-6 py-12">
+    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
       <Link
         href={bookingId ? "/teacher/bookings" : "/dashboard"}
-        className="text-sm text-gray-500 underline"
+        className="btn-ghost -ml-3"
       >
         ← Back
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">Schedule a session</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        {bookingId ? `For booking ${bookingId}` : `For classroom ${classroomId}`}
+      <p className="eyebrow mt-4">Session</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Schedule a session</h1>
+      <p className="mt-1 text-sm text-ink-soft">
+        {bookingId ? (
+          <>For booking <span className="font-mono">{bookingId}</span></>
+        ) : (
+          <>For classroom <span className="font-mono">{classroomId}</span></>
+        )}
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Start</span>
+          <span className="label">Start</span>
           <input
             required
             type="datetime-local"
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Duration (minutes)</span>
+          <span className="label">Duration (minutes)</span>
           <input
             required
             type="number"
             min={15}
             max={480}
             step={15}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={durationMin}
             onChange={(e) => setDurationMin(Number(e.target.value))}
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Scheduling..." : "Schedule"}
         </button>
@@ -136,9 +142,10 @@ export default function NewSessionPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-md px-6 py-12">
-          <h1 className="text-2xl font-bold">Schedule a session</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+          <p className="eyebrow">Session</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Schedule a session</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >

@@ -15,9 +15,9 @@ type ChildLink = {
 };
 
 const STATUS_COLORS: Record<ChildLink["status"], string> = {
-  pending: "text-yellow-700",
-  accepted: "text-green-700",
-  rejected: "text-red-700",
+  pending: "text-ink-faded",
+  accepted: "text-ink",
+  rejected: "text-seal",
 };
 
 export default function ParentChildrenPage() {
@@ -85,29 +85,30 @@ export default function ParentChildrenPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">My children</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Family</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My children</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Add a child by their EduBoost email. They&apos;ll receive a request to confirm the link.
       </p>
 
-      <form onSubmit={onInvite} className="mt-6 space-y-3 rounded border p-4">
+      <form onSubmit={onInvite} className="card mt-6 space-y-3 p-4">
         <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Child&apos;s email</span>
+            <span className="label">Child&apos;s email</span>
             <input
               required
               type="email"
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={childEmail}
               onChange={(e) => setChildEmail(e.target.value)}
               placeholder="child@example.com"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Relationship</span>
+            <span className="label">Relationship</span>
             <select
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={relationship}
               onChange={(e) => setRelationship(e.target.value as typeof relationship)}
             >
@@ -117,41 +118,41 @@ export default function ParentChildrenPage() {
             </select>
           </label>
         </div>
-        {formError && <p className="text-sm text-red-600">{formError}</p>}
+        {formError && <p className="text-sm text-seal">{formError}</p>}
         <button
           type="submit"
           disabled={submitting || !childEmail}
-          className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Sending..." : "Add child"}
         </button>
       </form>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No children linked yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No children linked yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((link) => (
             <li key={link.childId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-medium">
+                <div className="font-display text-base text-ink">
                   {link.child?.displayName ?? "(pending user)"}
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">
+                <div className="mt-0.5 text-xs text-ink-faded">
                   {link.child?.email ?? link.childId} · {link.relationship} · added{" "}
                   {new Date(link.createdAt).toLocaleDateString()}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs uppercase ${STATUS_COLORS[link.status]}`}>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[link.status]}`}>
                   {link.status}
                 </span>
                 <button
                   onClick={() => onRemove(link.childId)}
-                  className="text-xs text-red-600 underline"
+                  className="btn-ghost text-seal"
                 >
                   Remove
                 </button>
@@ -162,7 +163,7 @@ export default function ParentChildrenPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

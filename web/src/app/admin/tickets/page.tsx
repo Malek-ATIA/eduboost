@@ -59,22 +59,25 @@ export default function AdminTicketsPage() {
     };
   }, [ready, queryString, overdueOnly]);
 
-  if (!ready) return <main className="mx-auto max-w-4xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Support tickets</h1>
-        <Link href="/admin" className="text-sm text-gray-500 underline">
+        <div>
+          <p className="eyebrow">Admin</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Support tickets</h1>
+        </div>
+        <Link href="/admin" className="btn-ghost">
           ← Admin hub
         </Link>
       </div>
 
       <div className="mt-6 flex flex-wrap items-end gap-4">
         <label className="block max-w-xs flex-1">
-          <span className="mb-1 block text-sm font-medium">Status</span>
+          <span className="label">Status</span>
           <select
-            className="w-full rounded border px-3 py-2 disabled:opacity-50"
+            className="input disabled:opacity-50"
             value={status}
             onChange={(e) => setStatus(e.target.value as typeof status)}
             disabled={overdueOnly}
@@ -87,7 +90,7 @@ export default function AdminTicketsPage() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={overdueOnly}
@@ -97,30 +100,30 @@ export default function AdminTicketsPage() {
         </label>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
-      {items && items.length === 0 && <p className="mt-6 text-sm text-gray-500">No tickets.</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
+      {items && items.length === 0 && <p className="mt-6 text-sm text-ink-soft">No tickets.</p>}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((t) => (
             <li key={t.ticketId}>
               <Link
                 href={`/support/${t.ticketId}` as never}
-                className="flex items-center justify-between gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="flex items-center justify-between gap-3 p-4 transition hover:bg-parchment-shade"
               >
                 <div>
-                  <div className="font-medium">{t.subject}</div>
-                  <div className="mt-0.5 text-xs text-gray-500">
-                    #{t.ticketId} · {t.category.replace(/_/g, " ")} · priority {t.priority} · updated{" "}
+                  <div className="font-display text-base text-ink">{t.subject}</div>
+                  <div className="mt-0.5 text-xs text-ink-faded">
+                    <span className="font-mono">#{t.ticketId}</span> · {t.category.replace(/_/g, " ")} · priority {t.priority} · updated{" "}
                     {new Date(t.updatedAt).toLocaleString()}
                   </div>
                   {t.slaDeadline && new Date(t.slaDeadline) < new Date() && (
-                    <div className="mt-0.5 text-xs font-medium text-red-600">
+                    <div className="mt-0.5 text-xs font-medium text-seal">
                       SLA overdue (deadline {new Date(t.slaDeadline).toLocaleString()})
                     </div>
                   )}
                 </div>
-                <span className="text-xs uppercase">{t.status.replace(/_/g, " ")}</span>
+                <span className="text-xs uppercase tracking-widest text-ink-soft">{t.status.replace(/_/g, " ")}</span>
               </Link>
             </li>
           ))}

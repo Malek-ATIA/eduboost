@@ -15,10 +15,10 @@ type Session = {
 };
 
 const STATUS_COLORS: Record<Session["status"], string> = {
-  scheduled: "text-blue-700",
-  live: "text-green-700",
-  completed: "text-gray-500",
-  cancelled: "text-red-700",
+  scheduled: "text-ink",
+  live: "text-seal",
+  completed: "text-ink-faded",
+  cancelled: "text-seal",
 };
 
 export default function CalendarPage() {
@@ -42,20 +42,21 @@ export default function CalendarPage() {
   const grouped = groupByDay(items ?? []);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Upcoming sessions</h1>
-      <p className="mt-1 text-sm text-gray-500">Everything scheduled from now forward.</p>
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Schedule</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Upcoming sessions</h1>
+      <p className="mt-1 text-sm text-ink-soft">Everything scheduled from now forward.</p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No upcoming sessions.</p>
+        <p className="mt-6 text-sm text-ink-soft">No upcoming sessions.</p>
       )}
 
       {grouped.map((day) => (
         <section key={day.date} className="mt-8">
-          <h2 className="text-sm font-semibold uppercase text-gray-500">{day.label}</h2>
-          <ul className="mt-2 divide-y rounded border">
+          <h2 className="eyebrow">{day.label}</h2>
+          <ul className="card mt-2 divide-y divide-ink-faded/30">
             {day.items.map((s) => {
               const starts = new Date(s.startsAt);
               const ends = new Date(s.endsAt);
@@ -64,23 +65,23 @@ export default function CalendarPage() {
               return (
                 <li key={s.sessionId} className="flex items-center justify-between p-4">
                   <div>
-                    <div className="font-medium">
+                    <div className="font-display text-base text-ink">
                       {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} —{" "}
                       {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </div>
-                    <div className="mt-0.5 text-xs text-gray-500">
+                    <div className="mt-0.5 text-xs text-ink-faded">
                       Classroom{" "}
                       <span className="font-mono">{s.classroomId.slice(0, 12)}...</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs uppercase ${STATUS_COLORS[s.status]}`}>
+                    <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[s.status]}`}>
                       {s.status}
                     </span>
                     {joinable && (
                       <Link
                         href={`/classroom/${s.sessionId}` as never}
-                        className="rounded bg-black px-3 py-1 text-xs text-white dark:bg-white dark:text-black"
+                        className="btn-seal"
                       >
                         Join
                       </Link>

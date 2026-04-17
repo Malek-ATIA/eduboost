@@ -15,11 +15,11 @@ type LessonRequest = {
 };
 
 const STATUS_COLORS: Record<LessonRequest["status"], string> = {
-  pending: "text-yellow-700",
-  accepted: "text-green-700",
-  rejected: "text-red-700",
-  expired: "text-gray-500",
-  cancelled: "text-gray-500",
+  pending: "text-ink-faded",
+  accepted: "text-ink",
+  rejected: "text-seal",
+  expired: "text-ink-faded",
+  cancelled: "text-ink-faded",
 };
 
 export default function RequestsPage() {
@@ -47,30 +47,31 @@ export default function RequestsPage() {
   const title = role === "teacher" ? "Lesson requests (inbox)" : "My lesson requests";
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Requests</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{title}</h1>
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-ink-soft">
           {role === "teacher" ? "No requests yet." : "No requests sent yet."}
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((r) => (
             <li key={r.requestId}>
               <Link
                 href={`/requests/${r.requestId}` as never}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="flex items-center justify-between p-4 transition hover:bg-parchment-shade"
               >
                 <div>
-                  <div className="font-medium">{r.subject}</div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="font-display text-base text-ink">{r.subject}</div>
+                  <div className="mt-0.5 text-xs text-ink-faded">
                     {new Date(r.createdAt).toLocaleString()}
                   </div>
                 </div>
-                <span className={`text-xs uppercase ${STATUS_COLORS[r.status]}`}>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[r.status]}`}>
                   {r.status}
                 </span>
               </Link>

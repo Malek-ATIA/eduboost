@@ -61,27 +61,30 @@ export default function AnalyticsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {role === "parent" ? "Family analytics" : "My learning analytics"}
-        </h1>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline">
+        <div>
+          <p className="eyebrow">Insights</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+            {role === "parent" ? "Family analytics" : "My learning analytics"}
+          </h1>
+        </div>
+        <Link href="/dashboard" className="btn-ghost">
           ← Dashboard
         </Link>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
       {!error && !student && !parent && (
-        <p className="mt-6 text-sm text-gray-500">Loading...</p>
+        <p className="mt-6 text-sm text-ink-soft">Loading...</p>
       )}
 
       {student && <MetricsGrid title="Totals" m={student} />}
 
       {parent && (
         <>
-          <section className="mt-8 rounded border p-5">
-            <h2 className="text-lg font-semibold">Household summary</h2>
+          <section className="card mt-8 p-5">
+            <h2 className="font-display text-xl text-ink">Household summary</h2>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <Stat
                 label="Total spent"
@@ -105,7 +108,7 @@ export default function AnalyticsPage() {
           ))}
 
           {parent.children.length === 0 && (
-            <p className="mt-6 text-sm text-gray-500">
+            <p className="mt-6 text-sm text-ink-soft">
               Link a child from{" "}
               <Link href="/parent/children" className="underline">
                 My children
@@ -121,8 +124,8 @@ export default function AnalyticsPage() {
 
 function MetricsGrid({ title, m }: { title: string; m: UserMetrics }) {
   return (
-    <section className="mt-8 rounded border p-5">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <section className="card mt-8 p-5">
+      <h2 className="font-display text-xl text-ink">{title}</h2>
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <Stat
           label="Total spent"
@@ -155,8 +158,8 @@ function MetricsGrid({ title, m }: { title: string; m: UserMetrics }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase text-gray-500">{label}</div>
-      <div className="mt-1 text-lg font-semibold">{value}</div>
+      <div className="eyebrow">{label}</div>
+      <div className="mt-1 font-display text-lg text-ink">{value}</div>
     </div>
   );
 }

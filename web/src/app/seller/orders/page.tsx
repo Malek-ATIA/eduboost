@@ -17,10 +17,10 @@ type Order = {
 };
 
 const STATUS_COLORS: Record<Order["status"], string> = {
-  pending: "text-yellow-700",
-  paid: "text-green-700",
-  refunded: "text-gray-500",
-  cancelled: "text-red-700",
+  pending: "text-ink-faded",
+  paid: "text-ink",
+  refunded: "text-ink-faded",
+  cancelled: "text-seal",
 };
 
 export default function SellerOrdersPage() {
@@ -43,31 +43,32 @@ export default function SellerOrdersPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Marketplace orders</h1>
-      <p className="mt-1 text-sm text-gray-500">Sales on your listings.</p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Seller</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Marketplace orders</h1>
+      <p className="mt-1 text-sm text-ink-soft">Sales on your listings.</p>
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No sales yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No sales yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((o) => (
             <li key={o.orderId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-medium">
-                  <Link href={`/marketplace/listings/${o.listingId}` as never} className="underline">
+                <div className="font-display text-base text-ink">
+                  <Link href={`/marketplace/listings/${o.listingId}` as never} className="font-mono underline">
                     {o.listingId}
                   </Link>
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">
+                <div className="mt-0.5 text-xs text-ink-faded">
                   {new Date(o.createdAt).toLocaleString()} · fee{" "}
                   {(o.platformFeeCents / 100).toFixed(2)} · net{" "}
                   {((o.priceCents - o.platformFeeCents) / 100).toFixed(2)} {o.currency}
                 </div>
               </div>
-              <span className={`text-xs uppercase ${STATUS_COLORS[o.status]}`}>{o.status}</span>
+              <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[o.status]}`}>{o.status}</span>
             </li>
           ))}
         </ul>

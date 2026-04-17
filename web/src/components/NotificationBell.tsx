@@ -38,12 +38,12 @@ export function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className="relative inline-flex items-center rounded border px-3 py-1 text-sm"
+      className="relative inline-flex items-center rounded-md border border-ink-faded/50 bg-parchment-dark/60 px-3 py-1 text-sm text-ink transition hover:border-ink-faded hover:bg-parchment-shade"
       aria-label={`Notifications (${count} unread)`}
     >
       <span>Notifications</span>
       {count > 0 && (
-        <span className="ml-2 min-w-[1.25rem] rounded-full bg-red-600 px-1.5 text-center text-xs text-white">
+        <span className="ml-2 min-w-[1.25rem] rounded-full bg-seal px-1.5 text-center text-xs text-parchment">
           {count > 99 ? "99+" : count}
         </span>
       )}

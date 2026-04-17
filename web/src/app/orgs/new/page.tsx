@@ -47,71 +47,72 @@ export default function NewOrgPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Create an organization</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Teams</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Create an organization</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Invite teachers to collaborate, link classrooms, and manage students under
         a single umbrella.
       </p>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Name</span>
+          <span className="label">Name</span>
           <input
             required
             minLength={2}
             maxLength={120}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border px-3 py-2"
+            className="input"
           />
         </label>
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Kind</span>
+            <span className="label">Kind</span>
             <select
               value={kind}
               onChange={(e) => setKind(e.target.value as typeof kind)}
-              className="w-full rounded border px-3 py-2"
+              className="input"
             >
               <option value="educational">Educational</option>
               <option value="commercial">Commercial</option>
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Country (optional)</span>
+            <span className="label">Country (optional)</span>
             <input
               maxLength={80}
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full rounded border px-3 py-2"
+              className="input"
               placeholder="e.g. France"
             />
           </label>
         </div>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Description (optional)</span>
+          <span className="label">Description (optional)</span>
           <textarea
             rows={4}
             maxLength={2000}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded border px-3 py-2"
+            className="input"
           />
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
         <button
           type="submit"
           disabled={submitting || !name.trim()}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Creating..." : "Create"}
         </button>
       </form>
       <p className="mt-8 text-sm">
-        <Link href="/orgs" className="text-gray-500 underline">
+        <Link href="/orgs" className="text-ink-soft underline">
           ← All organizations
         </Link>
       </p>

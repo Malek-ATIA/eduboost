@@ -65,38 +65,41 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notifications</h1>
-        <button onClick={markAll} className="rounded border px-3 py-1 text-sm">
+        <div>
+          <p className="eyebrow">Inbox</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Notifications</h1>
+        </div>
+        <button onClick={markAll} className="btn-ghost">
           Mark all read
         </button>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">You're all caught up.</p>
+        <p className="mt-6 text-sm text-ink-soft">You're all caught up.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((n) => {
             const content = (
               <div className={`flex items-start justify-between gap-3 p-4 ${n.readAt ? "opacity-60" : ""}`}>
                 <div>
-                  <div className="font-medium">{n.title}</div>
-                  <div className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">{n.body}</div>
-                  <div className="mt-1 text-xs text-gray-500">
+                  <div className="font-display text-base text-ink">{n.title}</div>
+                  <div className="mt-0.5 text-sm text-ink-soft">{n.body}</div>
+                  <div className="mt-1 text-xs text-ink-faded">
                     {new Date(n.createdAt).toLocaleString()}
                   </div>
                 </div>
-                {!n.readAt && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-600" />}
+                {!n.readAt && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-seal" />}
               </div>
             );
             return (
               <li key={n.notificationId} onClick={() => markOne(n)}>
                 {n.linkPath ? (
-                  <Link href={n.linkPath as never} className="block hover:bg-gray-50 dark:hover:bg-gray-900">
+                  <Link href={n.linkPath as never} className="block transition hover:bg-parchment-shade">
                     {content}
                   </Link>
                 ) : (

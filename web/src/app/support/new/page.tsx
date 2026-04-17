@@ -140,16 +140,17 @@ function NewTicketForm() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">New support ticket</h1>
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Support</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New support ticket</h1>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <Field label="Subject">
           <input
             required
             minLength={3}
             maxLength={200}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Short summary of the issue"
@@ -159,7 +160,7 @@ function NewTicketForm() {
         <div className="grid grid-cols-2 gap-4">
           <Field label="Category">
             <select
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={category}
               onChange={(e) => setCategory(e.target.value as Category)}
             >
@@ -173,7 +174,7 @@ function NewTicketForm() {
 
           <Field label="Priority">
             <select
-              className="w-full rounded border px-3 py-2"
+              className="input"
               value={priority}
               onChange={(e) => setPriority(e.target.value as typeof priority)}
             >
@@ -188,7 +189,7 @@ function NewTicketForm() {
         {(category === "payment_dispute" || category === "booking_issue") && (
           <Field label="Related booking ID (optional)">
             <input
-              className="w-full rounded border px-3 py-2 font-mono"
+              className="input font-mono"
               value={bookingId}
               onChange={(e) => setBookingId(e.target.value)}
               placeholder="bk_..."
@@ -199,7 +200,7 @@ function NewTicketForm() {
         {category === "payment_dispute" && (
           <Field label="Related payment ID (optional)">
             <input
-              className="w-full rounded border px-3 py-2 font-mono"
+              className="input font-mono"
               value={relatedPaymentId}
               onChange={(e) => setRelatedPaymentId(e.target.value)}
               placeholder="pay_..."
@@ -210,7 +211,7 @@ function NewTicketForm() {
         {category === "review_dispute" && (
           <Field label="Related review ID (optional)">
             <input
-              className="w-full rounded border px-3 py-2 font-mono"
+              className="input font-mono"
               value={relatedReviewId}
               onChange={(e) => setRelatedReviewId(e.target.value)}
               placeholder="rv_..."
@@ -224,7 +225,7 @@ function NewTicketForm() {
             minLength={10}
             maxLength={8000}
             rows={8}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="What happened? Include dates, amounts, and anything the team needs to resolve this."
@@ -232,17 +233,17 @@ function NewTicketForm() {
         </Field>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className="label">
             Attachments (optional, up to 5, 25 MB each)
           </label>
           <input
             type="file"
             multiple
             onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
-            className="text-xs"
+            className="text-xs text-ink"
           />
           {files.length > 0 && (
-            <ul className="mt-1 text-xs text-gray-600">
+            <ul className="mt-1 text-xs text-ink-soft">
               {files.map((f) => (
                 <li key={f.name}>
                   {f.name} ({(f.size / 1024).toFixed(1)} KB)
@@ -252,13 +253,13 @@ function NewTicketForm() {
           )}
         </div>
 
-        {progress && <p className="text-xs text-gray-500">{progress}</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {progress && <p className="text-xs text-ink-soft">{progress}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Submitting..." : "Submit ticket"}
         </button>
@@ -273,9 +274,10 @@ export default function NewTicketPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-6 py-12">
-          <h1 className="text-2xl font-bold">New support ticket</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+          <p className="eyebrow">Support</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New support ticket</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >
@@ -287,7 +289,7 @@ export default function NewTicketPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium">{label}</span>
+      <span className="label">{label}</span>
       {children}
     </label>
   );

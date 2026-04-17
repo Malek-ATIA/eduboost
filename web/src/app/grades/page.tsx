@@ -41,43 +41,46 @@ export default function GradesPage() {
 
   const isTeacher = role === "teacher";
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {isTeacher ? "Grades you've given" : "My grades"}
-        </h1>
+        <div>
+          <p className="eyebrow">Grades</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+            {isTeacher ? "Grades you've given" : "My grades"}
+          </h1>
+        </div>
         {isTeacher && (
           <Link
             href="/teacher/grader"
-            className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             New grade
           </Link>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No AI-graded work yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No AI-graded work yet.</p>
       )}
 
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((g) => (
             <li key={g.gradeId} className="p-4">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <div className="font-medium">{g.subject}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-display text-base text-ink">{g.subject}</div>
+                  <div className="text-xs text-ink-faded">
                     {new Date(g.createdAt).toLocaleString()} · {g.modelId.split(".")[1] ?? g.modelId}
                   </div>
                 </div>
-                <span className="font-mono text-lg font-bold">
+                <span className="font-mono text-lg font-bold text-ink">
                   {g.score}/{g.maxScore}
                 </span>
               </div>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-2 whitespace-pre-wrap text-sm text-ink-soft">
                 {g.feedback}
               </p>
             </li>
@@ -86,7 +89,7 @@ export default function GradesPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

@@ -35,9 +35,10 @@ export default function MarketplacePage() {
   }, [qs]);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Marketplace</h1>
-      <p className="mt-1 text-sm text-gray-500">Study materials from EduBoost teachers.</p>
+    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Shop</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Marketplace</h1>
+      <p className="mt-1 text-sm text-ink-soft">Study materials from EduBoost teachers.</p>
 
       <form
         onSubmit={(e) => {
@@ -47,20 +48,20 @@ export default function MarketplacePage() {
         className="mt-6 flex gap-2"
       >
         <input
-          className="flex-1 rounded border px-3 py-2"
+          className="input flex-1"
           placeholder="Subject (e.g. Mathematics)"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
-        <button className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black">
+        <button className="btn-seal">
           Search
         </button>
       </form>
 
-      {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-6 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No listings match your search.</p>
+        <p className="mt-6 text-sm text-ink-soft">No listings match your search.</p>
       )}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -68,18 +69,18 @@ export default function MarketplacePage() {
           <Link
             key={l.listingId}
             href={`/marketplace/listings/${l.listingId}` as never}
-            className="block rounded border p-4 transition hover:border-black dark:hover:border-white"
+            className="card-interactive block p-4"
           >
-            <div className="font-medium">{l.title}</div>
-            <div className="mt-1 text-sm text-gray-600 line-clamp-2">{l.description ?? ""}</div>
+            <div className="font-display text-base text-ink">{l.title}</div>
+            <div className="mt-1 text-sm text-ink-soft line-clamp-2">{l.description ?? ""}</div>
             <div className="mt-2 flex flex-wrap gap-1">
               {l.subjects.slice(0, 3).map((s) => (
-                <span key={s} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+                <span key={s} className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs text-ink-soft">
                   {s}
                 </span>
               ))}
             </div>
-            <div className="mt-3 font-medium">
+            <div className="mt-3 font-display text-base text-ink">
               {l.currency} {(l.priceCents / 100).toFixed(2)}
             </div>
           </Link>

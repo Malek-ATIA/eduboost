@@ -75,32 +75,33 @@ export default function DmChatPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
-      <h1 className="text-xl font-bold">Direct message</h1>
-      <p className="mt-1 text-sm text-gray-500">with {otherUserId}</p>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Messages</p>
+      <h1 className="mt-1 font-display text-3xl text-ink">Direct message</h1>
+      <p className="mt-1 font-mono text-sm text-ink-soft">with {otherUserId}</p>
+      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
 
-      <div className="mt-6 flex h-[520px] flex-col rounded border">
+      <div className="card mt-6 flex h-[520px] flex-col">
         <div ref={scrollerRef} className="flex-1 overflow-y-auto p-3">
           {messages === null && !error && (
-            <p className="text-sm text-gray-500">Loading...</p>
+            <p className="text-sm text-ink-soft">Loading...</p>
           )}
           {messages && messages.length === 0 && (
-            <p className="text-sm text-gray-500">No messages yet.</p>
+            <p className="text-sm text-ink-soft">No messages yet.</p>
           )}
           {messages?.map((m) => (
             <div key={m.messageId} className="mb-2">
-              <div className="text-xs text-gray-500">
-                {m.senderId} · {new Date(m.createdAt).toLocaleString()}
+              <div className="text-xs text-ink-faded">
+                <span className="font-mono">{m.senderId}</span> · {new Date(m.createdAt).toLocaleString()}
               </div>
-              <div className="text-sm">{m.body}</div>
+              <div className="text-sm text-ink">{m.body}</div>
             </div>
           ))}
         </div>
-        <div className="border-t p-2">
+        <div className="border-t border-ink-faded/30 p-2">
           <form onSubmit={send} className="flex gap-2">
             <input
-              className="flex-1 rounded border px-2 py-1 text-sm"
+              className="input flex-1"
               placeholder="Type a message..."
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -109,7 +110,7 @@ export default function DmChatPage({
             />
             <button
               type="submit"
-              className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
               disabled={sending || !draft.trim()}
             >
               Send

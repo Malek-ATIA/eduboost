@@ -16,24 +16,25 @@ export default function ForumPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Forum</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Community</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Forum</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Community Q&amp;A, tips, and discussion.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
-      <ul className="mt-6 divide-y rounded border">
+      <ul className="card mt-6 divide-y divide-ink-faded/30">
         {items?.map((c) => (
           <li key={c.id}>
             <Link
               href={`/forum/${c.id}` as never}
-              className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+              className="block p-4 transition hover:bg-parchment-shade"
             >
-              <div className="font-medium">{c.name}</div>
-              <div className="mt-0.5 text-sm text-gray-500">{c.description}</div>
+              <div className="font-display text-base text-ink">{c.name}</div>
+              <div className="mt-0.5 text-sm text-ink-soft">{c.description}</div>
             </Link>
           </li>
         ))}

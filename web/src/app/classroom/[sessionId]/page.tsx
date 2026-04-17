@@ -248,15 +248,18 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const isTeacher = viewerSub !== null && viewerSub === teacherId;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto max-w-6xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Classroom · {sessionId}</h1>
+        <div>
+          <p className="eyebrow">Classroom</p>
+          <h1 className="mt-1 font-display text-3xl text-ink">Classroom · <span className="font-mono text-2xl">{sessionId}</span></h1>
+        </div>
         <div className="flex items-center gap-2">
           {classroomId && (
             <Link
               href={`/whiteboard/${classroomId}` as never}
               target="_blank"
-              className="rounded border px-3 py-1 text-sm hover:border-black dark:hover:border-white"
+              className="btn-secondary"
             >
               Whiteboard
             </Link>
@@ -265,34 +268,32 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
             <button
               onClick={toggleRecording}
               disabled={status !== "joined"}
-              className={`rounded px-3 py-1 text-sm ${
-                recording ? "bg-red-600 text-white" : "border"
-              } disabled:opacity-50`}
+              className={recording ? "btn-seal" : "btn-secondary"}
             >
               {recording ? "Stop recording" : "Start recording"}
             </button>
           )}
         </div>
       </div>
-      <p className="mt-2 text-sm text-gray-500">Status: {status}</p>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      <p className="mt-2 text-sm text-ink-soft">Status: {status}</p>
+      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="aspect-video w-full overflow-hidden rounded bg-black">
+        <div className="aspect-video w-full overflow-hidden rounded-md bg-ink/90">
           <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
         </div>
 
-        <div className="flex h-[480px] flex-col rounded border">
+        <div className="card flex h-[480px] flex-col">
           <div className="flex-1 overflow-y-auto p-3">
-            {chat.length === 0 && <p className="text-sm text-gray-500">No messages yet.</p>}
+            {chat.length === 0 && <p className="text-sm text-ink-soft">No messages yet.</p>}
             {chat.map((m, i) => (
               <div key={i} className="mb-2">
-                <div className="text-xs text-gray-500">{m.senderId}</div>
-                <div className="text-sm">{m.body}</div>
+                <div className="text-xs text-ink-faded">{m.senderId}</div>
+                <div className="text-sm text-ink">{m.body}</div>
               </div>
             ))}
           </div>
-          <div className="border-t p-2">
+          <div className="border-t border-ink-faded/30 p-2">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -301,7 +302,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
               className="flex gap-2"
             >
               <input
-                className="flex-1 rounded border px-2 py-1 text-sm"
+                className="input flex-1"
                 placeholder="Type a message..."
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -309,7 +310,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
               />
               <button
                 type="submit"
-                className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+                className="btn-seal"
                 disabled={status !== "joined" || !draft.trim()}
               >
                 Send
@@ -321,26 +322,26 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
 
       {isTeacher && attendance && (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Attendance</h2>
-          <p className="mt-1 text-xs text-gray-500">
+          <h2 className="font-display text-xl text-ink">Attendance</h2>
+          <p className="mt-1 text-xs text-ink-faded">
             Students are auto-marked present when they join. Override below.
           </p>
           {attendance.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">No students have joined yet.</p>
+            <p className="mt-4 text-sm text-ink-soft">No students have joined yet.</p>
           ) : (
-            <ul className="mt-4 divide-y rounded border">
+            <ul className="card mt-4 divide-y divide-ink-faded/30">
               {attendance.map((a) => (
                 <li key={a.userId} className="flex items-center justify-between p-3">
                   <div>
-                    <div className="font-medium">{a.user?.displayName ?? a.userId}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="font-display text-base text-ink">{a.user?.displayName ?? a.userId}</div>
+                    <div className="text-xs text-ink-faded">
                       {a.user?.email ?? ""} · marked {new Date(a.markedAt).toLocaleString()}
                     </div>
                   </div>
                   <select
                     value={a.status}
                     onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
-                    className="rounded border px-2 py-1 text-sm"
+                    className="input max-w-[8rem]"
                   >
                     {ATTENDANCE_STATUSES.map((s) => (
                       <option key={s} value={s}>
@@ -356,8 +357,8 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       )}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">My notes</h2>
-        <p className="mt-1 text-xs text-gray-500">
+        <h2 className="font-display text-xl text-ink">My notes</h2>
+        <p className="mt-1 text-xs text-ink-faded">
           Private to you. Use this space to capture key learning points during the session.
         </p>
         <textarea
@@ -365,17 +366,17 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           onChange={(e) => setNoteBody(e.target.value)}
           rows={6}
           maxLength={20000}
-          className="mt-3 w-full rounded border px-3 py-2 text-sm"
+          className="input mt-3"
           placeholder="Write your notes here..."
         />
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-ink-faded">
             {noteSaved ? "Saved." : noteBody.length > 0 ? "Unsaved" : ""}
           </span>
           <button
             onClick={saveNote}
             disabled={noteSaving}
-            className="rounded bg-black px-4 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             {noteSaving ? "Saving..." : "Save notes"}
           </button>
@@ -383,8 +384,8 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Breakout rooms</h2>
-        <p className="mt-1 text-xs text-gray-500">
+        <h2 className="font-display text-xl text-ink">Breakout rooms</h2>
+        <p className="mt-1 text-xs text-ink-faded">
           {isTeacher
             ? "Split the class into smaller groups. Each breakout is a separate video room; students you assign can join from here."
             : "If the teacher assigns you to a breakout, click Join to move there."}
@@ -397,39 +398,39 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
               onChange={(e) => setNewBreakoutLabel(e.target.value)}
               placeholder="Room label (e.g. Group A)"
               maxLength={60}
-              className="rounded border px-3 py-2 text-sm"
+              className="input"
             />
             <input
               value={newBreakoutAssignees}
               onChange={(e) => setNewBreakoutAssignees(e.target.value)}
               placeholder="Assigned student IDs (comma-separated)"
-              className="rounded border px-3 py-2 font-mono text-sm"
+              className="input font-mono"
             />
             <button
               type="submit"
               disabled={!newBreakoutLabel.trim()}
-              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               Create breakout
             </button>
           </form>
         )}
 
-        {breakoutError && <p className="mt-2 text-sm text-red-600">{breakoutError}</p>}
+        {breakoutError && <p className="mt-2 text-sm text-seal">{breakoutError}</p>}
 
         {breakouts && breakouts.length === 0 && (
-          <p className="mt-4 text-sm text-gray-500">No breakouts yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">No breakouts yet.</p>
         )}
 
         {breakouts && breakouts.length > 0 && (
-          <ul className="mt-4 divide-y rounded border">
+          <ul className="card mt-4 divide-y divide-ink-faded/30">
             {breakouts.map((b) => {
               const canJoin = isTeacher || (viewerSub && b.assignedUserIds.includes(viewerSub));
               return (
                 <li key={b.breakoutId} className="flex items-center justify-between p-3">
                   <div>
-                    <div className="font-medium">{b.label}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="font-display text-base text-ink">{b.label}</div>
+                    <div className="text-xs text-ink-faded">
                       {b.assignedUserIds.length} assigned · created{" "}
                       {new Date(b.createdAt).toLocaleTimeString()}
                     </div>
@@ -439,7 +440,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
                       <Link
                         href={`/breakout/${sessionId}/${b.breakoutId}`}
                         target="_blank"
-                        className="rounded border px-3 py-1 text-sm hover:border-black dark:hover:border-white"
+                        className="btn-secondary"
                       >
                         Join
                       </Link>
@@ -447,7 +448,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
                     {isTeacher && (
                       <button
                         onClick={() => endBreakout(b.breakoutId)}
-                        className="rounded px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                        className="btn-ghost text-seal"
                       >
                         End
                       </button>

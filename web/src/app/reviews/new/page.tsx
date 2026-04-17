@@ -79,30 +79,33 @@ function NewReviewForm() {
     }
   }
 
-  if (error) return <main className="mx-auto max-w-md px-6 py-12 text-red-600">{error}</main>;
-  if (!booking) return <main className="mx-auto max-w-md px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!booking) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-md px-6 py-12">
-      <Link href="/bookings" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+      <Link href="/bookings" className="btn-ghost -ml-3">
         ← My bookings
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">Leave a review</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        For your {booking.type} session (booking {booking.bookingId}).
+      <p className="eyebrow mt-4">Feedback</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Leave a review</h1>
+      <p className="mt-1 text-sm text-ink-soft">
+        For your {booking.type} session (booking <span className="font-mono">{booking.bookingId}</span>).
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
         <div>
-          <label className="mb-2 block text-sm font-medium">Rating</label>
+          <span className="label">Rating</span>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setRating(n)}
-                className={`h-10 w-10 rounded border text-lg ${
-                  n <= rating ? "bg-yellow-400 text-black" : ""
+                className={`h-10 w-10 rounded-md border text-lg transition ${
+                  n <= rating
+                    ? "border-seal bg-seal text-parchment"
+                    : "border-ink-faded/50 bg-parchment/40 text-ink-faded hover:border-ink-faded"
                 }`}
                 aria-label={`${n} star${n > 1 ? "s" : ""}`}
               >
@@ -113,23 +116,23 @@ function NewReviewForm() {
         </div>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Comment (optional)</span>
+          <span className="label">Comment (optional)</span>
           <textarea
             rows={5}
             maxLength={2000}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="What did you enjoy? What could be improved?"
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Submitting..." : "Post review"}
         </button>
@@ -142,9 +145,10 @@ export default function NewReviewPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-md px-6 py-12">
-          <h1 className="text-2xl font-bold">Leave a review</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+          <p className="eyebrow">Feedback</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Leave a review</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >

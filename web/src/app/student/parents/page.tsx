@@ -15,9 +15,9 @@ type ParentLink = {
 };
 
 const STATUS_COLORS: Record<ParentLink["status"], string> = {
-  pending: "text-yellow-700",
-  accepted: "text-green-700",
-  rejected: "text-red-700",
+  pending: "text-ink-faded",
+  accepted: "text-ink",
+  rejected: "text-seal",
 };
 
 export default function StudentParentsPage() {
@@ -58,32 +58,33 @@ export default function StudentParentsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">My parents / guardians</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Family</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My parents / guardians</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Parents who have requested a link with your account.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No parent links yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">No parent links yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((link) => (
             <li key={link.parentId} className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-medium">
+                  <div className="font-display text-base text-ink">
                     {link.parent?.displayName ?? "(unknown parent)"}
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="mt-0.5 text-xs text-ink-faded">
                     {link.parent?.email ?? link.parentId} · {link.relationship} · requested{" "}
                     {new Date(link.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-                <span className={`text-xs uppercase ${STATUS_COLORS[link.status]}`}>
+                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[link.status]}`}>
                   {link.status}
                 </span>
               </div>
@@ -92,14 +93,14 @@ export default function StudentParentsPage() {
                   <button
                     onClick={() => respond(link.parentId, "accept")}
                     disabled={busyId === link.parentId}
-                    className="rounded bg-black px-3 py-1 text-xs text-white disabled:opacity-50 dark:bg-white dark:text-black"
+                    className="btn-seal"
                   >
                     {busyId === link.parentId ? "..." : "Accept"}
                   </button>
                   <button
                     onClick={() => respond(link.parentId, "reject")}
                     disabled={busyId === link.parentId}
-                    className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                    className="btn-secondary"
                   >
                     Decline
                   </button>
@@ -111,7 +112,7 @@ export default function StudentParentsPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

@@ -74,60 +74,61 @@ function GoogleSettingsInner() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Google Calendar</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Settings</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Google Calendar</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Connect your Google account so scheduled EduBoost sessions automatically
         appear in your calendar.
       </p>
 
       {status === "connected" && (
-        <div className="mt-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-100">
+        <div className="mt-4 rounded-md border border-seal/30 bg-seal/10 p-3 text-sm text-ink">
           Google connected.
         </div>
       )}
       {status === "denied" && (
-        <div className="mt-4 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-100">
+        <div className="mt-4 rounded-md border border-ink-faded/40 bg-parchment-shade p-3 text-sm text-ink">
           Google declined the request{reason ? ` (${reason})` : ""}.
         </div>
       )}
       {status === "error" && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+        <div className="mt-4 rounded-md border border-seal/30 bg-seal/10 p-3 text-sm text-seal">
           Something went wrong{reason ? ` (${reason})` : ""}. Try again.
         </div>
       )}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {info === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {info === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
       {info && (
-        <section className="mt-6 rounded border p-4">
+        <section className="card mt-6 p-4">
           {info.connected ? (
             <>
-              <div className="text-sm font-semibold">Connected</div>
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="font-display text-base text-ink">Connected</div>
+              <div className="mt-1 text-xs text-ink-faded">
                 {info.googleEmail ?? "(unknown email)"} · calendar {info.calendarId} ·
                 since {new Date(info.connectedAt).toLocaleDateString()}
               </div>
               <button
                 onClick={disconnect}
                 disabled={busy}
-                className="mt-3 rounded border px-3 py-1 text-sm disabled:opacity-50"
+                className="btn-secondary mt-3"
               >
                 {busy ? "..." : "Disconnect"}
               </button>
             </>
           ) : (
             <>
-              <div className="text-sm font-semibold">Not connected</div>
-              <p className="mt-1 text-xs text-gray-500">
+              <div className="font-display text-base text-ink">Not connected</div>
+              <p className="mt-1 text-xs text-ink-faded">
                 We ask for permission to create and update events on your primary Google
                 Calendar — nothing else.
               </p>
               <button
                 onClick={connect}
                 disabled={busy}
-                className="mt-3 rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+                className="btn-seal mt-3"
               >
                 {busy ? "..." : "Connect Google Calendar"}
               </button>
@@ -137,7 +138,7 @@ function GoogleSettingsInner() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>
@@ -149,9 +150,10 @@ export default function GoogleSettingsPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-6 py-12">
-          <h1 className="text-2xl font-bold">Google Calendar</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+          <p className="eyebrow">Settings</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Google Calendar</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >

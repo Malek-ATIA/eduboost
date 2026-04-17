@@ -89,39 +89,37 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 py-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   const isOwner = viewerSub !== null && viewerSub === data.post.teacherId;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href={`/teachers/${data.post.teacherId}` as never} className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href={`/teachers/${data.post.teacherId}` as never} className="btn-ghost -ml-3">
         ← {data.post.authorName ?? "Teacher"}
       </Link>
 
-      <article className="mt-4 rounded border p-4">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+      <article className="card mt-4 p-4">
+        <div className="flex items-center justify-between text-xs text-ink-faded">
           <span>{data.post.authorName} · {new Date(data.post.createdAt).toLocaleString()}</span>
           {isOwner && (
-            <button onClick={deletePost} className="text-xs text-red-600 underline">
+            <button onClick={deletePost} className="btn-ghost text-seal">
               Delete
             </button>
           )}
         </div>
-        <p className="mt-3 whitespace-pre-wrap leading-relaxed">{data.post.body}</p>
+        <p className="mt-3 whitespace-pre-wrap leading-relaxed text-ink">{data.post.body}</p>
       </article>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase text-gray-500">
-          Comments ({data.comments.length})
-        </h2>
+        <h2 className="eyebrow">Comments ({data.comments.length})</h2>
 
         <form onSubmit={addComment} className="mt-3 space-y-2">
           <textarea
             rows={3}
             maxLength={2000}
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Write a comment..."
@@ -129,7 +127,7 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
           <button
             type="submit"
             disabled={submitting || !draft.trim()}
-            className="rounded bg-black px-4 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="btn-seal"
           >
             {submitting ? "Posting..." : "Post"}
           </button>
@@ -139,19 +137,19 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
           {data.comments.map((cm) => {
             const canDelete = viewerSub !== null && (viewerSub === cm.authorId || isOwner);
             return (
-              <li key={cm.commentId} className="rounded border p-3">
-                <div className="flex items-center justify-between text-xs text-gray-500">
+              <li key={cm.commentId} className="card p-3">
+                <div className="flex items-center justify-between text-xs text-ink-faded">
                   <span>{cm.authorName} · {new Date(cm.createdAt).toLocaleString()}</span>
                   {canDelete && (
                     <button
                       onClick={() => deleteComment(cm.commentId)}
-                      className="text-xs text-red-600 underline"
+                      className="btn-ghost text-seal"
                     >
                       Delete
                     </button>
                   )}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm">{cm.body}</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{cm.body}</p>
               </li>
             );
           })}

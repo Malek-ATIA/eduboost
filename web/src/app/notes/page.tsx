@@ -31,20 +31,21 @@ export default function MyNotesPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold">My session notes</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Notebook</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My session notes</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Personal notes you wrote during classroom sessions.
       </p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-ink-soft">
           No notes yet. Join a classroom to start taking notes.
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((n) => (
             <li key={n.sessionId} className="p-4">
               <Link
@@ -53,11 +54,11 @@ export default function MyNotesPage() {
               >
                 {n.sessionId}
               </Link>
-              <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-ink">
                 {n.body || "(empty)"}
               </p>
               {n.updatedAt && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-ink-faded">
                   Updated {new Date(n.updatedAt).toLocaleString()}
                 </p>
               )}
@@ -66,7 +67,7 @@ export default function MyNotesPage() {
         </ul>
       )}
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

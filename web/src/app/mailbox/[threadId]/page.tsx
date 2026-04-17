@@ -74,28 +74,29 @@ export default function MailboxThreadPage({
   }
 
   if (error && !thread) {
-    return <main className="mx-auto max-w-2xl px-6 py-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
   }
-  if (!thread) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (!thread) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/mailbox" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <Link href="/mailbox" className="btn-ghost -ml-3">
         ← Mailbox
       </Link>
-      <h1 className="mt-3 text-2xl font-bold">{thread.subject}</h1>
+      <p className="eyebrow mt-3">Thread</p>
+      <h1 className="mt-1 font-display text-3xl text-ink">{thread.subject}</h1>
 
       <section className="mt-6 space-y-3">
         {messages?.map((m) => (
           <div
             key={m.messageId}
-            className={`rounded border p-3 text-sm ${
+            className={`rounded-md border p-3 text-sm ${
               m.authorId === sub
-                ? "ml-8 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950"
-                : "mr-8"
+                ? "ml-8 border-seal/30 bg-seal/10 text-ink"
+                : "mr-8 border-ink-faded/40 bg-parchment-dark/70 text-ink"
             }`}
           >
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-ink-faded">
               {m.authorId === sub ? "You" : m.authorId.slice(0, 10)} ·{" "}
               {new Date(m.createdAt).toLocaleString()}
             </div>
@@ -111,13 +112,13 @@ export default function MailboxThreadPage({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Reply..."
-          className="w-full rounded border px-3 py-2 text-sm"
+          className="input"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
         <button
           type="submit"
           disabled={sending || !draft.trim()}
-          className="rounded bg-black px-4 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {sending ? "Sending..." : "Reply"}
         </button>

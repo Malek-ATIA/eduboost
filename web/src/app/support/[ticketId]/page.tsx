@@ -191,46 +191,47 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 py-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   const { ticket, messages } = data;
   const closed = ticket.status === "closed" || ticket.status === "resolved";
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link href="/support" className="text-sm text-gray-500 underline">
+          <Link href="/support" className="btn-ghost -ml-3">
             ← All tickets
           </Link>
-          <h1 className="mt-2 text-2xl font-bold">{ticket.subject}</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            #{ticket.ticketId} · {ticket.category.replace(/_/g, " ")} · priority {ticket.priority}
+          <p className="eyebrow mt-2">Ticket</p>
+          <h1 className="mt-1 font-display text-3xl text-ink">{ticket.subject}</h1>
+          <p className="mt-1 text-sm text-ink-soft">
+            <span className="font-mono">#{ticket.ticketId}</span> · {ticket.category.replace(/_/g, " ")} · priority {ticket.priority}
           </p>
           {ticket.bookingId && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-ink-soft">
               Linked booking: <span className="font-mono">{ticket.bookingId}</span>
             </p>
           )}
           {ticket.relatedPaymentId && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-ink-soft">
               Disputed payment: <span className="font-mono">{ticket.relatedPaymentId}</span>
             </p>
           )}
           {ticket.relatedReviewId && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-ink-soft">
               Disputed review: <span className="font-mono">{ticket.relatedReviewId}</span>
             </p>
           )}
           {ticket.slaDeadline && !ticket.resolvedAt && (
             <p className="mt-1 text-xs">
-              <span className="text-gray-500">SLA deadline:</span>{" "}
+              <span className="text-ink-soft">SLA deadline:</span>{" "}
               <span
                 className={
                   new Date(ticket.slaDeadline) < new Date()
-                    ? "font-medium text-red-600"
-                    : "text-gray-700 dark:text-gray-300"
+                    ? "font-medium text-seal"
+                    : "text-ink"
                 }
               >
                 {new Date(ticket.slaDeadline).toLocaleString()}
@@ -239,16 +240,16 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             </p>
           )}
           {ticket.resolution && (
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-ink-soft">
               Resolution:{" "}
-              <span className="font-medium text-gray-700 dark:text-gray-300">
+              <span className="font-medium text-ink">
                 {ticket.resolution.replace(/_/g, " ")}
               </span>
               {ticket.resolvedAt && ` · ${new Date(ticket.resolvedAt).toLocaleString()}`}
             </p>
           )}
         </div>
-        <span className="rounded-full border px-3 py-1 text-xs uppercase">
+        <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-3 py-1 text-xs uppercase tracking-widest text-ink-soft">
           {ticket.status.replace(/_/g, " ")}
         </span>
       </div>
@@ -257,17 +258,17 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
         {messages.map((m) => (
           <div
             key={m.messageId}
-            className={`rounded border p-3 ${
+            className={`card p-3 ${
               m.authorRole === "admin"
-                ? "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950"
+                ? "border-seal/30 bg-seal/10"
                 : ""
             }`}
           >
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-ink-faded">
               <span className="capitalize">{m.authorRole}</span>
               <span>{new Date(m.createdAt).toLocaleString()}</span>
             </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm">{m.body}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-ink">{m.body}</p>
             {m.attachments && m.attachments.length > 0 && (
               <ul className="mt-3 space-y-1">
                 {m.attachments.map((a) => (
@@ -276,12 +277,12 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
                       type="button"
                       onClick={() => downloadAttachment(a)}
                       disabled={downloadingKey === a.s3Key}
-                      className="text-xs text-blue-700 underline disabled:opacity-50"
+                      className="text-xs text-seal underline disabled:opacity-50"
                     >
                       📎{" "}
                       {downloadingKey === a.s3Key ? "Opening..." : a.filename}
                       {a.sizeBytes ? (
-                        <span className="ml-1 text-gray-500">
+                        <span className="ml-1 text-ink-faded">
                           ({(a.sizeBytes / 1024).toFixed(1)} KB)
                         </span>
                       ) : null}
@@ -295,27 +296,27 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
       </div>
 
       {!closed && (
-        <form onSubmit={onReply} className="mt-6 space-y-2">
+        <form onSubmit={onReply} className="card mt-6 space-y-2 p-4">
           <textarea
             rows={4}
             maxLength={8000}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Add a reply..."
           />
           <div>
-            <label className="mb-1 block text-xs text-gray-500">
+            <label className="label">
               Attachments (up to 5, 25 MB each)
             </label>
             <input
               type="file"
               multiple
               onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 5))}
-              className="text-xs"
+              className="text-xs text-ink"
             />
             {files.length > 0 && (
-              <ul className="mt-1 text-xs text-gray-600">
+              <ul className="mt-1 text-xs text-ink-soft">
                 {files.map((f) => (
                   <li key={f.name}>
                     {f.name} ({(f.size / 1024).toFixed(1)} KB)
@@ -324,12 +325,12 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
               </ul>
             )}
           </div>
-          {progress && <p className="text-xs text-gray-500">{progress}</p>}
+          {progress && <p className="text-xs text-ink-soft">{progress}</p>}
           <div className="flex items-center justify-end gap-2">
             <button
               type="submit"
               disabled={submitting || !draft.trim()}
-              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               {submitting ? "Sending..." : "Reply"}
             </button>
@@ -337,26 +338,26 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
         </form>
       )}
       {closed && (
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-ink-soft">
           This ticket is {ticket.status}. <Link href="/support/new" className="underline">Open a new one</Link> if needed.
         </p>
       )}
 
       {admin && !closed && (
-        <section className="mt-8 rounded border border-amber-300 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
-          <h2 className="text-lg font-semibold">Admin resolution</h2>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+        <section className="mt-8 rounded-md border border-seal/30 bg-seal/10 p-4">
+          <h2 className="font-display text-xl text-ink">Admin resolution</h2>
+          <p className="mt-1 text-xs text-ink-soft">
             Resolving closes the ticket, records a system message in the
             thread, and (for refund/review_removed outcomes) executes the
             relevant side effect.
           </p>
           <form onSubmit={resolveTicket} className="mt-4 space-y-3">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">Outcome</span>
+              <span className="label">Outcome</span>
               <select
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value as ResolutionOutcome)}
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="input"
               >
                 <option value="no_action">No action</option>
                 <option value="warning_issued">Warning issued</option>
@@ -374,16 +375,14 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
 
             {resolution === "refund_partial" && (
               <label className="block max-w-xs">
-                <span className="mb-1 block text-sm font-medium">
-                  Refund amount (in main currency units)
-                </span>
+                <span className="label">Refund amount (in main currency units)</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={refundAmount}
                   onChange={(e) => setRefundAmount(e.target.value)}
-                  className="w-full rounded border px-3 py-2 text-sm"
+                  className="input"
                   placeholder="e.g. 25.00"
                   required
                 />
@@ -391,16 +390,14 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             )}
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">
-                Resolution note (shared with the user)
-              </span>
+              <span className="label">Resolution note (shared with the user)</span>
               <textarea
                 rows={3}
                 minLength={10}
                 maxLength={2000}
                 value={resolutionNote}
                 onChange={(e) => setResolutionNote(e.target.value)}
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="input"
                 placeholder="Explain what was decided and why."
                 required
               />
@@ -409,7 +406,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             <button
               type="submit"
               disabled={resolving || resolutionNote.trim().length < 10}
-              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               {resolving ? "Resolving..." : "Resolve ticket"}
             </button>

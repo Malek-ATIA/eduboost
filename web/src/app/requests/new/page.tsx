@@ -59,27 +59,28 @@ function NewRequestForm() {
     }
   }
 
-  if (error) return <main className="mx-auto max-w-md px-6 py-12 text-red-600">{error}</main>;
-  if (!teacher) return <main className="mx-auto max-w-md px-6 py-12">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (!teacher) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-md px-6 py-12">
-      <Link href={`/teachers/${teacherId}` as never} className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+      <Link href={`/teachers/${teacherId}` as never} className="btn-ghost -ml-3">
         ← Back to {teacher.user.displayName}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">Request a lesson</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="eyebrow mt-4">Lesson request</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Request a lesson</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Send a note to {teacher.user.displayName}. They&apos;ll accept or decline before you book.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Subject</span>
+          <span className="label">Subject</span>
           <input
             required
             minLength={1}
             maxLength={200}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Mathematics — Calculus help"
@@ -87,10 +88,10 @@ function NewRequestForm() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Preferred time (optional)</span>
+          <span className="label">Preferred time (optional)</span>
           <input
             maxLength={200}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={preferredTime}
             onChange={(e) => setPreferredTime(e.target.value)}
             placeholder="Weekday evenings, or Saturday afternoon"
@@ -98,23 +99,23 @@ function NewRequestForm() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Message (optional)</span>
+          <span className="label">Message (optional)</span>
           <textarea
             rows={5}
             maxLength={2000}
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="What do you need help with? Any goals or deadlines?"
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-seal">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Sending..." : "Send request"}
         </button>
@@ -127,9 +128,10 @@ export default function NewRequestPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-md px-6 py-12">
-          <h1 className="text-2xl font-bold">Request a lesson</h1>
-          <p className="mt-4 text-sm text-gray-500">Loading...</p>
+        <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+          <p className="eyebrow">Lesson request</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Request a lesson</h1>
+          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }
     >

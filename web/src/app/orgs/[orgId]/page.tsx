@@ -127,35 +127,36 @@ export default function OrgDetailPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-3xl px-6 py-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-3xl px-6 py-12">Loading...</main>;
+  if (!data) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   const { org, members } = data;
   const canManage = org.myRole === "owner" || org.myRole === "admin";
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{org.name}</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="eyebrow">Organization</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{org.name}</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {org.kind} · {org.country ?? "—"} · your role: {org.myRole}
           </p>
         </div>
-        <Link href="/orgs" className="text-sm text-gray-500 underline">
+        <Link href="/orgs" className="btn-ghost">
           ← All orgs
         </Link>
       </div>
 
       {org.description && (
-        <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">{org.description}</p>
+        <p className="mt-4 text-sm text-ink">{org.description}</p>
       )}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Members ({members.length})</h2>
+        <h2 className="font-display text-xl text-ink">Members ({members.length})</h2>
         {canManage && (
           <form onSubmit={invite} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <input
@@ -164,12 +165,12 @@ export default function OrgDetailPage({
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="member@example.com"
-              className="rounded border px-3 py-2 text-sm"
+              className="input"
             />
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as typeof inviteRole)}
-              className="rounded border px-3 py-2 text-sm"
+              className="input"
             >
               {ROLE_CHOICES.map((r) => (
                 <option key={r} value={r}>
@@ -180,18 +181,18 @@ export default function OrgDetailPage({
             <button
               type="submit"
               disabled={submitting || !inviteEmail.trim()}
-              className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+              className="btn-seal"
             >
               {submitting ? "Inviting..." : "Invite"}
             </button>
           </form>
         )}
-        <ul className="mt-4 divide-y rounded border">
+        <ul className="card mt-4 divide-y divide-ink-faded/30">
           {members.map((m) => (
             <li key={m.userId} className="flex items-center justify-between p-3 text-sm">
               <div>
-                <div className="font-medium">{m.user?.displayName ?? m.userId}</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-display text-base text-ink">{m.user?.displayName ?? m.userId}</div>
+                <div className="text-xs text-ink-faded">
                   {m.user?.email ?? m.userId} · {m.role} · joined{" "}
                   {new Date(m.joinedAt).toLocaleDateString()}
                 </div>
@@ -199,7 +200,7 @@ export default function OrgDetailPage({
               {canManage && m.userId !== org.ownerId && (
                 <button
                   onClick={() => removeMember(m.userId)}
-                  className="text-xs text-red-600 hover:underline"
+                  className="btn-ghost text-seal"
                 >
                   Remove
                 </button>
@@ -210,33 +211,33 @@ export default function OrgDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Classrooms ({classrooms?.length ?? 0})</h2>
+        <h2 className="font-display text-xl text-ink">Classrooms ({classrooms?.length ?? 0})</h2>
         {canManage && (
           <form onSubmit={linkClassroom} className="mt-4 flex gap-2">
             <input
               value={linkClassroomId}
               onChange={(e) => setLinkClassroomId(e.target.value)}
               placeholder="cls_..."
-              className="flex-1 rounded border px-3 py-2 font-mono text-sm"
+              className="input flex-1 font-mono"
             />
             <button
               type="submit"
               disabled={!linkClassroomId.trim()}
-              className="rounded border px-4 py-2 text-sm disabled:opacity-50"
+              className="btn-secondary"
             >
               Link classroom
             </button>
           </form>
         )}
         {classrooms && classrooms.length === 0 && (
-          <p className="mt-4 text-sm text-gray-500">No classrooms linked yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">No classrooms linked yet.</p>
         )}
         {classrooms && classrooms.length > 0 && (
-          <ul className="mt-4 divide-y rounded border">
+          <ul className="card mt-4 divide-y divide-ink-faded/30">
             {classrooms.map((c) => (
               <li key={c.classroomId} className="p-3 text-sm">
-                <div className="font-medium">{c.title}</div>
-                <div className="text-xs text-gray-500">
+                <div className="font-display text-base text-ink">{c.title}</div>
+                <div className="text-xs text-ink-faded">
                   {c.subject} · status {c.status} ·{" "}
                   <span className="font-mono">{c.classroomId}</span>
                 </div>
@@ -249,25 +250,25 @@ export default function OrgDetailPage({
       {org.kind === "commercial" && (
         <section className="mt-10">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
+            <h2 className="font-display text-xl text-ink">
               Marketplace listings ({listings?.length ?? 0})
             </h2>
             {canManage && (
               <Link
                 href="/seller/listings/new"
-                className="text-sm text-gray-500 underline"
+                className="btn-ghost"
               >
                 Add listing →
               </Link>
             )}
           </div>
           {listings && listings.length === 0 && (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-ink-soft">
               No active listings under this organization.
             </p>
           )}
           {listings && listings.length > 0 && (
-            <ul className="mt-4 divide-y rounded border">
+            <ul className="card mt-4 divide-y divide-ink-faded/30">
               {listings.map((l) => (
                 <li
                   key={l.listingId}
@@ -276,13 +277,13 @@ export default function OrgDetailPage({
                   <div>
                     <Link
                       href={`/marketplace/listings/${l.listingId}` as never}
-                      className="font-medium underline"
+                      className="font-display text-base text-ink underline"
                     >
                       {l.title}
                     </Link>
-                    <div className="text-xs text-gray-500">status {l.status}</div>
+                    <div className="text-xs text-ink-faded">status {l.status}</div>
                   </div>
-                  <span className="font-mono">
+                  <span className="font-mono text-ink">
                     {l.currency} {(l.priceCents / 100).toFixed(2)}
                   </span>
                 </li>

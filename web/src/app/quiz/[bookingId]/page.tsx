@@ -61,14 +61,15 @@ export default function TeacherQuizPage({
 
   if (done) {
     return (
-      <main className="mx-auto max-w-xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold">Thanks for the feedback!</h1>
-        <p className="mt-2 text-sm text-gray-500">
+      <main className="mx-auto max-w-xl px-6 pb-24 pt-16 text-center">
+        <p className="eyebrow">Feedback</p>
+        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Thanks for the feedback!</h1>
+        <p className="mt-2 text-sm text-ink-soft">
           Your rating helps future students choose the right teacher.
         </p>
         <Link
           href="/bookings"
-          className="mt-6 inline-block rounded bg-black px-5 py-2 text-sm text-white dark:bg-white dark:text-black"
+          className="btn-seal mt-6"
         >
           Back to bookings
         </Link>
@@ -77,19 +78,20 @@ export default function TeacherQuizPage({
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-12">
-      <h1 className="text-2xl font-bold">Rate this session</h1>
-      <p className="mt-1 text-sm text-gray-500">
+    <main className="mx-auto max-w-xl px-6 pb-24 pt-16">
+      <p className="eyebrow">Feedback</p>
+      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Rate this session</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Booking <span className="font-mono">{bookingId}</span>. Your ratings are
         anonymised and aggregated across sessions.
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-5">
+      <form onSubmit={onSubmit} className="card mt-6 space-y-5 p-6">
         {DIMENSIONS.map((d) => (
           <label key={d.key} className="block">
-            <span className="mb-1 flex items-center justify-between text-sm font-medium">
+            <span className="mb-1 flex items-center justify-between text-sm font-medium text-ink">
               <span>{d.label}</span>
               <span className="font-mono">{scores[d.key]}/5</span>
             </span>
@@ -106,7 +108,7 @@ export default function TeacherQuizPage({
           </label>
         ))}
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={wouldRecommend}
@@ -116,22 +118,20 @@ export default function TeacherQuizPage({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">
-            Comment (optional, not shown publicly)
-          </span>
+          <span className="label">Comment (optional, not shown publicly)</span>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             maxLength={1000}
             rows={3}
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="input"
           />
         </label>
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-5 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           {submitting ? "Submitting..." : "Submit feedback"}
         </button>

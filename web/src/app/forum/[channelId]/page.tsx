@@ -49,18 +49,19 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
   }, [channelId, qs]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link href="/forum" className="text-sm text-gray-500 underline">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <Link href="/forum" className="btn-ghost -ml-3">
         ← Forum
       </Link>
       <div className="mt-2 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{channel?.name ?? channelId}</h1>
-          {channel && <p className="mt-1 text-sm text-gray-500">{channel.description}</p>}
+          <p className="eyebrow">Channel</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{channel?.name ?? channelId}</h1>
+          {channel && <p className="mt-1 text-sm text-ink-soft">{channel.description}</p>}
         </div>
         <Link
           href={`/forum/posts/new?channelId=${channelId}` as never}
-          className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           New post
         </Link>
@@ -69,39 +70,39 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
       <div className="mt-6 flex gap-2">
         <button
           onClick={() => setSort("new")}
-          className={`rounded border px-3 py-1 text-xs ${sort === "new" ? "bg-gray-100 dark:bg-gray-800" : ""}`}
+          className={sort === "new" ? "btn-primary" : "btn-secondary"}
         >
           New
         </button>
         <button
           onClick={() => setSort("top")}
-          className={`rounded border px-3 py-1 text-xs ${sort === "top" ? "bg-gray-100 dark:bg-gray-800" : ""}`}
+          className={sort === "top" ? "btn-primary" : "btn-secondary"}
         >
           Top
         </button>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">No posts yet. Be the first!</p>
+        <p className="mt-6 text-sm text-ink-soft">No posts yet. Be the first!</p>
       )}
 
-      <ul className="mt-6 divide-y rounded border">
+      <ul className="card mt-6 divide-y divide-ink-faded/30">
         {items?.map((p) => (
           <li key={p.postId}>
             <Link
               href={`/forum/posts/${p.postId}` as never}
-              className="flex gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+              className="flex gap-4 p-4 transition hover:bg-parchment-shade"
             >
               <div className="flex min-w-[3rem] flex-col items-center text-sm">
-                <span className="font-bold">{p.score}</span>
-                <span className="text-xs text-gray-500">score</span>
+                <span className="font-display text-lg text-ink">{p.score}</span>
+                <span className="text-xs uppercase tracking-widest text-ink-faded">score</span>
               </div>
               <div className="flex-1">
-                <div className="font-medium">{p.title}</div>
-                <div className="mt-1 line-clamp-2 text-sm text-gray-600">{p.body}</div>
-                <div className="mt-1 text-xs text-gray-500">
+                <div className="font-display text-base text-ink">{p.title}</div>
+                <div className="mt-1 line-clamp-2 text-sm text-ink-soft">{p.body}</div>
+                <div className="mt-1 text-xs text-ink-faded">
                   {new Date(p.createdAt).toLocaleString()} · {p.commentCount} comment
                   {p.commentCount === 1 ? "" : "s"}
                 </div>

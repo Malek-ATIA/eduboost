@@ -33,38 +33,41 @@ export default function OrgsListPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Organizations</h1>
+        <div>
+          <p className="eyebrow">Teams</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Organizations</h1>
+        </div>
         <Link
           href="/orgs/new"
-          className="rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
+          className="btn-seal"
         >
           New organization
         </Link>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-gray-500">You aren&apos;t part of any organization yet.</p>
+        <p className="mt-6 text-sm text-ink-soft">You aren&apos;t part of any organization yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((o) => (
             <li key={o.orgId}>
               <Link
                 href={`/orgs/${o.orgId}` as never}
-                className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="block p-4 transition hover:bg-parchment-shade"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">{o.name}</div>
-                    <div className="mt-0.5 text-xs text-gray-500">
+                    <div className="font-display text-base text-ink">{o.name}</div>
+                    <div className="mt-0.5 text-xs text-ink-faded">
                       {o.kind} · {o.country ?? "—"} · your role: {o.myRole}
                     </div>
                   </div>
-                  <span className="font-mono text-xs text-gray-400">{o.orgId}</span>
+                  <span className="font-mono text-xs text-ink-faded">{o.orgId}</span>
                 </div>
               </Link>
             </li>
@@ -73,7 +76,7 @@ export default function OrgsListPage() {
       )}
 
       <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-gray-500 underline">
+        <Link href="/dashboard" className="text-ink-soft underline">
           ← Dashboard
         </Link>
       </p>

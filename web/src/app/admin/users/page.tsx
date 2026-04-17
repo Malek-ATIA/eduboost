@@ -70,22 +70,25 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-4xl px-6 py-12">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Users</h1>
-        <Link href="/admin" className="text-sm text-gray-500 underline">
+        <div>
+          <p className="eyebrow">Admin</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Users</h1>
+        </div>
+        <Link href="/admin" className="btn-ghost">
           ← Admin hub
         </Link>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Filter by role</label>
+        <label className="block">
+          <span className="label">Filter by role</span>
           <select
-            className="w-full rounded border px-3 py-2"
+            className="input"
             value={role}
             onChange={(e) => setRole(e.target.value as User["role"] | "")}
           >
@@ -96,47 +99,47 @@ export default function AdminUsersPage() {
               </option>
             ))}
           </select>
-        </div>
+        </label>
         <form onSubmit={lookupByEmail}>
-          <label className="mb-1 block text-sm font-medium">Look up by email</label>
+          <span className="label">Look up by email</span>
           <div className="flex gap-2">
             <input
               type="email"
-              className="flex-1 rounded border px-3 py-2"
+              className="input flex-1"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@example.com"
             />
-            <button type="submit" className="rounded border px-3 py-2 text-sm">
+            <button type="submit" className="btn-secondary">
               Find
             </button>
           </div>
         </form>
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-6 text-sm text-gray-500">Loading...</p>}
-      {items && items.length === 0 && <p className="mt-6 text-sm text-gray-500">No users found.</p>}
+      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
+      {items && items.length === 0 && <p className="mt-6 text-sm text-ink-soft">No users found.</p>}
       {items && items.length > 0 && (
-        <ul className="mt-6 divide-y rounded border">
+        <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((u) => (
             <li key={u.userId}>
               <Link
                 href={`/admin/users/${u.userId}` as never}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="flex items-center justify-between p-3 transition hover:bg-parchment-shade"
               >
                 <div>
-                  <div className="font-medium">{u.displayName}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-display text-base text-ink">{u.displayName}</div>
+                  <div className="text-xs text-ink-faded">
                     {u.email} · {u.role} · joined {new Date(u.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 {u.bannedAt ? (
-                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-800 dark:bg-red-900 dark:text-red-100">
+                  <span className="rounded-sm border border-seal/40 bg-seal/10 px-2 py-0.5 text-xs uppercase tracking-widest text-seal">
                     banned
                   </span>
                 ) : (
-                  <span className="text-xs text-gray-400">active</span>
+                  <span className="text-xs uppercase tracking-widest text-ink-faded">active</span>
                 )}
               </Link>
             </li>
