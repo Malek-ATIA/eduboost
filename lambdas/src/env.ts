@@ -9,4 +9,7 @@ export const env = {
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  reminderLambdaArn: process.env.REMINDER_LAMBDA_ARN ?? "",
+  schedulerRoleArn: process.env.SCHEDULER_ROLE_ARN ?? "",
+  scheduleGroupName: process.env.SCHEDULE_GROUP_NAME ?? "default",
 };

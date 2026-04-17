@@ -16,6 +16,7 @@ import {
 import { SessionEntity, ClassroomMembershipEntity } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { env } from "../env.js";
+import { cancelReminders } from "../lib/scheduler.js";
 
 export const chimeRoutes = new Hono();
 
@@ -100,6 +101,14 @@ chimeRoutes.post(
     const endPatch = SessionEntity.patch({ sessionId }).set({ status: "completed" });
     if (session.data.chimePipelineId) endPatch.remove(["chimePipelineId"]);
     await endPatch.go();
+
+    // Session completed; delete any still-pending reminder schedules (non-fatal).
+    try {
+      await cancelReminders(sessionId);
+    } catch (err) {
+      console.error("chime.end: cancelReminders failed (non-fatal)", err);
+    }
+
     return c.json({ ok: true });
   },
 );

@@ -17,6 +17,12 @@ bookingRoutes.get("/mine", async (c) => {
   return c.json({ items: result.data });
 });
 
+bookingRoutes.get("/as-teacher", async (c) => {
+  const { sub } = c.get("auth");
+  const result = await BookingEntity.query.byTeacher({ teacherId: sub }).go({ limit: 50 });
+  return c.json({ items: result.data });
+});
+
 bookingRoutes.get("/:bookingId", async (c) => {
   const bookingId = c.req.param("bookingId");
   const result = await BookingEntity.get({ bookingId }).go();

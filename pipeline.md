@@ -424,6 +424,44 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
   - Stripe charge.refunded fallback to PaymentIntent metadata — LOW severity, acceptable for MVP.
   - CORS origin `*` — acceptable for MVP, lock to CloudFront domain before production.
 
+### 2026-04-17 — Phase 2B pass (Session scheduling + Reminders + Invoice PDFs)
+
+**Session scheduling + calendar** — signed off
+- Closes a hidden MVP gap: confirmed bookings now have an explicit path to a scheduled session with startsAt/endsAt.
+- POST /sessions (teacher only; from bookingId or classroomId); GET /sessions/upcoming (unions teacher's sessions + classroom-membership sessions, dedupes, sorts).
+- PATCH /sessions/:id supports reschedule + cancel with merged-field validation (single-field updates can't invert startsAt/endsAt).
+- Ad-hoc classroom created on the fly for 1:1 bookings with no existing classroom; student added as member; booking.classroomId backfilled.
+- New `session_scheduled` notification to all non-teacher members.
+- UI: /calendar (grouped by day, Today/Tomorrow labels, Join CTA), /teacher/bookings (Schedule CTA on confirmed bookings), /sessions/new (Suspense + datetime-local → UTC round-trip).
+- Auditor caught 2 minor issues (cryptic ad-hoc title, single-field PATCH inversion); Verifier fixed both + removed dead CreatedSession type.
+- MVP tradeoffs: no overlap check on same classroom; orphaned ad-hoc classrooms on concurrent double-schedule.
+
+**Scheduled session reminders (EventBridge Scheduler)** — signed off
+- 24h + 1h reminders per session via `aws-sdk/client-scheduler` with `ActionAfterCompletion: DELETE` for auto-cleanup.
+- Dedicated Reminder Lambda (ARM64, 256MB) bundled via CDK NodejsFunction; scheduler role scoped with SourceAccount condition; API Lambda granted scheduler:* on the group ARN + iam:PassRole constrained to scheduler.amazonaws.com.
+- POST /sessions creates both schedules; PATCH reschedules (startsAt change) or cancels (status=cancelled); /chime/sessions/:id/end also cancels reminders on meeting completion.
+- Reminder Lambda defensively skips if session is already cancelled/completed (belt-and-braces).
+- Past-time reminders (fire < now + 60s) are silently skipped so short-lead sessions get 1h-only reminders.
+- Auditor found all 3 integration calls were initially missing; Verifier confirmed and added them (plus /chime/end cleanup).
+- New `session_reminder` notification type; email body uses Europe/Dublin timezone.
+
+**Invoice PDFs + payment history** — signed off
+- pdfkit-based A4 invoice: EduBoost header, billed-to/paid-to, line item, subtotal/platform fee/teacher-net totals, support footer.
+- GET /payments/mine (payer), GET /payments/received (payee, new byPayee gsi3 on PaymentEntity), GET /payments/:id (authz: payer or payee), GET /payments/:id/invoice (only when status=succeeded; Hono returns Buffer with application/pdf + Content-Disposition=attachment; aws-lambda adapter base64-encodes binary).
+- UI: role-aware /payments page (students see "Payment history", teachers see "Payments received"); authenticated blob download flow.
+- CDK: pdfkit moved to externalModules + nodeModules so fonts load from Lambda's real node_modules/pdfkit/js/data/*.afm; build.mjs mirrors.
+- Auditor caught 3 real gaps: pdfkit bundling, missing byPayee GSI, missing teacher dashboard link. Verifier fixed all 3 + made the UI role-aware.
+
+**Files added/modified in Phase 2B pass:**
+- db/src/entities/session.ts (unchanged), notification.ts (+ session_scheduled, session_reminder), payment.ts (+ byPayee gsi3)
+- lambdas/src/routes/sessions.ts (POST + PATCH + upcoming; wiring to scheduler), bookings.ts (+ /as-teacher), chime.ts (+ cancelReminders on /end), payments.ts (new)
+- lambdas/src/lib/scheduler.ts (new — EventBridge Scheduler upsert/delete helpers), invoice.ts (new — pdfkit renderer)
+- lambdas/src/handlers/reminder.ts (new — reminder Lambda)
+- lambdas/src/env.ts (+ reminderLambdaArn/schedulerRoleArn/scheduleGroupName)
+- lambdas/src/app.ts (mounted /payments); package.json (+ @aws-sdk/client-scheduler, pdfkit, @types/pdfkit); build.mjs (pdfkit external)
+- cdk/lib/api-stack.ts (reminder Lambda + scheduler group + invoker role + scheduler IAM + pdfkit externals/nodeModules)
+- web/src/app/calendar/page.tsx, teacher/bookings/page.tsx, sessions/new/page.tsx, payments/page.tsx (new); dashboard links per role
+
 ### 2026-04-17 — Phase 2A pass (Reviews + Lesson requests + Parent-child CRUD)
 
 **Phase 2A brings EduBoost from MVP to "trustworthy marketplace" by adding the trust/onboarding features deferred from Phase 1.**

@@ -9,7 +9,7 @@ await build({
   outfile: "dist/handler.mjs",
   sourcemap: true,
   minify: true,
-  external: ["@aws-sdk/*"],
+  external: ["@aws-sdk/*", "pdfkit"],
   banner: {
     js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
   },

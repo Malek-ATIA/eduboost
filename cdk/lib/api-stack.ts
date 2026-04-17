@@ -10,6 +10,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import { Construct } from "constructs";
 
 export interface ApiStackProps extends cdk.StackProps {
@@ -27,6 +28,45 @@ export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
+    const reminderHandler = new lambdaNodejs.NodejsFunction(this, "ReminderHandler", {
+      functionName: `eduboost-${props.stage}-reminder`,
+      entry: path.join(__dirname, "../../lambdas/src/handlers/reminder.ts"),
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_22_X,
+      architecture: lambda.Architecture.ARM_64,
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      logRetention: logs.RetentionDays.ONE_MONTH,
+      bundling: {
+        format: lambdaNodejs.OutputFormat.ESM,
+        target: "node22",
+        minify: true,
+        sourceMap: true,
+        externalModules: ["@aws-sdk/*"],
+        banner: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+      },
+      environment: {
+        NODE_OPTIONS: "--enable-source-maps",
+        TABLE_NAME: props.table.tableName,
+        RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
+      },
+    });
+    props.table.grantReadWriteData(reminderHandler);
+
+    const scheduleGroup = new scheduler.CfnScheduleGroup(this, "ReminderScheduleGroup", {
+      name: `eduboost-${props.stage}-reminders`,
+    });
+
+    const schedulerRole = new iam.Role(this, "SchedulerInvokerRole", {
+      roleName: `eduboost-${props.stage}-scheduler-invoker`,
+      assumedBy: new iam.ServicePrincipal("scheduler.amazonaws.com", {
+        conditions: {
+          StringEquals: { "aws:SourceAccount": cdk.Aws.ACCOUNT_ID },
+        },
+      }),
+    });
+    reminderHandler.grantInvoke(schedulerRole);
+
     const handler = new lambdaNodejs.NodejsFunction(this, "ApiHandler", {
       functionName: `eduboost-${props.stage}-api`,
       entry: path.join(__dirname, "../../lambdas/src/handler.ts"),
@@ -41,7 +81,8 @@ export class ApiStack extends cdk.Stack {
         target: "node22",
         minify: true,
         sourceMap: true,
-        externalModules: ["@aws-sdk/*"],
+        externalModules: ["@aws-sdk/*", "pdfkit"],
+        nodeModules: ["pdfkit"],
         banner: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
       },
       environment: {
@@ -55,6 +96,9 @@ export class ApiStack extends cdk.Stack {
         STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",
         STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? "",
         ACCOUNT_ID: cdk.Aws.ACCOUNT_ID,
+        REMINDER_LAMBDA_ARN: reminderHandler.functionArn,
+        SCHEDULER_ROLE_ARN: schedulerRole.roleArn,
+        SCHEDULE_GROUP_NAME: scheduleGroup.name ?? `eduboost-${props.stage}-reminders`,
       },
     });
 
@@ -87,6 +131,29 @@ export class ApiStack extends cdk.Stack {
           "cognito-idp:AdminGetUser",
         ],
         resources: [props.userPool.userPoolArn],
+      }),
+    );
+
+    handler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "scheduler:CreateSchedule",
+          "scheduler:UpdateSchedule",
+          "scheduler:DeleteSchedule",
+          "scheduler:GetSchedule",
+        ],
+        resources: [
+          `arn:aws:scheduler:${this.region}:${cdk.Aws.ACCOUNT_ID}:schedule/${scheduleGroup.name}/*`,
+        ],
+      }),
+    );
+    handler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["iam:PassRole"],
+        resources: [schedulerRole.roleArn],
+        conditions: {
+          StringEquals: { "iam:PassedToService": "scheduler.amazonaws.com" },
+        },
       }),
     );
 

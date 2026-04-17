@@ -29,6 +29,8 @@ export default function DashboardPage() {
       { href: "/teachers", label: "Find a teacher", description: "Browse verified tutors and book a trial session" },
       { href: "/bookings", label: "My bookings", description: "Upcoming and past sessions" },
       { href: "/requests", label: "My lesson requests", description: "Requests you've sent to teachers" },
+      { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
+      { href: "/payments", label: "Payment history", description: "Download invoices for past payments" },
     );
   }
   if (role === "parent") {
@@ -48,7 +50,10 @@ export default function DashboardPage() {
   if (role === "teacher") {
     links.push(
       { href: "/teacher/profile", label: "Edit your profile", description: "Bio, subjects, hourly rate" },
+      { href: "/teacher/bookings", label: "My bookings (teacher)", description: "Schedule sessions against bookings" },
       { href: "/requests", label: "Lesson requests", description: "Accept or decline incoming requests" },
+      { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
+      { href: "/payments", label: "Payments received", description: "Session payouts and invoices you can reference" },
     );
   }
   if (admin) {

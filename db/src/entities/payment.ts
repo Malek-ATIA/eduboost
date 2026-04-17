@@ -34,6 +34,11 @@ export const PaymentEntity = new Entity(
         pk: { field: "gsi2pk", composite: ["payerId"] },
         sk: { field: "gsi2sk", composite: ["createdAt"] },
       },
+      byPayee: {
+        index: "gsi3",
+        pk: { field: "gsi3pk", composite: ["payeeId"] },
+        sk: { field: "gsi3sk", composite: ["createdAt"] },
+      },
     },
   },
   { client: ddbDoc, table: TABLE_NAME },
