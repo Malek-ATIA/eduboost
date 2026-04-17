@@ -41,6 +41,11 @@ export default function AdminHubPage() {
           label="Support tickets"
           description="All tickets across users; filter by status"
         />
+        <AdminCard
+          href="/admin/verifications"
+          label="Teacher verifications"
+          description="Approve or reject pending teacher profile verifications"
+        />
       </div>
     </main>
   );

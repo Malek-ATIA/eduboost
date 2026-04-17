@@ -16,6 +16,8 @@ type TeacherProfile = {
   groupSessions: boolean;
   city?: string;
   country?: string;
+  verificationStatus?: "unsubmitted" | "pending" | "verified" | "rejected";
+  verificationNotes?: string;
 };
 
 export default function TeacherProfilePage() {
@@ -61,6 +63,8 @@ export default function TeacherProfilePage() {
           groupSessions: resp.profile.groupSessions ?? false,
           city: resp.profile.city ?? "",
           country: resp.profile.country ?? "",
+          verificationStatus: resp.profile.verificationStatus ?? "unsubmitted",
+          verificationNotes: resp.profile.verificationNotes,
         });
       } catch {
         // no existing profile yet
@@ -84,12 +88,64 @@ export default function TeacherProfilePage() {
     }
   }
 
+  async function submitVerification() {
+    if (!confirm("Submit your profile for team review? You won't be able to edit certain fields until it's decided.")) return;
+    try {
+      await api(`/teachers/me/submit-verification`, { method: "POST" });
+      setForm((f) => ({ ...f, verificationStatus: "pending" }));
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg.includes("already_pending")) alert("Already under review.");
+      else if (msg.includes("already_verified")) alert("Already verified.");
+      else alert(msg);
+    }
+  }
+
   if (loading) return <main className="mx-auto max-w-2xl px-6 py-12">Loading...</main>;
+
+  const vStatus = form.verificationStatus ?? "unsubmitted";
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <h1 className="text-2xl font-bold">Teacher profile</h1>
       <p className="mt-1 text-sm text-gray-500">This is what students and parents see.</p>
+
+      <section className="mt-6 rounded border p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold">Verification</div>
+            <div className="mt-0.5 text-xs text-gray-500">
+              Verified teachers get a badge and rank higher in search results.
+            </div>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs uppercase ${
+              vStatus === "verified"
+                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                : vStatus === "pending"
+                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                  : vStatus === "rejected"
+                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+            }`}
+          >
+            {vStatus.replace("_", " ")}
+          </span>
+        </div>
+        {vStatus === "rejected" && form.verificationNotes && (
+          <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+            <span className="font-medium">Reviewer notes:</span> {form.verificationNotes}
+          </p>
+        )}
+        {(vStatus === "unsubmitted" || vStatus === "rejected") && (
+          <button
+            onClick={submitVerification}
+            className="mt-3 rounded border px-3 py-1 text-xs"
+          >
+            {vStatus === "rejected" ? "Resubmit for review" : "Submit for review"}
+          </button>
+        )}
+      </section>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <Field label="Bio">

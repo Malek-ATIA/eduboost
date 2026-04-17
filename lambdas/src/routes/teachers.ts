@@ -89,3 +89,25 @@ teacherRoutes.put("/me", requireAuth, zValidator("json", profileSchema), async (
   const result = await TeacherProfileEntity.upsert({ userId: sub, ...body }).go();
   return c.json(result.data);
 });
+
+// Teacher submits their profile for verification review.
+teacherRoutes.post("/me/submit-verification", requireAuth, async (c) => {
+  const { sub } = c.get("auth");
+  const user = await UserEntity.get({ userId: sub }).go();
+  if (!user.data) return c.json({ error: "user_not_found" }, 404);
+  if (user.data.role !== "teacher") return c.json({ error: "only_teachers" }, 403);
+
+  const profile = await TeacherProfileEntity.get({ userId: sub }).go();
+  if (!profile.data) return c.json({ error: "profile_required" }, 409);
+  if (profile.data.verificationStatus === "pending") {
+    return c.json({ error: "already_pending" }, 409);
+  }
+  if (profile.data.verificationStatus === "verified") {
+    return c.json({ error: "already_verified" }, 409);
+  }
+
+  await TeacherProfileEntity.patch({ userId: sub })
+    .set({ verificationStatus: "pending" })
+    .go();
+  return c.json({ ok: true, status: "pending" });
+});

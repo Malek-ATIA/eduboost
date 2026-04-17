@@ -2,6 +2,14 @@ import { Entity } from "electrodb";
 import { ddbDoc, TABLE_NAME } from "../client.js";
 import { SERVICE } from "../table-schema.js";
 
+export const VERIFICATION_STATUSES = [
+  "unsubmitted",
+  "pending",
+  "verified",
+  "rejected",
+] as const;
+export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
+
 export const TeacherProfileEntity = new Entity(
   {
     model: { entity: "teacherProfile", version: "1", service: SERVICE },
@@ -16,6 +24,9 @@ export const TeacherProfileEntity = new Entity(
       ratingAvg: { type: "number", default: 0 },
       ratingCount: { type: "number", default: 0 },
       verifiedAt: { type: "string" },
+      verificationStatus: { type: VERIFICATION_STATUSES, default: "unsubmitted" },
+      verificationNotes: { type: "string" },
+      verifiedBy: { type: "string" },
       trialSession: { type: "boolean", default: false },
       individualSessions: { type: "boolean", default: true },
       groupSessions: { type: "boolean", default: false },
@@ -33,6 +44,11 @@ export const TeacherProfileEntity = new Entity(
         index: "gsi1",
         pk: { field: "gsi1pk", composite: ["country"] },
         sk: { field: "gsi1sk", composite: ["ratingAvg"] },
+      },
+      byVerificationStatus: {
+        index: "gsi2",
+        pk: { field: "gsi2pk", composite: ["verificationStatus"] },
+        sk: { field: "gsi2sk", composite: ["updatedAt"] },
       },
     },
   },

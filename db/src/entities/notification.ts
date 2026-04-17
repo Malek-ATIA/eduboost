@@ -20,6 +20,8 @@ export const NOTIFICATION_TYPES = [
   "session_scheduled",
   "session_reminder",
   "listing_sold",
+  "profile_verified",
+  "profile_rejected",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

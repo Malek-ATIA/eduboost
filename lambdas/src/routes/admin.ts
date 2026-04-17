@@ -10,9 +10,12 @@ import {
   UserEntity,
   SupportTicketEntity,
   TICKET_STATUSES,
+  TeacherProfileEntity,
+  VERIFICATION_STATUSES,
 } from "@eduboost/db";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
 import { sendEmail, emailTemplates } from "../lib/resend.js";
+import { notify } from "../lib/notifications.js";
 import { env } from "../env.js";
 
 export const adminRoutes = new Hono();
@@ -144,3 +147,131 @@ adminRoutes.get("/tickets", zValidator("query", ticketsQuery), async (c) => {
   const result = await SupportTicketEntity.scan.go({ limit });
   return c.json({ items: result.data });
 });
+
+const verificationsQuery = z.object({
+  status: z.enum(VERIFICATION_STATUSES).default("pending"),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+adminRoutes.get(
+  "/verifications",
+  zValidator("query", verificationsQuery),
+  async (c) => {
+    const { status, limit } = c.req.valid("query");
+    const result = await TeacherProfileEntity.query
+      .byVerificationStatus({ verificationStatus: status })
+      .go({ limit, order: "desc" });
+    const hydrated = await Promise.all(
+      result.data.map(async (p) => {
+        try {
+          const u = await UserEntity.get({ userId: p.userId }).go();
+          return {
+            ...p,
+            user: u.data
+              ? { userId: u.data.userId, email: u.data.email, displayName: u.data.displayName }
+              : null,
+          };
+        } catch {
+          return { ...p, user: null };
+        }
+      }),
+    );
+    return c.json({ items: hydrated });
+  },
+);
+
+const decisionSchema = z.object({
+  notes: z.string().trim().max(2000).optional(),
+});
+
+adminRoutes.post(
+  "/verifications/:userId/approve",
+  zValidator("json", decisionSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const userId = c.req.param("userId");
+    const { notes } = c.req.valid("json");
+
+    const profile = await TeacherProfileEntity.get({ userId }).go();
+    if (!profile.data) return c.json({ error: "not_found" }, 404);
+    if (profile.data.verificationStatus === "verified") {
+      return c.json({ error: "already_verified" }, 409);
+    }
+    // Note: we intentionally allow approval from any non-"verified" state
+    // (including "unsubmitted") so admins can fast-track teachers out-of-band.
+
+    await TeacherProfileEntity.patch({ userId })
+      .set({
+        verificationStatus: "verified",
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: sub,
+        verificationNotes: notes,
+      })
+      .go();
+
+    try {
+      await notify({
+        userId,
+        type: "profile_verified",
+        title: "Profile verified",
+        body: "Your teacher profile has been verified by the EduBoost team.",
+        linkPath: `/teachers/${userId}`,
+      });
+    } catch (err) {
+      console.error("verify notify failed (non-fatal)", err);
+    }
+
+    return c.json({ ok: true });
+  },
+);
+
+const rejectSchema = z.object({
+  notes: z.string().trim().min(10).max(2000),
+});
+
+adminRoutes.post(
+  "/verifications/:userId/reject",
+  zValidator("json", rejectSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const userId = c.req.param("userId");
+    const { notes } = c.req.valid("json");
+
+    const profile = await TeacherProfileEntity.get({ userId }).go();
+    if (!profile.data) return c.json({ error: "not_found" }, 404);
+    // Reject is allowed from "pending" (normal path) or "verified"
+    // (revoking a prior verification). Re-rejecting an already-"rejected"
+    // profile is a no-op; return 409 so the admin UI can surface it.
+    if (profile.data.verificationStatus === "rejected") {
+      return c.json({ error: "already_rejected" }, 409);
+    }
+    const wasVerified = profile.data.verificationStatus === "verified";
+
+    const patch = TeacherProfileEntity.patch({ userId }).set({
+      verificationStatus: "rejected",
+      verifiedBy: sub,
+      verificationNotes: notes,
+    });
+    // When revoking a previously-verified profile, clear verifiedAt so the
+    // public "verified" badge disappears and stale timestamps don't linger.
+    if (wasVerified) {
+      await patch.remove(["verifiedAt"]).go();
+    } else {
+      await patch.go();
+    }
+
+    try {
+      await notify({
+        userId,
+        type: "profile_rejected",
+        title: "Profile not approved",
+        body: `Reasons: ${notes.slice(0, 200)}`,
+        linkPath: `/teacher/profile`,
+      });
+    } catch (err) {
+      console.error("reject notify failed (non-fatal)", err);
+    }
+
+    return c.json({ ok: true });
+  },
+);

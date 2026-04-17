@@ -20,6 +20,8 @@ type TeacherResponse = {
     groupSessions: boolean;
     city?: string;
     country?: string;
+    verificationStatus?: "unsubmitted" | "pending" | "verified" | "rejected";
+    verifiedAt?: string;
   };
 };
 
@@ -124,7 +126,17 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
     <main className="mx-auto max-w-3xl px-6 py-12">
       <div className="flex items-start justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold">{user.displayName}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">{user.displayName}</h1>
+            {profile.verificationStatus === "verified" && (
+              <span
+                title="Verified by EduBoost"
+                className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+              >
+                ✓ Verified
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-gray-500">
             {profile.city ? `${profile.city}, ` : ""}
             {profile.country ?? ""} · {profile.yearsExperience} yrs experience

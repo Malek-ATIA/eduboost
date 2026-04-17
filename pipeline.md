@@ -402,6 +402,20 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 
 ## Audit log
 
+### 2026-04-17 — Phase 2E #1 pass (Teacher profile verification)
+
+**Teacher profile verification workflow** — signed off
+- TeacherProfileEntity extended: `verificationStatus` (unsubmitted/pending/verified/rejected, default unsubmitted), `verificationNotes`, `verifiedBy`, plus existing `verifiedAt`. New `byVerificationStatus` GSI on gsi2 (pk=status, sk=updatedAt).
+- New notification types: `profile_verified`, `profile_rejected`.
+- Teacher submit: `POST /teachers/me/submit-verification` transitions unsubmitted|rejected → pending (409 if already pending or verified).
+- Admin routes: `GET /admin/verifications?status=…` (queue with user hydration), `POST /admin/verifications/:id/approve` (notes optional; blocks re-approval), `POST /admin/verifications/:id/reject` (notes min 10 chars; blocks re-rejection of already-rejected; clears `verifiedAt` when revoking a previously-verified profile). Both fire notifications to the teacher.
+- UI: verification panel on /teacher/profile (status badge + submit/resubmit button + visible reject notes); "✓ Verified" badge on public /teachers/[userId]; /admin/verifications queue page with filter + approve/reject actions (prompt-based notes).
+- Verifier catches:
+  - NOTIFICATION_TYPES didn't include profile_verified/profile_rejected — would fail TS typecheck. Added.
+  - Re-reject idempotency bug (admin could spam reject overwriting history and firing duplicate notifications) — fixed with 409 `already_rejected` guard. Verified→rejected (revoke) still allowed.
+  - Stale `verifiedAt` after reject-of-verified — chained `.remove(["verifiedAt"])` when prior status was "verified" so the timestamp doesn't leak.
+- Intentional (documented inline): admin approve from "unsubmitted" is allowed as an out-of-band fast-track. Legacy profiles created before this change have undefined verificationStatus until their next upsert — MVP acceptable; backfill in a later phase.
+
 ### 2026-04-17 — Phase 2D #2 pass (Teacher wall)
 
 **Teacher wall (posts + comment section)** — signed off

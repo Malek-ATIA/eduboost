@@ -1,5 +1,9 @@
 export { UserEntity } from "./user.js";
-export { TeacherProfileEntity } from "./teacher.js";
+export {
+  TeacherProfileEntity,
+  VERIFICATION_STATUSES,
+  type VerificationStatus,
+} from "./teacher.js";
 export {
   ParentChildLinkEntity,
   PARENT_CHILD_LINK_STATUSES,
