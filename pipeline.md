@@ -394,9 +394,9 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 10 | Classroom: ephemeral in-meeting chat + persistence | **signed off** | 2026-04-16 |
 | 11 | Persistent chat: DM + classroom channels in DDB | **signed off** | 2026-04-16 |
 | 12 | Terms & Conditions / Code of Conduct (display + acceptance on signup) | **signed off** | 2026-04-16 |
-| 13 | FAQ + Contact page | **not started** | — |
+| 13 | FAQ + Contact page | **signed off** | 2026-04-17 |
 | 14 | Search + filters (subject, experience, rating, location, trial, individual, group) | **signed off** | 2026-04-16 |
-| 15 | Ban student/parent (admin tool) | **not started** | — |
+| 15 | Ban student/parent (admin tool) | **signed off** | 2026-04-17 |
 | 16 | Support ticket (file dispute, contact website) | **signed off** | 2026-04-17 |
 | 17 | Notifications (in-app bell + page, triggers on booking/chat events) | **signed off** | 2026-04-16 |
 
@@ -423,6 +423,27 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
   - Search filters beyond country — row 14 remains "partial".
   - Stripe charge.refunded fallback to PaymentIntent metadata — LOW severity, acceptable for MVP.
   - CORS origin `*` — acceptable for MVP, lock to CloudFront domain before production.
+
+### 2026-04-17 — Features 13 + 15 pass (FAQ/Contact + admin ban tool)
+
+**Auditor + Verifier findings:**
+- Feature 13: FAQ sections (general / students-parents / teachers) + contact channels (email, WhatsApp, phone) + link to `/support/new` — accessible anonymously, SSR, semantic HTML. Clean.
+- Feature 15 confirmed end-to-end: `bannedAt`/`banReason` on UserEntity, middleware ban check (fail-open on DDB error — documented inline), `requireAdmin` alias, admin routes (list by role/scan, by-email lookup, detail, ban/unban, tickets), Cognito AdminDisableUser/AdminEnableUser IAM scoped to user pool ARN, admin UI pages gated by `isAdmin(session)` on `cognito:groups`.
+- No bugs found. Three MVP tradeoffs (N+1 DDB read on auth, fail-open on DDB error, group-vs-role split) documented inline in `auth.ts`. Banned-user frontend UX tradeoff documented in `web/src/lib/api.ts`.
+- Cognito group (not DDB role) is the source of truth for admin access. DDB `role="admin"` is defence-in-depth only.
+
+**Files modified in Features 13 + 15 pass:**
+- `web/src/app/faq/page.tsx` — new
+- `web/src/app/page.tsx`, `web/src/app/dashboard/page.tsx` — FAQ links + admin card
+- `db/src/entities/user.ts` — `bannedAt`, `banReason`
+- `lambdas/src/middleware/auth.ts` — ban check, `requireAdmin` alias, tradeoff docs
+- `lambdas/src/routes/admin.ts` — new admin routes
+- `lambdas/src/app.ts` — mount `/admin`
+- `lambdas/src/lib/resend.ts` — `accountBanned` + `accountRestored` templates
+- `cdk/lib/api-stack.ts` — Cognito IAM scoped to user pool ARN
+- `web/src/lib/cognito.ts` — `isAdmin`, `currentGroups` helpers
+- `web/src/lib/api.ts` — banned-user UX tradeoff doc
+- `web/src/app/admin/page.tsx`, `admin/users/page.tsx`, `admin/users/[userId]/page.tsx`, `admin/tickets/page.tsx` — new admin UI
 
 ### 2026-04-17 — Feature 16 pass (support tickets)
 

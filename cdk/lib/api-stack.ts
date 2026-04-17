@@ -79,6 +79,17 @@ export class ApiStack extends cdk.Stack {
       }),
     );
 
+    handler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "cognito-idp:AdminDisableUser",
+          "cognito-idp:AdminEnableUser",
+          "cognito-idp:AdminGetUser",
+        ],
+        resources: [props.userPool.userPoolArn],
+      }),
+    );
+
     const api = new apigw.HttpApi(this, "HttpApi", {
       apiName: `eduboost-${props.stage}`,
       corsPreflight: {

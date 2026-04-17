@@ -14,7 +14,16 @@ export default function Home() {
         <Link className="rounded border px-5 py-2" href="/login">
           Log in
         </Link>
+        <Link className="rounded border px-5 py-2" href="/teachers">
+          Browse teachers
+        </Link>
       </div>
+      <p className="mt-8 text-sm text-gray-500">
+        Questions?{" "}
+        <Link href="/faq" className="underline">
+          FAQ & Contact
+        </Link>
+      </p>
     </main>
   );
 }

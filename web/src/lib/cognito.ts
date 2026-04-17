@@ -70,3 +70,14 @@ export function currentRole(session: CognitoUserSession | null): Role | null {
   if (role === "parent" || role === "student" || role === "teacher") return role;
   return null;
 }
+
+export function currentGroups(session: CognitoUserSession | null): string[] {
+  if (!session) return [];
+  const payload = session.getIdToken().payload as Record<string, unknown>;
+  const groups = payload["cognito:groups"];
+  return Array.isArray(groups) ? (groups as string[]) : [];
+}
+
+export function isAdmin(session: CognitoUserSession | null): boolean {
+  return currentGroups(session).includes("admin");
+}

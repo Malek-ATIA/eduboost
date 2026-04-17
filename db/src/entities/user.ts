@@ -12,6 +12,8 @@ export const UserEntity = new Entity(
       displayName: { type: "string", required: true },
       avatarUrl: { type: "string" },
       cognitoSub: { type: "string", required: true },
+      bannedAt: { type: "string" },
+      banReason: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
     },

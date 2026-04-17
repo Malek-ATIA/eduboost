@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { currentRole, currentSession, signOut, type Role } from "@/lib/cognito";
+import { currentRole, currentSession, isAdmin, signOut, type Role } from "@/lib/cognito";
 import { NotificationBell } from "@/components/NotificationBell";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
   const [role, setRole] = useState<Role | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     currentSession().then((s) => {
@@ -18,6 +19,7 @@ export default function DashboardPage() {
       }
       setEmail(s.getIdToken().payload.email as string);
       setRole(currentRole(s));
+      setAdmin(isAdmin(s));
     });
   }, [router]);
 
@@ -33,10 +35,20 @@ export default function DashboardPage() {
       { href: "/teacher/profile", label: "Edit your profile", description: "Bio, subjects, hourly rate" },
     );
   }
+  if (admin) {
+    links.push(
+      { href: "/admin", label: "Admin console", description: "Users, bans, and all support tickets" },
+    );
+  }
   links.push({
     href: "/support",
     label: "Support & disputes",
     description: "File a dispute, report an issue, or contact the team",
+  });
+  links.push({
+    href: "/faq",
+    label: "FAQ & contact",
+    description: "Common questions and how to reach us",
   });
 
   return (

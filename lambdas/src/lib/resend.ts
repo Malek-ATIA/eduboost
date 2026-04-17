@@ -48,6 +48,18 @@ export const emailTemplates = {
     html: `<p>Hi ${escape(displayName)},</p>
 <p>Your session with <strong>${escape(teacherName)}</strong> on ${escape(startsAt)} is confirmed.</p>`,
   }),
+  accountBanned: (displayName: string, reason: string) => ({
+    subject: "Your EduBoost account has been suspended",
+    html: `<p>Hi ${escape(displayName)},</p>
+<p>Your EduBoost account has been suspended by our team. Reason given:</p>
+<blockquote>${escape(reason)}</blockquote>
+<p>If you believe this is a mistake, reply to this email or contact <a href="mailto:support@eduboost.com">support@eduboost.com</a>.</p>`,
+  }),
+  accountRestored: (displayName: string) => ({
+    subject: "Your EduBoost account has been restored",
+    html: `<p>Hi ${escape(displayName)},</p>
+<p>Your EduBoost account has been restored. You can log in and resume using the platform.</p>`,
+  }),
 };
 
 function escape(s: string): string {
