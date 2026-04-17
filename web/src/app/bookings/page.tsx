@@ -123,6 +123,23 @@ export default function BookingsPage() {
                       >
                         Rate teacher
                       </Link>
+                      <button
+                        onClick={async () => {
+                          const notes = prompt("Request a review session with the teacher. Add a note (optional).") ?? "";
+                          try {
+                            await api(`/review-sessions`, {
+                              method: "POST",
+                              body: JSON.stringify({ bookingId: b.bookingId, notes: notes || undefined }),
+                            });
+                            alert("Review session requested.");
+                          } catch (err) {
+                            alert((err as Error).message);
+                          }
+                        }}
+                        className="rounded border px-3 py-1 text-xs"
+                      >
+                        Review session
+                      </button>
                     </>
                   )}
                   {canCancel && (

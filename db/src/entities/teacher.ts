@@ -24,6 +24,10 @@ export const TeacherProfileEntity = new Entity(
       ratingAvg: { type: "number", default: 0 },
       ratingCount: { type: "number", default: 0 },
       verifiedAt: { type: "string" },
+      // Sponsored teacher slot: admins set this to an ISO timestamp; profiles
+      // with `sponsoredUntil > now` bubble to the top of the teacher browse
+      // results. MVP: admin-managed only (no self-serve purchase flow yet).
+      sponsoredUntil: { type: "string" },
       verificationStatus: { type: VERIFICATION_STATUSES, default: "unsubmitted" },
       verificationNotes: { type: "string" },
       verifiedBy: { type: "string" },

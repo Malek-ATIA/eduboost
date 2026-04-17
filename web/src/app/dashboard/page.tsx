@@ -118,6 +118,16 @@ export default function DashboardPage() {
     description: "Take or author MCQ + short-answer exams",
   });
   links.push({
+    href: "/study-materials",
+    label: "Study materials",
+    description: "Peer-shared exams, notes, and answer keys",
+  });
+  links.push({
+    href: "/mailbox",
+    label: "Mailbox",
+    description: "Threaded async messages with participants",
+  });
+  links.push({
     href: "/referrals",
     label: "Invite a friend",
     description: "Share your referral code",

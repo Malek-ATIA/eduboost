@@ -53,7 +53,18 @@ teacherRoutes.get("/", zValidator("query", listQuerySchema), async (c) => {
   });
 
   const result = await query.go({ limit: q.limit });
-  return c.json({ items: result.data, count: result.data.length });
+  // Sponsored teachers (sponsoredUntil > now) bubble to the top of the list.
+  // Ordering is otherwise preserved — inside each group the scan's natural
+  // order wins. This is a client-visible "Sponsored" slot the admin controls.
+  const now = new Date().toISOString();
+  const sponsored: typeof result.data = [];
+  const regular: typeof result.data = [];
+  for (const t of result.data) {
+    if (t.sponsoredUntil && t.sponsoredUntil > now) sponsored.push(t);
+    else regular.push(t);
+  }
+  const items = [...sponsored, ...regular];
+  return c.json({ items, count: items.length });
 });
 
 teacherRoutes.get("/:userId", async (c) => {

@@ -17,6 +17,7 @@ type Teacher = {
   groupSessions: boolean;
   city?: string;
   country?: string;
+  sponsoredUntil?: string;
 };
 
 type Filters = {
@@ -141,7 +142,14 @@ export default function TeachersPage() {
             className="block rounded border p-4 transition hover:border-black dark:hover:border-white"
           >
             <div className="flex items-center justify-between">
-              <div className="font-medium">{t.city ?? t.country ?? "—"}</div>
+              <div className="flex items-center gap-2">
+                <div className="font-medium">{t.city ?? t.country ?? "—"}</div>
+                {t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date() && (
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                    Sponsored
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-500">
                 {t.ratingCount > 0 ? `★ ${t.ratingAvg.toFixed(1)} (${t.ratingCount})` : "New"}
               </div>

@@ -119,3 +119,21 @@ export {
   makeExamId,
   type AssessmentStatus,
 } from "./assessment.js";
+export {
+  StudyMaterialEntity,
+  STUDY_MATERIAL_KINDS,
+  makeMaterialId,
+  type StudyMaterialKind,
+} from "./study-material.js";
+export {
+  ReviewSessionEntity,
+  REVIEW_SESSION_STATUSES,
+  makeReviewSessionId,
+  type ReviewSessionStatus,
+} from "./review-session.js";
+export {
+  MailboxThreadEntity,
+  MailboxMessageEntity,
+  dmThreadId,
+  makeMailboxMessageId,
+} from "./mailbox.js";

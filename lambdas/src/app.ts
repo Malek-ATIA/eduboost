@@ -34,6 +34,9 @@ import { noteRoutes } from "./routes/notes.js";
 import { teacherQuizRoutes } from "./routes/teacher-quiz.js";
 import { eventRoutes } from "./routes/events.js";
 import { assessmentRoutes } from "./routes/assessments.js";
+import { studyMaterialRoutes } from "./routes/study-materials.js";
+import { reviewSessionRoutes } from "./routes/review-sessions.js";
+import { mailboxRoutes } from "./routes/mailbox.js";
 
 export const app = new Hono();
 
@@ -79,6 +82,9 @@ app.route("/notes", noteRoutes);
 app.route("/teacher-quiz", teacherQuizRoutes);
 app.route("/events", eventRoutes);
 app.route("/assessments", assessmentRoutes);
+app.route("/study-materials", studyMaterialRoutes);
+app.route("/review-sessions", reviewSessionRoutes);
+app.route("/mailbox", mailboxRoutes);
 
 app.onError((err, c) => {
   console.error(err);

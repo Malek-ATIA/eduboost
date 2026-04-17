@@ -257,6 +257,30 @@ const rejectSchema = z.object({
   notes: z.string().trim().min(10).max(2000),
 });
 
+// Sponsored teacher slot. Admin sets a sponsoredUntil timestamp (or clears it).
+// No payment flow here — the admin-grants-sponsorship path is MVP; self-serve
+// Stripe purchase is deferred. Teacher browse returns sponsored profiles first.
+const sponsorSchema = z.object({
+  sponsoredUntil: z.string().datetime().nullable(),
+});
+
+adminRoutes.post(
+  "/teachers/:userId/sponsor",
+  zValidator("json", sponsorSchema),
+  async (c) => {
+    const userId = c.req.param("userId");
+    const { sponsoredUntil } = c.req.valid("json");
+    const profile = await TeacherProfileEntity.get({ userId }).go();
+    if (!profile.data) return c.json({ error: "not_found" }, 404);
+    if (sponsoredUntil === null) {
+      await TeacherProfileEntity.patch({ userId }).remove(["sponsoredUntil"]).go();
+    } else {
+      await TeacherProfileEntity.patch({ userId }).set({ sponsoredUntil }).go();
+    }
+    return c.json({ ok: true, sponsoredUntil });
+  },
+);
+
 adminRoutes.post(
   "/verifications/:userId/reject",
   zValidator("json", rejectSchema),

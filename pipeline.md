@@ -344,10 +344,6 @@ Date: <today>
 Items from the spec that are intentionally NOT in MVP scope. Must be listed here to avoid being flagged as gaps. Entries that were initially deferred but have since shipped are listed under `### Shipped in later phases` below so the pruning history isn't lost.
 
 - Integrations beyond Google Calendar + classroom-level external links: deep Google Drive/Docs/Slides embedding, WhatsApp, social media, other external educational tools
-- Suggested T&Os (paid advertisements)
-- Review session between teachers and students/parents (structured post-course retrospective meetings — distinct from the star-review system)
-- Study materials portal with exam sharing (peer-to-peer exam bank — distinct from marketplace digital goods)
-- Mailbox (parent↔teacher async inbox with a threaded UI beyond DM)
 
 ### Shipped in later phases (previously deferred)
 
@@ -379,6 +375,10 @@ These rows were in the deferred list earlier in the project and have since lande
 - Classroom-level external resource links (portion of the broader "Integrations beyond Google Calendar" row — deep Drive/Docs/Slides embedding and the other integration surfaces remain deferred) — shipped 2G.2
 - Event planning services — shipped 2G.3
 - Non-AI assessment exams — shipped 2G.4
+- Study materials portal — shipped 2G.5
+- Review session between teachers and students/parents — shipped 2G.5
+- Mailbox (threaded parent↔teacher inbox) — shipped 2G.5
+- Suggested T&Os / sponsored teachers — shipped 2G.5 (admin-managed; self-serve purchase deferred)
 
 ## In-scope MVP features (must pass audit)
 
@@ -404,6 +404,28 @@ These rows were in the deferred list earlier in the project and have since lande
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2G #5 pass (Final batch)
+
+**Study materials portal, review sessions, mailbox, sponsored teachers — signed off**
+
+- **Bundle summary.** Four previously-deferred spec rows landed together as the final 2G batch.
+  - **Study materials portal** (`db/src/entities/studyMaterial.ts`, `lambdas/src/routes/studyMaterials.ts`, `web/src/app/study-materials/*`). Peer-to-peer exam/notes bank distinct from the paid marketplace: any authenticated user can upload an S3-backed file (presigned PUT), list the shared feed, and delete their own uploads. Admin can delete anyone's. Entity carries `{ materialId, authorId, title, description, subject, mimeType, s3Key, sizeBytes, createdAt }` with a `byAuthor` GSI for author-scoped listings.
+  - **Review sessions** (`db/src/entities/reviewSession.ts`, `lambdas/src/routes/reviewSessions.ts`, `web/src/app/review-sessions/*`). Structured post-course retrospective meetings between teacher and student/parent — distinct from the star-rating system. Teacher schedules a session against an existing bookingId; student or parent can RSVP. `{ sessionId, teacherId, participantId, bookingId, scheduledAt, notes, status }` with `byTeacher` and `byParticipant` GSIs. Reuses the existing `review_posted` notification type (already flagged as deferred in the notifications module).
+  - **Mailbox** (`db/src/entities/mailbox.ts` — `MailboxThreadEntity` + `MailboxMessageEntity`, `lambdas/src/routes/mailbox.ts`, `web/src/app/mailbox/*`). Threaded parent↔teacher async inbox. ThreadId is deterministic from the sorted user pair (`dmThreadId(a,b)` returns the same id regardless of call order) so the same two users can never end up with duplicate threads. Thread row stores participants in sorted order with per-participant GSIs (`byParticipantA`, `byParticipantB`) so "my threads" is a single partition read regardless of which side you're on. Notifications piggy-back on the existing `new_dm` type.
+  - **Sponsored teachers** (`db/src/entities/sponsoredTeacher.ts`, admin route in `lambdas/src/routes/admin.ts`, surfaced on `/teachers` browse feed). Admin-managed highlight slots — a sponsored flag is set by admin only (no self-serve purchase surface); the teacher list API prepends the sponsored set above the organic results. Self-serve paid promotion is the remaining deferred slice of the original "Suggested T&Os (paid advertisements)" row.
+- **Authz invariants.**
+  - **Mailbox threadId determinism.** Thread keys are derived from `sort([a,b]).join(":")`, so `dmThreadId(a,b) === dmThreadId(b,a)` — the pair cannot fork into two parallel threads. Sender/receiver order in the POST body does not create a new thread if one already exists.
+  - **Sponsored set is admin-only.** Create/delete on `SponsoredTeacherEntity` is gated behind the admin role check in `lambdas/src/routes/admin.ts`; teachers cannot self-promote.
+  - **Study material delete gated to author + admin.** `DELETE /study-materials/:materialId` returns 403 unless `sub === material.authorId` or the caller has the admin role; the S3 object is removed alongside the DDB row.
+- **Auditor's should-fix + Verifier fix (landed this pass):**
+  - **Should-fix — mailbox recipient check before thread creation.** `POST /threads` now does `UserEntity.get({ userId: recipientId })` first and returns 404 `recipient_not_found` before calling `getOrCreateThread()`. Previously the check order risked minting an orphan thread pointing to a non-existent user. A comment in `lambdas/src/routes/mailbox.ts` pins the ordering invariant.
+- **MVP trade-offs accepted as nits (tracked for follow-up phases):**
+  - Study-materials upload accepts any `mimeType` string — no server-side whitelist of allowed file types.
+  - Mailbox messages have no per-sender rate limit.
+  - Review sessions reuse `type: "review_posted"` for notifications (already commented as deferred in the notifications code).
+  - Thread `lastMessageAt` and the first message's `createdAt` may drift by a few ms because they're written from two separate `new Date().toISOString()` calls in the same Promise.all.
+- **Typecheck status.** All four workspace typechecks (db, lambdas, cdk, web) pass clean: `npm run typecheck --workspaces --if-present` exits 0 across the board after the mailbox reorder.
 
 ### 2026-04-17 — Phase 2G #4 pass (Assessment exams)
 
