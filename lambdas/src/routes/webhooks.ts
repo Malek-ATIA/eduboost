@@ -8,6 +8,7 @@ import {
   OrderEntity,
   ListingEntity,
   SubscriptionEntity,
+  EventTicketEntity,
   PLAN_IDS,
 } from "@eduboost/db";
 import type { PlanId } from "@eduboost/db";
@@ -68,6 +69,10 @@ async function onPaymentSucceeded(pi: Stripe.PaymentIntent) {
     await onMarketplacePaid(pi);
     return;
   }
+  if (kind === "event_ticket") {
+    await onEventTicketPaid(pi);
+    return;
+  }
 
   const bookingId = pi.metadata?.bookingId;
   if (!bookingId) return;
@@ -124,11 +129,44 @@ async function onPaymentSucceeded(pi: Stripe.PaymentIntent) {
   }
 }
 
+async function onEventTicketPaid(pi: Stripe.PaymentIntent) {
+  const eventId = pi.metadata?.eventId;
+  const userId = pi.metadata?.userId;
+  if (!eventId || !userId) return;
+  await EventTicketEntity.patch({ eventId, userId })
+    .set({ status: "paid", stripePaymentIntentId: pi.id })
+    .go();
+  await PaymentEntity.create({
+    paymentId: `pay_${nanoid(12)}`,
+    // Reuse the bookingId field to store the eventId so the existing
+    // byBooking GSI works as a generic payment-by-entity lookup. This
+    // mirrors what the marketplace flow does with orderId.
+    bookingId: eventId,
+    payerId: userId,
+    payeeId: pi.metadata?.organizerId ?? userId,
+    amountCents: pi.amount,
+    platformFeeCents: computePlatformFeeCents(pi.amount),
+    currency: (pi.currency ?? "eur").toUpperCase(),
+    provider: "stripe",
+    providerPaymentId: pi.id,
+    status: "succeeded",
+  }).go();
+}
+
 async function onPaymentFailed(pi: Stripe.PaymentIntent) {
   if (pi.metadata?.kind === "marketplace_order") {
     const orderId = pi.metadata.orderId;
     if (!orderId) return;
     await OrderEntity.patch({ orderId }).set({ status: "cancelled" }).go();
+    return;
+  }
+  if (pi.metadata?.kind === "event_ticket") {
+    const eventId = pi.metadata.eventId;
+    const userId = pi.metadata.userId;
+    if (!eventId || !userId) return;
+    await EventTicketEntity.patch({ eventId, userId })
+      .set({ status: "cancelled" })
+      .go();
     return;
   }
   const bookingId = pi.metadata?.bookingId;
@@ -148,6 +186,14 @@ async function onPaymentFailed(pi: Stripe.PaymentIntent) {
 async function onRefund(charge: Stripe.Charge) {
   const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!pi) return;
+
+  if (charge.metadata?.kind === "event_ticket") {
+    const eventId = charge.metadata.eventId;
+    const userId = charge.metadata.userId;
+    if (!eventId || !userId) return;
+    await EventTicketEntity.patch({ eventId, userId }).set({ status: "refunded" }).go();
+    return;
+  }
 
   if (charge.metadata?.kind === "marketplace_order") {
     const orderId = charge.metadata.orderId;

@@ -108,6 +108,11 @@ export default function DashboardPage() {
     description: "Community Q&A and discussion",
   });
   links.push({
+    href: "/events",
+    label: "Events",
+    description: "Upcoming workshops, meetups and ticketed sessions",
+  });
+  links.push({
     href: "/referrals",
     label: "Invite a friend",
     description: "Share your referral code",

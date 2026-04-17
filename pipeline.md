@@ -343,7 +343,6 @@ Date: <today>
 
 Items from the spec that are intentionally NOT in MVP scope. Must be listed here to avoid being flagged as gaps. Entries that were initially deferred but have since shipped are listed under `### Shipped in later phases` below so the pruning history isn't lost.
 
-- Event planning services (venue, dates, ticketing, organization) — distinct from the marketplace-for-goods which is shipped
 - Integrations beyond Google Calendar + classroom-level external links: deep Google Drive/Docs/Slides embedding, WhatsApp, social media, other external educational tools
 - Suggested T&Os (paid advertisements)
 - Non-AI assessment exams (graded + timed tests — AI grading of free-text submissions is shipped as 2F.1)
@@ -379,6 +378,7 @@ These rows were in the deferred list earlier in the project and have since lande
 - Quiz on teacher's performance — shipped 2G.2
 - Minimum wage enforcement for teachers (price floors on listings/bookings) — shipped 2G.2
 - Classroom-level external resource links (portion of the broader "Integrations beyond Google Calendar" row — deep Drive/Docs/Slides embedding and the other integration surfaces remain deferred) — shipped 2G.2
+- Event planning services — shipped 2G.3
 
 ## In-scope MVP features (must pass audit)
 
@@ -404,6 +404,22 @@ These rows were in the deferred list earlier in the project and have since lande
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2G #3 pass (Events + ticketing)
+
+**Event planning services — signed off**
+
+- **Feature summary.** New `EventEntity` (`db/src/entities/event.ts`) keyed by `eventId` with `byOrganizer` (organizer → events) and `byStatus` (published feed, ranged on `startsAt`) GSIs, plus a companion `EventTicketEntity` keyed by `(eventId, userId)` with a `byUser` GSI for "my tickets" lookups. Eight API routes in `lambdas/src/routes/events.ts`: public `GET /` (published upcoming feed) and `GET /:eventId`; authed `POST /` (teacher/admin-only create, enforces `startsAt < endsAt` and the shared `MIN_PRICE_CENTS` floor on paid tickets with priceCents=0 allowed for free events), `PATCH /:eventId` (organizer-only), `GET /mine/organizing`, `GET /:eventId/tickets` (organizer-only ticket holder list), `POST /:eventId/tickets` (capacity-checked purchase — free events mint a "paid" ticket directly, paid events create a Stripe PaymentIntent with `kind=event_ticket` metadata and return `clientSecret`), and `GET /mine/tickets`. Webhook wiring in `lambdas/src/routes/webhooks.ts` adds `event_ticket` branches to `onPaymentSucceeded` (marks ticket paid + writes a `PaymentEntity` row with `bookingId=eventId` mirroring the marketplace pattern), `onPaymentFailed` (marks ticket cancelled), and `onRefund` (marks ticket refunded — see Verifier fix #2 below). Three UI pages: `web/src/app/events/page.tsx` (browse feed, role-gated "Host an event" CTA), `events/new/page.tsx` (teacher creation form), and `events/[eventId]/page.tsx` (detail + buy). `web/src/app/dashboard/page.tsx` exposes an Events link in both the student/parent and teacher link lists.
+- **Auditor's blockers + Verifier fixes (both landed this pass):**
+  - **Blocker 1 — fragile public-auth middleware.** The initial `events.ts` gated public reads by matching `c.req.method + " " + c.req.routePath` against an allow-list Set (`"GET /"`, `"GET /:eventId"`), which depends on Hono's exact `routePath` string format and would silently break if the framework changed its representation. Verifier refactored the file so the two public `GET` handlers are registered BEFORE `eventRoutes.use("*", requireAuth)`; the allow-list Set and custom middleware are gone. Auth is now enforced idiomatically by registration order, not string matching.
+  - **Blocker 2 — `onRefund()` missing `event_ticket` branch.** `onRefund()` previously short-circuited only on `kind === "marketplace_order"` and then fell through to the booking refund path, which would have wrongly patched `BookingEntity` for a refunded event ticket (and likely failed since no such booking row exists). Verifier added an `event_ticket` branch at the top of `onRefund()`: pulls `eventId` + `userId` from charge metadata, patches `EventTicketEntity` to `status: "refunded"`, and returns early.
+- **Nit fix (also landed).** The "Host an event" button on `/events` was previously shown to all callers; non-teachers clicking it would hit the `only_teachers_or_admins` 403 on `POST /events`. Verifier wired `currentSession()` + `currentRole()` into the list page and now renders the CTA only when `role === "teacher"`. Admins do not see the CTA (MVP call — admins rarely host events themselves; if the need arises we can extend the predicate).
+- **Auditor nit explicitly dismissed.** Auditor flagged that the public `GET /:eventId` returns `organizerId`, framing it as a PII leak. Dismissed: teachers are publicly browsable at `/teachers` and `/teachers/:userId` already, so `organizerId` is already a public identifier. Not a real leak.
+- **MVP trade-offs (accepted, tracked here for follow-up phases):**
+  - **No Stripe Elements UI.** The paid-ticket detail page surfaces the `clientSecret` string as raw text rather than mounting a Stripe PaymentElement. This ships a functional-but-ugly payment UX — a real Elements integration is deferred to a future UI polish pass. The server-side flow (PaymentIntent + webhook → ticket) is already production-shaped; only the browser-side confirmation is stubbed.
+  - **No Stripe Connect payouts for organizers.** Ticket revenue lands on the platform account as a `PaymentEntity` row with `payeeId=organizerId`, but there is no Connect destination-charge wiring, so organizers do not receive direct payouts. Payouts are handled out-of-band by the platform operator in MVP; Connect integration is the same deferred work that applies to bookings and the commercial-org marketplace.
+  - **No ticket-holder reminders.** Event ticket purchases do not schedule EventBridge reminders the way bookings do — ticket holders get the initial confirmation path (via the reused `listing_sold` organizer notification) but no "event starts tomorrow" nudge. A dedicated `ticket_sold` / `event_reminder` notification type is a small follow-up once product decides on cadence.
+- **Typecheck status.** All four workspace typechecks (db, lambdas, cdk, web) pass clean: `tsc --noEmit` exits 0 across the board after the three fixes above.
 
 ### 2026-04-17 — Phase 2G #2 pass (Polish batch)
 

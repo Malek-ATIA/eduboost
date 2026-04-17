@@ -103,3 +103,12 @@ export {
 } from "./organization.js";
 export { SessionNoteEntity } from "./session-note.js";
 export { TeacherQuizResponseEntity } from "./teacher-quiz.js";
+export {
+  EventEntity,
+  EventTicketEntity,
+  EVENT_STATUSES,
+  EVENT_TICKET_STATUSES,
+  makeEventId,
+  type EventStatus,
+  type EventTicketStatus,
+} from "./event.js";
