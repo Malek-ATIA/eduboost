@@ -110,12 +110,20 @@ export default function BookingsPage() {
                     <div className={`text-xs uppercase ${STATUS_COLORS[b.status]}`}>{b.status}</div>
                   </div>
                   {canReview && (
-                    <Link
-                      href={`/reviews/new?bookingId=${b.bookingId}`}
-                      className="rounded border px-3 py-1 text-xs"
-                    >
-                      Review
-                    </Link>
+                    <>
+                      <Link
+                        href={`/reviews/new?bookingId=${b.bookingId}`}
+                        className="rounded border px-3 py-1 text-xs"
+                      >
+                        Review
+                      </Link>
+                      <Link
+                        href={`/quiz/${b.bookingId}` as never}
+                        className="rounded border px-3 py-1 text-xs"
+                      >
+                        Rate teacher
+                      </Link>
+                    </>
                   )}
                   {canCancel && (
                     <button

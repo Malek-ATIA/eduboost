@@ -67,6 +67,37 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const [newBreakoutLabel, setNewBreakoutLabel] = useState("");
   const [newBreakoutAssignees, setNewBreakoutAssignees] = useState("");
   const [breakoutError, setBreakoutError] = useState<string | null>(null);
+  const [noteBody, setNoteBody] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteSaved, setNoteSaved] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await api<{ body?: string }>(`/notes/sessions/${sessionId}`);
+        setNoteBody(r.body ?? "");
+      } catch {
+        /* not a participant yet — stay empty */
+      }
+    })();
+  }, [sessionId]);
+
+  async function saveNote() {
+    setNoteSaving(true);
+    setNoteSaved(false);
+    try {
+      await api(`/notes/sessions/${sessionId}`, {
+        method: "PUT",
+        body: JSON.stringify({ body: noteBody }),
+      });
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 2500);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setNoteSaving(false);
+    }
+  }
 
   const loadBreakouts = useCallback(async () => {
     try {
@@ -323,6 +354,33 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           )}
         </section>
       )}
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">My notes</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          Private to you. Use this space to capture key learning points during the session.
+        </p>
+        <textarea
+          value={noteBody}
+          onChange={(e) => setNoteBody(e.target.value)}
+          rows={6}
+          maxLength={20000}
+          className="mt-3 w-full rounded border px-3 py-2 text-sm"
+          placeholder="Write your notes here..."
+        />
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-xs text-gray-500">
+            {noteSaved ? "Saved." : noteBody.length > 0 ? "Unsaved" : ""}
+          </span>
+          <button
+            onClick={saveNote}
+            disabled={noteSaving}
+            className="rounded bg-black px-4 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
+          >
+            {noteSaving ? "Saving..." : "Save notes"}
+          </button>
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold">Breakout rooms</h2>

@@ -42,3 +42,35 @@ classroomRoutes.get("/:classroomId", async (c) => {
   if (!result.data) return c.json({ error: "not found" }, 404);
   return c.json(result.data);
 });
+
+// External resource links (Drive/Docs/Slides/Sheets/videos/other). Teacher-only
+// patch; replaces the whole list atomically so the caller doesn't race itself
+// by appending while a stale copy is in state. Capped at 25 to bound the row.
+const resourcesSchema = z.object({
+  resources: z
+    .array(
+      z.object({
+        url: z.string().url().max(2000),
+        label: z.string().trim().min(1).max(120),
+        kind: z
+          .enum(["drive", "docs", "slides", "sheets", "video", "other"])
+          .default("other"),
+      }),
+    )
+    .max(25),
+});
+
+classroomRoutes.put(
+  "/:classroomId/resources",
+  zValidator("json", resourcesSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const classroomId = c.req.param("classroomId");
+    const { resources } = c.req.valid("json");
+    const existing = await ClassroomEntity.get({ classroomId }).go();
+    if (!existing.data) return c.json({ error: "not_found" }, 404);
+    if (existing.data.teacherId !== sub) return c.json({ error: "forbidden" }, 403);
+    await ClassroomEntity.patch({ classroomId }).set({ resources }).go();
+    return c.json({ ok: true, resources });
+  },
+);

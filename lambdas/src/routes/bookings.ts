@@ -13,7 +13,7 @@ import {
   makeTicketMessageId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
-import { stripe, computePlatformFeeCents } from "../lib/stripe.js";
+import { stripe, computePlatformFeeCents, MIN_PRICE_CENTS } from "../lib/stripe.js";
 import { notify } from "../lib/notifications.js";
 
 // Money-back guarantee: students can cancel a booking and get an automatic
@@ -53,7 +53,16 @@ const createSchema = z.object({
   teacherId: z.string().min(1),
   classroomId: z.string().optional(),
   type: z.enum(["trial", "single", "package"]),
-  amountCents: z.number().int().min(50),
+  // Minimum wage floor: the global MIN_PRICE_CENTS kicks in for all paid
+  // session types. Trials can still be free of charge (0) since they are a
+  // sampler, not a paid service — the frontend handles that by routing free
+  // trials through a zero-charge PaymentIntent rather than skipping this check.
+  amountCents: z
+    .number()
+    .int()
+    .refine((v) => v === 0 || v >= MIN_PRICE_CENTS, {
+      message: `amountCents below platform minimum of ${MIN_PRICE_CENTS}`,
+    }),
   currency: z.string().length(3).default("EUR"),
 });
 

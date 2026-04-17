@@ -65,6 +65,7 @@ export default function DashboardPage() {
       { href: "/orders", label: "My orders", description: "Digital tutorials you've purchased" },
       { href: "/grades", label: "My grades", description: "Feedback from AI-graded submissions" },
       { href: "/analytics", label: "Analytics", description: "Your spend, attendance, grades, and activity" },
+      { href: "/notes", label: "My notes", description: "Personal notes from classroom sessions" },
     );
   }
   if (role === "parent") {

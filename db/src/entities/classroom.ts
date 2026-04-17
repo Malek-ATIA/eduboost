@@ -13,6 +13,24 @@ export const ClassroomEntity = new Entity(
       description: { type: "string" },
       maxStudents: { type: "number", default: 1 },
       orgId: { type: "string" },
+      // Teacher-curated external resources (Drive, Docs, Slides, other URLs).
+      // MVP substitute for deep Google Workspace integrations: a flat list the
+      // teacher maintains by hand, rendered as hyperlinks on the classroom view.
+      resources: {
+        type: "list",
+        items: {
+          type: "map",
+          properties: {
+            url: { type: "string", required: true },
+            label: { type: "string", required: true },
+            kind: {
+              type: ["drive", "docs", "slides", "sheets", "video", "other"] as const,
+              default: "other",
+            },
+          },
+        },
+        default: [],
+      },
       status: { type: ["draft", "active", "archived"] as const, default: "draft" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },

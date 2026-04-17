@@ -23,7 +23,7 @@ import {
   makeTicketMessageId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
-import { stripe, computePlatformFeeCents } from "../lib/stripe.js";
+import { stripe, computePlatformFeeCents, MIN_PRICE_CENTS } from "../lib/stripe.js";
 import { env } from "../env.js";
 
 export const marketplaceRoutes = new Hono();
@@ -82,7 +82,9 @@ const createListingSchema = z.object({
   title: z.string().trim().min(3).max(200),
   description: z.string().trim().max(4000).optional(),
   subjects: z.array(z.string().trim().min(1).max(100)).max(10).default([]),
-  priceCents: z.number().int().min(50),
+  priceCents: z.number().int().min(MIN_PRICE_CENTS, {
+    message: `priceCents below platform minimum of ${MIN_PRICE_CENTS}`,
+  }),
   currency: z.string().length(3).default("EUR"),
   // Optional commercial-org attribution. When present, caller must be
   // owner/admin of a commercial org; the listing displays the org as seller
@@ -144,7 +146,11 @@ const patchListingSchema = z.object({
   title: z.string().trim().min(3).max(200).optional(),
   description: z.string().trim().max(4000).optional(),
   subjects: z.array(z.string().trim().min(1).max(100)).max(10).optional(),
-  priceCents: z.number().int().min(50).optional(),
+  priceCents: z
+    .number()
+    .int()
+    .min(MIN_PRICE_CENTS, { message: `priceCents below platform minimum of ${MIN_PRICE_CENTS}` })
+    .optional(),
   status: z.enum(LISTING_STATUSES).optional(),
 });
 

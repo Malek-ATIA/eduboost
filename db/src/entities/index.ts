@@ -101,3 +101,5 @@ export {
   type OrgKind,
   type OrgMemberRole,
 } from "./organization.js";
+export { SessionNoteEntity } from "./session-note.js";
+export { TeacherQuizResponseEntity } from "./teacher-quiz.js";

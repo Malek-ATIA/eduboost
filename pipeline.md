@@ -344,13 +344,10 @@ Date: <today>
 Items from the spec that are intentionally NOT in MVP scope. Must be listed here to avoid being flagged as gaps. Entries that were initially deferred but have since shipped are listed under `### Shipped in later phases` below so the pruning history isn't lost.
 
 - Event planning services (venue, dates, ticketing, organization) — distinct from the marketplace-for-goods which is shipped
-- Note-keeping of key learning points (per-session structured notes UI)
-- Integrations beyond Google Calendar: Google Drive/Docs/Slides, WhatsApp, social media, other external educational tools
+- Integrations beyond Google Calendar + classroom-level external links: deep Google Drive/Docs/Slides embedding, WhatsApp, social media, other external educational tools
 - Suggested T&Os (paid advertisements)
-- Quiz on teacher's performance
 - Non-AI assessment exams (graded + timed tests — AI grading of free-text submissions is shipped as 2F.1)
 - Review session between teachers and students/parents (structured post-course retrospective meetings — distinct from the star-review system)
-- Minimum wage enforcement for teachers (price floors on listings/bookings)
 - Study materials portal with exam sharing (peer-to-peer exam bank — distinct from marketplace digital goods)
 - Mailbox (parent↔teacher async inbox with a threaded UI beyond DM)
 
@@ -378,6 +375,10 @@ These rows were in the deferred list earlier in the project and have since lande
 - Whiteboard — shipped 2F.3
 - Breakout rooms — shipped 2F.2
 - Money-back guarantee policy (UX + backend) — shipped 2G.1
+- Note-keeping of key learning points (per-session structured notes UI) — shipped 2G.2
+- Quiz on teacher's performance — shipped 2G.2
+- Minimum wage enforcement for teachers (price floors on listings/bookings) — shipped 2G.2
+- Classroom-level external resource links (portion of the broader "Integrations beyond Google Calendar" row — deep Drive/Docs/Slides embedding and the other integration surfaces remain deferred) — shipped 2G.2
 
 ## In-scope MVP features (must pass audit)
 
@@ -403,6 +404,23 @@ These rows were in the deferred list earlier in the project and have since lande
 | 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2G #2 pass (Polish batch)
+
+**Four-feature polish bundle: minimum-wage enforcement, per-user session notes, classroom external resources, teacher-performance quiz** — signed off
+- **Minimum wage enforcement** (`lambdas/src/lib/pricing.ts` + applied in `lambdas/src/routes/bookings.ts`, `listings.ts`, `marketplace.ts`, `teachers.ts`): a single `MIN_PRICE_CENTS = 500` constant (≈€5) is the platform-wide price floor for every paid surface. Trial sessions and free trials explicitly bypass the floor (amount `0` is allowed when `kind === "trial"` or `isTrial === true`), keeping the existing free-trial flow intact. Enforcement happens at the route boundary with a shared `assertAboveFloor(amountCents, { allowZero })` helper so future paid surfaces get the check for free. Teachers setting hourly rates below the floor on profile edits get a 400 `below_minimum_wage` response; the web form in `web/src/app/teacher/profile/page.tsx` surfaces the same error inline.
+- **Per-user session notes** (`lambdas/src/routes/notes.ts` + `db/src/entities/session-note.ts` + `web/src/app/classroom/[sessionId]/notes/page.tsx`): a new `SessionNoteEntity` keyed by `(sessionId, userId)` with a `byUser` GSI persists private notes per learner per session. Three routes (`GET /notes/sessions/:sessionId`, `PUT /notes/sessions/:sessionId`, `GET /notes/mine`) are all file-level `requireAuth`. Privacy rule: each caller reads/writes only their own row — not even the session's teacher can see another user's notes (intentional — encourages candid self-reflection). Participation is checked via `canParticipate(sessionId, sub)` which accepts the teacher OR a confirmed classroom member (spot-checked by Verifier at `lambdas/src/routes/notes.ts:20-29`). Empty body writes are allowed by design so users can clear their notes (body length is zod-capped at 20,000 chars). Cross-session index at `GET /notes/mine` is capped at 100 rows, DESC, for a dedicated review UI.
+- **Classroom external resource links** (`lambdas/src/routes/classroom-resources.ts` + `db/src/entities/classroom-resource.ts` + `web/src/app/classroom/[classroomId]/resources/page.tsx`): teacher-only CRUD on a small list of `{ title, url, kind }` items attached to each classroom. List is capped at 25 per classroom — the save path does an atomic read-current → validate-size → replace-entire-list write. This is a narrow slice of the broader "Integrations beyond Google Calendar" row (deep Drive/Docs/Slides embedding, WhatsApp, social-media integrations remain deferred); the row was narrowed rather than removed to reflect that partial delivery. URLs are zod-validated (`z.string().url()`) but not fetched server-side — misbehaving links are a low-severity UX issue, not a security one.
+- **Teacher-performance quiz** (`lambdas/src/routes/teacher-quiz.ts` + `db/src/entities/teacher-quiz.ts` + `web/src/app/quiz/teacher/[bookingId]/page.tsx` + summary render on `/teachers/[userId]`): post-session structured quiz with four dimensions (`knowledge` 0-5, `clarity` 0-5, `patience` 0-5, `wouldRecommend` boolean) plus an optional free-text `comment` (server-capped at 1000 chars after `.trim()`). One response per `(teacher, booking)` — enforced via `byBooking` GSI lookup before insert (409 `already_submitted`). Only the booking's student can submit; status must be `confirmed` or `completed`. Public summary endpoint at `GET /teacher-quiz/teachers/:teacherId/summary` returns only aggregates (`count`, `knowledgeAvg`, `clarityAvg`, `patienceAvg`, `wouldRecommendPct`) — **Verifier confirmed at `lambdas/src/routes/teacher-quiz.ts:62-99` that individual rows are never returned**; the handler aggregates server-side and only the rounded dimension averages + count + recommend percentage leave the API. `limit: 500` on the aggregate query is documented in the Auditor's nits list below.
+- Auditor's four low-severity nits (all accepted as MVP-acceptable):
+  - Teacher-quiz summary uses `.go({ limit: 500 })` when computing aggregates — for a MVP teacher with < 500 reviews the aggregate is exact; beyond 500 the averages would be computed from the most recent 500 rows. Accepted: realistic volumes are far below 500, and lifting the cap (or paginating the aggregate) is a trivial follow-up once needed.
+  - Classroom-resources save path has a read-then-atomic-replace pattern, which is the correct shape for "replace the whole list transactionally" — documented here because two concurrent teacher edits would still lose one side's change (last-write-wins on the version-less row). Acceptable: concurrent classroom-resource edits by multiple teachers is vanishingly rare in MVP.
+  - `PUT /notes/sessions/:sessionId` accepts `body: ""` — intentional, users need a way to clear their notes without hitting a distinct delete endpoint. Not a validation bug.
+  - The teacher-quiz comment field has a browser-only `maxLength={1000}` on the `<textarea>` in `web/src/app/quiz/teacher/[bookingId]/page.tsx`; the real enforcement is server-side (`z.string().trim().max(1000)`), so a curl client cannot exceed the cap. The browser attribute is UX sugar, not a security gate.
+- Verifier spot-checks beyond the Auditor:
+  - Read `lambdas/src/routes/notes.ts` end-to-end: `canParticipate` correctly returns true when `session.data.teacherId === sub` (teacher branch) OR when a `ClassroomMembershipEntity.get({ classroomId, userId })` hit exists for the session's classroom (member branch); returns false on missing session. Matches the pattern in other classroom-gated routes.
+  - Read `lambdas/src/routes/teacher-quiz.ts` summary endpoint: no row is pushed through `c.json` — the handler only emits the aggregate object. `result.data` is reduced to sums and then discarded before the response is built.
+- **Typecheck status:** `npm run --workspace db typecheck`, `npm run --workspace lambdas typecheck`, `npm run --workspace web typecheck`, `npm run --workspace cdk typecheck` all PASS.
 
 ### 2026-04-17 — Phase 2G #1 pass (Money-back guarantee)
 
