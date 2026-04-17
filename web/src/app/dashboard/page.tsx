@@ -107,6 +107,11 @@ export default function DashboardPage() {
     description: "Share your referral code",
   });
   links.push({
+    href: "/settings/sms",
+    label: "SMS notifications",
+    description: "Get texted for time-sensitive updates",
+  });
+  links.push({
     href: "/membership",
     label: "Membership",
     description: "Upgrade your account for extra features",

@@ -53,6 +53,14 @@ export class ApiStack extends cdk.Stack {
     });
     props.table.grantReadWriteData(reminderHandler);
 
+    // Reminder Lambda also sends SMS via SNS when users are opted in.
+    reminderHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      }),
+    );
+
     const scheduleGroup = new scheduler.CfnScheduleGroup(this, "ReminderScheduleGroup", {
       name: `eduboost-${props.stage}-reminders`,
     });
@@ -150,6 +158,15 @@ export class ApiStack extends cdk.Stack {
         ],
       }),
     );
+    handler.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        // SNS direct-publish to a phone number ("PhoneNumber" target) uses the
+        // wildcard resource; AWS does not expose per-phone-number ARNs.
+        resources: ["*"],
+      }),
+    );
+
     handler.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["iam:PassRole"],

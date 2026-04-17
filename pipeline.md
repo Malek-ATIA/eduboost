@@ -350,7 +350,6 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 - Whiteboard
 - Split rooms (breakout rooms within classroom)
 - Note-keeping of key learning points
-- SMS notifications
 - Integrations: Google Drive/Docs/Slides/Calendar, WhatsApp, social media, external educational tools
 - Suggested T&Os (paid advertisements)
 - Invite-a-friend rewards
@@ -399,8 +398,26 @@ Items from the spec that are intentionally NOT in MVP scope. Must be listed here
 | 15 | Ban student/parent (admin tool) | **signed off** | 2026-04-17 |
 | 16 | Support ticket (file dispute, contact website) | **signed off** | 2026-04-17 |
 | 17 | Notifications (in-app bell + page, triggers on booking/chat events) | **signed off** | 2026-04-16 |
+| 18 | SMS notifications (AWS SNS, phone verify + opt-in) | **signed off** | 2026-04-17 |
 
 ## Audit log
+
+### 2026-04-17 — Phase 2E #4 pass (SMS notifications via AWS SNS)
+
+**SMS notifications** — signed off
+- UserEntity extended with `phoneNumber`, `phoneVerifiedAt`, `smsOptIn`, `smsVerifyCodeHash`, `smsVerifyExpiresAt`.
+- `lambdas/src/lib/sms.ts`: E.164 validation (`/^\+[1-9]\d{7,15}$/`, lenient upper bound with AWS SNS as the authoritative rejector), 6-digit `generateOtp` via `crypto.randomInt`, SHA-256 `hashOtp`, and thin `sendSms` wrapper around `SNSClient.PublishCommand` with `AWS.SNS.SMS.SMSType=Transactional`.
+- Routes (`/sms/*`, all auth-gated): `GET /me` (phone state), `POST /phone` (sets hash + 10-min expiry, clears prior `phoneVerifiedAt`, sends OTP; 502 on SNS failure), `POST /verify` (hash-compare, sets `phoneVerifiedAt` + auto-opts-in, wipes verify fields), `POST /opt-out`, `POST /opt-in` (requires verified phone).
+- `notifications.ts` loads the user once per notify() and conditionally SMSes when the type is in `SMS_NOTIFICATION_TYPES` AND `smsOptIn` AND `phoneVerifiedAt` AND `phoneNumber`. SMS body capped at 300 chars (≈2 SMS segments). SMS send is non-fatal (logged, never throws out of notify).
+- IAM: both ApiHandler and ReminderHandler granted `sns:Publish`.
+- UI: `/settings/sms` 3-step flow (enter phone → verify code → toggle opt-in) with error mapping for `E.164`/`sms_send_failed`/`wrong_code`/`code_expired`/`no_pending_verification`. Dashboard link added.
+- Verifier catches:
+  - Misleading `hashOtp` comment claimed brute force was "deterred by attempt rate limiting at the verify endpoint" — no such rate limit exists. Rewrote the comment to accurately describe the real defenses (1M OTP space, 10-min expiry, single-use wipe on verify, server-only hash) and to explicitly flag the missing rate limit as a documented MVP gap.
+  - Comment/code mismatch in `notifications.ts` claimed "well under 160 chars" but sliced to 300. Updated comment to reflect the 300-char / two-segment policy (which is correct for transactional SMS).
+  - Confirmed `/settings/sms` uses no `useSearchParams`, so no Next `<Suspense>` boundary needed.
+  - Confirmed `sms.ts` imports (`randomInt`, `createHash`, `SNSClient`, `PublishCommand`) are all used.
+  - Confirmed verify-success path chains `.remove(["smsVerifyCodeHash","smsVerifyExpiresAt"])` so a replayed or reused code can't match.
+- MVP tradeoffs (deferred): rate limiting on `POST /sms/phone` (SMS-send abuse / cost), rate limiting on `POST /sms/verify` (OTP brute-force), SNS SMS sandbox-to-production account move (deployment/environmental, not code).
 
 ### 2026-04-17 — Phase 2E #3 pass (Referrals — invite a friend)
 
