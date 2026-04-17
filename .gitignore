@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+out/
+cdk.out/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+.turbo/
+coverage/
+*.tsbuildinfo
+cdk.context.json
+.open-next/

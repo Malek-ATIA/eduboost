@@ -1,0 +1,28 @@
+{
+  "name": "eduboost",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EduBoost — serverless tutoring platform on AWS",
+  "workspaces": [
+    "db",
+    "lambdas",
+    "cdk",
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "cdk:synth": "npm run synth --workspace cdk",
+    "cdk:deploy": "npm run deploy --workspace cdk",
+    "cdk:diff": "npm run diff --workspace cdk",
+    "api:dev": "npm run dev --workspace lambdas",
+    "web:dev": "npm run dev --workspace web"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.0"
+  }
+}
