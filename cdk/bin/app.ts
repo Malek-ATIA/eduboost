@@ -9,7 +9,13 @@ import { WebStack } from "../lib/web-stack";
 
 const app = new cdk.App();
 
-const env = { region: "eu-west-1" };
+// Lambda@Edge (used by NextjsDistribution to sign Function-URL requests when
+// functionUrlAuthType = AWS_IAM) must be deployed from us-east-1 and needs a
+// concrete account at synth time. Always resolve both from CDK defaults.
+const env = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: "eu-west-1",
+};
 const stage = app.node.tryGetContext("stage") ?? "dev";
 const prefix = `EduBoost`;
 const tags = { project: "eduboost", stage };
