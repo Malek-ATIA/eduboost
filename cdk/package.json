@@ -16,11 +16,11 @@
     "deploy:api": "cdk deploy EduBoost-Api --profile malek.atia2 --require-approval never",
     "deploy:web": "cdk deploy EduBoost-Web --profile malek.atia2 --require-approval never",
     "diff": "cdk diff --profile malek.atia2",
-    "bootstrap": "cdk bootstrap --profile malek.atia2 aws://ACCOUNT/eu-west-1"
+    "bootstrap": "cdk bootstrap --profile malek.atia2 aws://538430558070/eu-west-1"
   },
   "dependencies": {
     "aws-cdk-lib": "2.170.0",
-    "cdk-nextjs-standalone": "^4.4.0",
+    "cdk-nextjs-standalone": "^4.3.3",
     "constructs": "^10.4.2",
     "source-map-support": "^0.5.21"
   },

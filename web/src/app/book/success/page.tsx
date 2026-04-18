@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 
@@ -13,7 +13,7 @@ type Booking = {
   currency: string;
 };
 
-export default function BookSuccessPage() {
+function BookSuccessInner() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId");
   const paymentIntentStatus = searchParams.get("redirect_status");
@@ -60,5 +60,24 @@ export default function BookSuccessPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+// Next.js 15 requires useSearchParams consumers to be wrapped in Suspense so
+// the static shell can pre-render while the query string resolves client-side.
+export default function BookSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-center">
+          <p className="eyebrow">Checkout</p>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+            Processing...
+          </h1>
+        </main>
+      }
+    >
+      <BookSuccessInner />
+    </Suspense>
   );
 }
