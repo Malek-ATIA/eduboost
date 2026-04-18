@@ -6,6 +6,7 @@ import {
   OrganizationMembershipEntity,
   UserEntity,
   ClassroomEntity,
+  ClassroomMembershipEntity,
   ORG_KINDS,
   ORG_MEMBER_ROLES,
   makeOrgId,
@@ -239,6 +240,135 @@ organizationRoutes.post(
 
     await ClassroomEntity.patch({ classroomId }).set({ orgId }).go();
     return c.json({ ok: true });
+  },
+);
+
+// Bulk-add students to a classroom linked to this org. Closes the spec bullet
+// "Administration: Assign students per classroom per teacher" — the org admin
+// pastes one or more emails and each resolves to an existing UserEntity via
+// the byEmail GSI, then gets a ClassroomMembershipEntity row with role=student.
+// Idempotent per-email: already-members don't double-write and unknown emails
+// are reported back without blocking the batch.
+const assignStudentsSchema = z.object({
+  emails: z.array(z.string().email()).min(1).max(50),
+});
+
+organizationRoutes.post(
+  "/:orgId/classrooms/:classroomId/students",
+  zValidator(
+    "param",
+    z.object({
+      orgId: z.string().min(1),
+      classroomId: z.string().min(1),
+    }),
+  ),
+  zValidator("json", assignStudentsSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { orgId, classroomId } = c.req.valid("param");
+    const { emails } = c.req.valid("json");
+
+    const [mine, classroom] = await Promise.all([
+      requireMember(orgId, sub),
+      ClassroomEntity.get({ classroomId }).go(),
+    ]);
+    if (!mine) return c.json({ error: "not_a_member" }, 403);
+    if (mine.role !== "owner" && mine.role !== "admin") {
+      return c.json({ error: "not_authorized" }, 403);
+    }
+    if (!classroom.data) return c.json({ error: "classroom_not_found" }, 404);
+    if (classroom.data.orgId !== orgId) {
+      return c.json({ error: "classroom_not_in_org" }, 409);
+    }
+
+    // Dedup + normalize input so the caller can paste a loose list without
+    // tripping the idempotency checks downstream.
+    const unique = [...new Set(emails.map((e) => e.toLowerCase().trim()))];
+
+    const added: { userId: string; email: string; displayName: string }[] = [];
+    const alreadyMember: { userId: string; email: string }[] = [];
+    const notFound: string[] = [];
+
+    await Promise.all(
+      unique.map(async (email) => {
+        try {
+          const lookup = await UserEntity.query.byEmail({ email }).go({ limit: 1 });
+          const target = lookup.data[0];
+          if (!target) {
+            notFound.push(email);
+            return;
+          }
+          const existing = await ClassroomMembershipEntity.get({
+            classroomId,
+            userId: target.userId,
+          }).go();
+          if (existing.data) {
+            alreadyMember.push({ userId: target.userId, email });
+            return;
+          }
+          await ClassroomMembershipEntity.create({
+            classroomId,
+            userId: target.userId,
+            role: "student",
+          }).go();
+          added.push({
+            userId: target.userId,
+            email,
+            displayName: target.displayName,
+          });
+        } catch (err) {
+          console.error("bulk assign: failed for", email, err);
+          notFound.push(email);
+        }
+      }),
+    );
+
+    return c.json({ added, alreadyMember, notFound });
+  },
+);
+
+// List the current members of a classroom (org context — admins see who
+// belongs). Hydrates user displayName + email for the UI.
+organizationRoutes.get(
+  "/:orgId/classrooms/:classroomId/students",
+  zValidator(
+    "param",
+    z.object({
+      orgId: z.string().min(1),
+      classroomId: z.string().min(1),
+    }),
+  ),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { orgId, classroomId } = c.req.valid("param");
+    const [mine, classroom] = await Promise.all([
+      requireMember(orgId, sub),
+      ClassroomEntity.get({ classroomId }).go(),
+    ]);
+    if (!mine) return c.json({ error: "not_a_member" }, 403);
+    if (!classroom.data) return c.json({ error: "classroom_not_found" }, 404);
+    if (classroom.data.orgId !== orgId) {
+      return c.json({ error: "classroom_not_in_org" }, 409);
+    }
+    const members = await ClassroomMembershipEntity.query
+      .primary({ classroomId })
+      .go({ limit: 250 });
+    const hydrated = await Promise.all(
+      members.data.map(async (m) => {
+        try {
+          const u = await UserEntity.get({ userId: m.userId }).go();
+          return {
+            ...m,
+            user: u.data
+              ? { userId: u.data.userId, displayName: u.data.displayName, email: u.data.email }
+              : null,
+          };
+        } catch {
+          return { ...m, user: null };
+        }
+      }),
+    );
+    return c.json({ items: hydrated });
   },
 );
 

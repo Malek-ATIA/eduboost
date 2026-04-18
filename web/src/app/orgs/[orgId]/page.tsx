@@ -33,6 +33,7 @@ type Classroom = {
   subject: string;
   status: string;
   teacherId: string;
+  orgId?: string;
 };
 
 type OrgListing = {
@@ -42,6 +43,138 @@ type OrgListing = {
   currency: string;
   status: string;
 };
+
+type ClassroomMember = {
+  classroomId: string;
+  userId: string;
+  role: "student" | "teacher" | "observer";
+  user: { userId: string; displayName: string; email: string } | null;
+};
+
+type AssignResponse = {
+  added: { userId: string; email: string; displayName: string }[];
+  alreadyMember: { userId: string; email: string }[];
+  notFound: string[];
+};
+
+function ClassroomStudents({
+  orgId,
+  classroomId,
+}: {
+  orgId: string;
+  classroomId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [members, setMembers] = useState<ClassroomMember[] | null>(null);
+  const [emails, setEmails] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [lastResult, setLastResult] = useState<AssignResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const r = await api<{ items: ClassroomMember[] }>(
+        `/orgs/${orgId}/classrooms/${classroomId}/students`,
+      );
+      setMembers(r.items);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && members === null) await load();
+  }
+
+  async function assign(e: React.FormEvent) {
+    e.preventDefault();
+    const list = emails
+      .split(/[,;\n\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (list.length === 0) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const r = await api<AssignResponse>(
+        `/orgs/${orgId}/classrooms/${classroomId}/students`,
+        { method: "POST", body: JSON.stringify({ emails: list }) },
+      );
+      setLastResult(r);
+      setEmails("");
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={toggle}
+        className="btn-ghost -ml-3 text-xs"
+      >
+        {open ? "Hide" : "Manage"} students →
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3 rounded-md border border-ink-faded/40 bg-parchment/40 p-3">
+          <form onSubmit={assign} className="space-y-2">
+            <label className="block">
+              <span className="label">Add students by email (comma, space, or newline-separated)</span>
+              <textarea
+                value={emails}
+                onChange={(e) => setEmails(e.target.value)}
+                rows={2}
+                placeholder="alice@example.com, bob@example.com"
+                className="input"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={submitting || !emails.trim()}
+              className="btn-seal"
+            >
+              {submitting ? "Adding..." : "Add students"}
+            </button>
+          </form>
+          {error && <p className="text-xs text-seal">{error}</p>}
+          {lastResult && (
+            <p className="text-xs text-ink-soft">
+              {lastResult.added.length} added · {lastResult.alreadyMember.length} already enrolled ·{" "}
+              {lastResult.notFound.length} not found
+              {lastResult.notFound.length > 0 && (
+                <>
+                  {" "}
+                  (<span className="font-mono">{lastResult.notFound.join(", ")}</span>)
+                </>
+              )}
+            </p>
+          )}
+          {members && members.length === 0 && (
+            <p className="text-xs text-ink-faded">No members yet.</p>
+          )}
+          {members && members.length > 0 && (
+            <ul className="divide-y divide-ink-faded/30">
+              {members.map((m) => (
+                <li key={m.userId} className="flex items-center justify-between py-2 text-xs">
+                  <span>
+                    {m.user?.displayName ?? m.userId}
+                    <span className="ml-2 text-ink-faded">{m.user?.email ?? ""}</span>
+                  </span>
+                  <span className="uppercase tracking-widest text-ink-soft">{m.role}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const ROLE_CHOICES: Exclude<Role, "owner">[] = ["admin", "teacher", "student"];
 
@@ -241,6 +374,9 @@ export default function OrgDetailPage({
                   {c.subject} · status {c.status} ·{" "}
                   <span className="font-mono">{c.classroomId}</span>
                 </div>
+                {canManage && (
+                  <ClassroomStudents orgId={orgId} classroomId={c.classroomId} />
+                )}
               </li>
             ))}
           </ul>
