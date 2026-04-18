@@ -12,6 +12,10 @@ type Order = {
   priceCents: number;
   currency: string;
   status: "pending" | "paid" | "refunded" | "cancelled";
+  kind?: "digital" | "physical";
+  shippingStatus?: "awaiting_ship" | "shipped" | "delivered" | "cancelled";
+  shippingCarrier?: string;
+  trackingNumber?: string;
   createdAt: string;
 };
 
@@ -89,6 +93,15 @@ export default function OrdersPage() {
     }
   }
 
+  async function markDelivered(orderId: string) {
+    try {
+      await api(`/marketplace/orders/${orderId}/mark-delivered`, { method: "POST" });
+      await load();
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <p className="eyebrow">Library</p>
@@ -117,17 +130,40 @@ export default function OrdersPage() {
                   {(o.priceCents / 100).toFixed(2)}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[o.status]}`}>{o.status}</span>
+              <div className="flex flex-col items-end gap-1 text-right">
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[o.status]}`}>{o.status}</span>
+                  {o.kind === "physical" && o.shippingStatus && (
+                    <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-ink-soft">
+                      {o.shippingStatus.replace(/_/g, " ")}
+                    </span>
+                  )}
+                </div>
+                {o.kind === "physical" && o.trackingNumber && (
+                  <div className="text-xs text-ink-faded">
+                    {o.shippingCarrier ?? "Carrier"}:{" "}
+                    <span className="font-mono">{o.trackingNumber}</span>
+                  </div>
+                )}
                 {o.status === "paid" && (
-                  <>
-                    <button
-                      onClick={() => downloadFile(o.listingId)}
-                      disabled={downloadingId === o.listingId}
-                      className="btn-secondary"
-                    >
-                      {downloadingId === o.listingId ? "..." : "Download"}
-                    </button>
+                  <div className="flex items-center gap-2">
+                    {o.kind !== "physical" && (
+                      <button
+                        onClick={() => downloadFile(o.listingId)}
+                        disabled={downloadingId === o.listingId}
+                        className="btn-secondary"
+                      >
+                        {downloadingId === o.listingId ? "..." : "Download"}
+                      </button>
+                    )}
+                    {o.kind === "physical" && o.shippingStatus === "shipped" && (
+                      <button
+                        onClick={() => markDelivered(o.orderId)}
+                        className="btn-secondary"
+                      >
+                        Mark delivered
+                      </button>
+                    )}
                     <button
                       onClick={() => requestRefund(o.orderId)}
                       disabled={refundingId === o.orderId}
@@ -135,7 +171,7 @@ export default function OrdersPage() {
                     >
                       {refundingId === o.orderId ? "..." : "Refund"}
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </li>

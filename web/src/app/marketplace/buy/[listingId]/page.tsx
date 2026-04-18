@@ -8,14 +8,39 @@ import { currentSession } from "@/lib/cognito";
 
 type Listing = {
   listingId: string;
+  kind?: "digital" | "physical";
   title: string;
   priceCents: number;
   currency: string;
+  shippingCostCents?: number;
+  inStockCount?: number;
 };
 
 type CreateOrderResponse = {
   order: { orderId: string };
   clientSecret: string;
+};
+
+type ShippingAddress = {
+  name: string;
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+};
+
+const EMPTY_ADDR: ShippingAddress = {
+  name: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "",
+  phone: "",
 };
 
 export default function BuyListingPage({ params }: { params: Promise<{ listingId: string }> }) {
@@ -25,6 +50,8 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDR);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -33,12 +60,16 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
       try {
         const l = await api<Listing>(`/marketplace/listings/${listingId}`);
         setListing(l);
-        const resp = await api<CreateOrderResponse>(`/marketplace/orders`, {
-          method: "POST",
-          body: JSON.stringify({ listingId }),
-        });
-        setClientSecret(resp.clientSecret);
-        setOrderId(resp.order.orderId);
+        // Digital listings auto-create the order immediately (no address
+        // needed). Physical listings wait for the address form submit.
+        if (l.kind !== "physical") {
+          const resp = await api<CreateOrderResponse>(`/marketplace/orders`, {
+            method: "POST",
+            body: JSON.stringify({ listingId }),
+          });
+          setClientSecret(resp.clientSecret);
+          setOrderId(resp.order.orderId);
+        }
       } catch (err) {
         const msg = (err as Error).message;
         if (msg.includes("already_purchased")) {
@@ -47,6 +78,8 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
           setError("You can't buy your own listing.");
         } else if (msg.includes("not_available")) {
           setError("This listing is no longer available.");
+        } else if (msg.includes("out_of_stock")) {
+          setError("This item is out of stock.");
         } else {
           setError(msg);
         }
@@ -54,9 +87,45 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
     })();
   }, [listingId, router]);
 
+  async function onAddressSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!listing) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const payload: Record<string, unknown> = {
+        listingId,
+        shippingAddress: {
+          name: address.name.trim(),
+          line1: address.line1.trim(),
+          line2: address.line2.trim() || undefined,
+          city: address.city.trim(),
+          state: address.state.trim() || undefined,
+          postalCode: address.postalCode.trim(),
+          country: address.country.trim().toUpperCase(),
+          phone: address.phone.trim() || undefined,
+        },
+      };
+      const resp = await api<CreateOrderResponse>(`/marketplace/orders`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setClientSecret(resp.clientSecret);
+      setOrderId(resp.order.orderId);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
   if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!listing || !clientSecret || !orderId)
+  if (!listing)
     return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Preparing checkout...</main>;
+
+  const isPhysical = listing.kind === "physical";
+  const shipping = listing.shippingCostCents ?? 0;
+  const total = listing.priceCents + (isPhysical ? shipping : 0);
 
   return (
     <main className="mx-auto max-w-md px-6 pb-24 pt-16">
@@ -64,10 +133,123 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
       <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Buy {listing.title}</h1>
       <p className="mt-1 text-sm text-ink-soft">
         {listing.currency} {(listing.priceCents / 100).toFixed(2)}
+        {isPhysical && (
+          <>
+            {" "}
+            +{" "}
+            {shipping > 0
+              ? `${listing.currency} ${(shipping / 100).toFixed(2)} shipping`
+              : "free shipping"}
+          </>
+        )}
       </p>
-      <Elements stripe={getStripe()} options={{ clientSecret }}>
-        <CheckoutForm orderId={orderId} />
-      </Elements>
+      {isPhysical && (
+        <p className="mt-1 text-sm text-ink-soft">
+          Total:{" "}
+          <strong className="text-ink">
+            {listing.currency} {(total / 100).toFixed(2)}
+          </strong>
+        </p>
+      )}
+
+      {isPhysical && !clientSecret && (
+        <form onSubmit={onAddressSubmit} className="card mt-8 space-y-3 p-6">
+          <h2 className="font-display text-base text-ink">Shipping address</h2>
+          <label className="block">
+            <span className="label">Full name</span>
+            <input
+              required
+              maxLength={120}
+              value={address.name}
+              onChange={(e) => setAddress({ ...address, name: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="label">Address line 1</span>
+            <input
+              required
+              maxLength={200}
+              value={address.line1}
+              onChange={(e) => setAddress({ ...address, line1: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="label">Address line 2 (optional)</span>
+            <input
+              maxLength={200}
+              value={address.line2}
+              onChange={(e) => setAddress({ ...address, line2: e.target.value })}
+              className="input"
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="label">City</span>
+              <input
+                required
+                maxLength={100}
+                value={address.city}
+                onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                className="input"
+              />
+            </label>
+            <label className="block">
+              <span className="label">State / region</span>
+              <input
+                maxLength={100}
+                value={address.state}
+                onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                className="input"
+              />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="label">Postal code</span>
+              <input
+                required
+                maxLength={20}
+                value={address.postalCode}
+                onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+                className="input"
+              />
+            </label>
+            <label className="block">
+              <span className="label">Country (ISO)</span>
+              <input
+                required
+                maxLength={2}
+                value={address.country}
+                onChange={(e) =>
+                  setAddress({ ...address, country: e.target.value.toUpperCase() })
+                }
+                className="input font-mono"
+                placeholder="IE"
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="label">Phone (optional)</span>
+            <input
+              maxLength={30}
+              value={address.phone}
+              onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+              className="input"
+            />
+          </label>
+          <button type="submit" disabled={creating} className="btn-seal w-full">
+            {creating ? "Saving address..." : "Continue to payment"}
+          </button>
+        </form>
+      )}
+
+      {clientSecret && orderId && (
+        <Elements stripe={getStripe()} options={{ clientSecret }}>
+          <CheckoutForm orderId={orderId} />
+        </Elements>
+      )}
     </main>
   );
 }

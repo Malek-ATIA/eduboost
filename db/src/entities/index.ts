@@ -54,11 +54,13 @@ export {
   LISTING_KINDS,
   LISTING_STATUSES,
   ORDER_STATUSES,
+  SHIPPING_STATUSES,
   makeListingId,
   makeOrderId,
   type ListingKind,
   type ListingStatus,
   type OrderStatus,
+  type ShippingStatus,
 } from "./marketplace.js";
 export {
   SubscriptionEntity,

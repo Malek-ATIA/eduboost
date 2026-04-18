@@ -2,8 +2,16 @@ import { Entity } from "electrodb";
 import { ddbDoc, TABLE_NAME } from "../client.js";
 import { SERVICE } from "../table-schema.js";
 
-export const LISTING_KINDS = ["digital"] as const;
+export const LISTING_KINDS = ["digital", "physical"] as const;
 export type ListingKind = (typeof LISTING_KINDS)[number];
+
+export const SHIPPING_STATUSES = [
+  "awaiting_ship",
+  "shipped",
+  "delivered",
+  "cancelled",
+] as const;
+export type ShippingStatus = (typeof SHIPPING_STATUSES)[number];
 
 export const LISTING_STATUSES = ["draft", "active", "archived"] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
@@ -27,6 +35,14 @@ export const ListingEntity = new Entity(
       fileS3Key: { type: "string" },
       fileMimeType: { type: "string" },
       fileSizeBytes: { type: "number" },
+      // Physical-goods fields — only populated when kind === "physical".
+      // inStockCount is decremented on successful order; sellers must top it
+      // up manually. shippingCostCents is added to the buyer's total at
+      // order time. shipsFrom is informational (ISO country code).
+      inStockCount: { type: "number" },
+      shippingCostCents: { type: "number" },
+      shipsFrom: { type: "string" },
+      weightGrams: { type: "number" },
       status: { type: LISTING_STATUSES, default: "draft" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
@@ -71,6 +87,31 @@ export const OrderEntity = new Entity(
       // Used to gate the 1-hour auto-refund window so an admin can tell whether
       // the buyer actually consumed the file before asking for a refund.
       firstDownloadedAt: { type: "string" },
+      // Physical-order fields — only populated when the underlying listing
+      // was `kind: "physical"`. shippingCostCents is rolled into priceCents at
+      // order time but preserved separately for reporting. shippingAddress
+      // captures the snapshot at checkout so a later address change on the
+      // user profile doesn't retroactively alter historical shipments.
+      kind: { type: ["digital", "physical"] as const },
+      shippingCostCents: { type: "number" },
+      shippingStatus: { type: SHIPPING_STATUSES },
+      shippingAddress: {
+        type: "map",
+        properties: {
+          name: { type: "string", required: true },
+          line1: { type: "string", required: true },
+          line2: { type: "string" },
+          city: { type: "string", required: true },
+          state: { type: "string" },
+          postalCode: { type: "string", required: true },
+          country: { type: "string", required: true },
+          phone: { type: "string" },
+        },
+      },
+      shippingCarrier: { type: "string" },
+      trackingNumber: { type: "string" },
+      shippedAt: { type: "string" },
+      deliveredAt: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },
     },

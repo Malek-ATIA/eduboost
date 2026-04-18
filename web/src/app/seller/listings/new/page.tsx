@@ -19,10 +19,14 @@ type MyOrg = {
 export default function NewSellerListingPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [kind, setKind] = useState<"digital" | "physical">("digital");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subjects, setSubjects] = useState("");
   const [priceEur, setPriceEur] = useState("10");
+  const [shippingEur, setShippingEur] = useState("0");
+  const [inStockCount, setInStockCount] = useState("1");
+  const [shipsFrom, setShipsFrom] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +56,7 @@ export default function NewSellerListingPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!file) {
+    if (kind === "digital" && !file) {
       setError("Choose a file to upload.");
       return;
     }
@@ -63,6 +67,7 @@ export default function NewSellerListingPage() {
       const listing = await api<NewListing>(`/marketplace/listings`, {
         method: "POST",
         body: JSON.stringify({
+          kind,
           title,
           description: description || undefined,
           subjects: subjects
@@ -72,28 +77,37 @@ export default function NewSellerListingPage() {
           priceCents: Math.round(Number(priceEur) * 100),
           currency: "EUR",
           sellerOrgId: sellerOrgId || undefined,
+          ...(kind === "physical"
+            ? {
+                shippingCostCents: Math.round(Number(shippingEur) * 100),
+                inStockCount: Math.max(0, Math.round(Number(inStockCount))),
+                shipsFrom: shipsFrom.trim() ? shipsFrom.trim().toUpperCase() : undefined,
+              }
+            : {}),
         }),
       });
 
-      setProgress("Requesting upload URL...");
-      const upload = await api<{ uploadUrl: string; key: string }>(
-        `/marketplace/listings/${listing.listingId}/upload-url`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            mimeType: file.type || "application/octet-stream",
-            sizeBytes: file.size,
-          }),
-        },
-      );
+      if (kind === "digital" && file) {
+        setProgress("Requesting upload URL...");
+        const upload = await api<{ uploadUrl: string; key: string }>(
+          `/marketplace/listings/${listing.listingId}/upload-url`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              mimeType: file.type || "application/octet-stream",
+              sizeBytes: file.size,
+            }),
+          },
+        );
 
-      setProgress("Uploading file to S3...");
-      const put = await fetch(upload.uploadUrl, {
-        method: "PUT",
-        headers: { "content-type": file.type || "application/octet-stream" },
-        body: file,
-      });
-      if (!put.ok) throw new Error(`S3 upload failed: ${put.status}`);
+        setProgress("Uploading file to S3...");
+        const put = await fetch(upload.uploadUrl, {
+          method: "PUT",
+          headers: { "content-type": file.type || "application/octet-stream" },
+          body: file,
+        });
+        if (!put.ok) throw new Error(`S3 upload failed: ${put.status}`);
+      }
 
       setProgress("Publishing listing...");
       await api(`/marketplace/listings/${listing.listingId}`, {
@@ -124,6 +138,17 @@ export default function NewSellerListingPage() {
       </p>
 
       <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
+        <label className="block">
+          <span className="label">Kind</span>
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as "digital" | "physical")}
+            className="input"
+          >
+            <option value="digital">Digital (file download)</option>
+            <option value="physical">Physical (shipped to buyer)</option>
+          </select>
+        </label>
         <label className="block">
           <span className="label">Title</span>
           <input
@@ -182,16 +207,56 @@ export default function NewSellerListingPage() {
             </select>
           </label>
         )}
-        <label className="block">
-          <span className="label">File</span>
-          <input
-            required
-            type="file"
-            accept="application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.zip"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-ink"
-          />
-        </label>
+        {kind === "physical" && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block">
+                <span className="label">In stock</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={inStockCount}
+                  onChange={(e) => setInStockCount(e.target.value)}
+                  className="input"
+                />
+              </label>
+              <label className="block">
+                <span className="label">Shipping cost (EUR)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={shippingEur}
+                  onChange={(e) => setShippingEur(e.target.value)}
+                  className="input"
+                />
+              </label>
+            </div>
+            <label className="block">
+              <span className="label">Ships from (ISO country, optional)</span>
+              <input
+                maxLength={2}
+                value={shipsFrom}
+                onChange={(e) => setShipsFrom(e.target.value.toUpperCase())}
+                className="input font-mono"
+                placeholder="IE"
+              />
+            </label>
+          </>
+        )}
+
+        {kind === "digital" && (
+          <label className="block">
+            <span className="label">File</span>
+            <input
+              required
+              type="file"
+              accept="application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.zip"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="text-ink"
+            />
+          </label>
+        )}
 
         {progress && <p className="text-sm text-ink-soft">{progress}</p>}
         {error && <p className="text-sm text-seal">{error}</p>}

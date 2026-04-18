@@ -157,6 +157,22 @@ async function onPaymentFailed(pi: Stripe.PaymentIntent) {
   if (pi.metadata?.kind === "marketplace_order") {
     const orderId = pi.metadata.orderId;
     if (!orderId) return;
+    // For a physical order, restore the stock we optimistically decremented
+    // when the buyer hit /orders. Non-fatal — a failed restore still leaves
+    // the order in "cancelled" so it won't be ship-able.
+    const order = await OrderEntity.get({ orderId }).go();
+    if (order.data?.kind === "physical" && order.data.listingId) {
+      try {
+        const listing = await ListingEntity.get({ listingId: order.data.listingId }).go();
+        if (listing.data) {
+          await ListingEntity.patch({ listingId: order.data.listingId })
+            .set({ inStockCount: (listing.data.inStockCount ?? 0) + 1 })
+            .go();
+        }
+      } catch (err) {
+        console.error("marketplace: stock restore on payment failure failed", err);
+      }
+    }
     await OrderEntity.patch({ orderId }).set({ status: "cancelled" }).go();
     return;
   }
