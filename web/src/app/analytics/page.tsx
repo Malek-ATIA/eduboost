@@ -30,11 +30,27 @@ type ParentResponse = {
   };
 };
 
+type TeacherMetrics = {
+  userId: string;
+  displayName: string;
+  sessionsHeld: number;
+  upcomingSessions: number;
+  hoursTaught: number;
+  uniqueStudents: number;
+  totalBookings: number;
+  totalEarningsCents: number;
+  currency: string;
+  ratingAvg: number | null;
+  ratingCount: number;
+  gradesGiven: number;
+};
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const [role, setRole] = useState<Role | null>(null);
   const [student, setStudent] = useState<UserMetrics | null>(null);
   const [parent, setParent] = useState<ParentResponse | null>(null);
+  const [teacher, setTeacher] = useState<TeacherMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,7 +58,7 @@ export default function AnalyticsPage() {
       const session = await currentSession();
       if (!session) return router.replace("/login");
       const r = currentRole(session);
-      if (r !== "student" && r !== "parent") {
+      if (r !== "student" && r !== "parent" && r !== "teacher") {
         return router.replace("/dashboard");
       }
       setRole(r);
@@ -50,6 +66,9 @@ export default function AnalyticsPage() {
         if (r === "parent") {
           const p = await api<ParentResponse>(`/analytics/parent`);
           setParent(p);
+        } else if (r === "teacher") {
+          const t = await api<TeacherMetrics>(`/analytics/teacher`);
+          setTeacher(t);
         } else {
           const s = await api<UserMetrics>(`/analytics/student`);
           setStudent(s);
@@ -66,7 +85,11 @@ export default function AnalyticsPage() {
         <div>
           <p className="eyebrow">Insights</p>
           <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
-            {role === "parent" ? "Family analytics" : "My learning analytics"}
+            {role === "parent"
+              ? "Family analytics"
+              : role === "teacher"
+                ? "Teaching analytics"
+                : "My learning analytics"}
           </h1>
         </div>
         <Link href="/dashboard" className="btn-ghost">
@@ -75,11 +98,37 @@ export default function AnalyticsPage() {
       </div>
 
       {error && <p className="mt-4 text-sm text-seal">{error}</p>}
-      {!error && !student && !parent && (
+      {!error && !student && !parent && !teacher && (
         <p className="mt-6 text-sm text-ink-soft">Loading...</p>
       )}
 
       {student && <MetricsGrid title="Totals" m={student} />}
+
+      {teacher && (
+        <section className="card mt-8 p-5">
+          <h2 className="font-display text-xl text-ink">Totals</h2>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <Stat
+              label="Earnings (net)"
+              value={`${teacher.currency} ${(teacher.totalEarningsCents / 100).toFixed(2)}`}
+            />
+            <Stat label="Sessions held" value={String(teacher.sessionsHeld)} />
+            <Stat label="Hours taught" value={String(teacher.hoursTaught)} />
+            <Stat label="Upcoming sessions" value={String(teacher.upcomingSessions)} />
+            <Stat label="Unique students" value={String(teacher.uniqueStudents)} />
+            <Stat label="Total bookings" value={String(teacher.totalBookings)} />
+            <Stat
+              label="Rating"
+              value={
+                teacher.ratingAvg === null || teacher.ratingCount === 0
+                  ? "—"
+                  : `★ ${teacher.ratingAvg.toFixed(1)} (${teacher.ratingCount})`
+              }
+            />
+            <Stat label="AI grades given" value={String(teacher.gradesGiven)} />
+          </div>
+        </section>
+      )}
 
       {parent && (
         <>

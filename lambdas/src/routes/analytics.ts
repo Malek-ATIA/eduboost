@@ -6,6 +6,8 @@ import {
   ReviewEntity,
   AiGradeEntity,
   ParentChildLinkEntity,
+  SessionEntity,
+  TeacherProfileEntity,
   UserEntity,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
@@ -99,6 +101,62 @@ analyticsRoutes.get("/student", async (c) => {
   }
   const m = await metricsFor(sub);
   return c.json(m);
+});
+
+// Teacher view: symmetric to the student/parent surface but built around the
+// teacher's inflows and teaching cadence instead of spend + attendance. Keeps
+// the "analytics space" promise in the spec for teachers (separate from the
+// financial /reports dashboard which focuses on gross/fee/net).
+analyticsRoutes.get("/teacher", async (c) => {
+  const { sub } = c.get("auth");
+  const user = await UserEntity.get({ userId: sub }).go();
+  if (!user.data) return c.json({ error: "user_not_found" }, 404);
+  if (user.data.role !== "teacher") {
+    return c.json({ error: "not_available_for_role" }, 403);
+  }
+
+  const [profile, bookings, sessions, payments, grades] = await Promise.all([
+    TeacherProfileEntity.get({ userId: sub }).go(),
+    BookingEntity.query.byTeacher({ teacherId: sub }).go({ limit: 1000 }),
+    SessionEntity.query.byTeacher({ teacherId: sub }).go({ limit: 1000 }),
+    PaymentEntity.query.byPayee({ payeeId: sub }).go({ limit: 1000 }),
+    AiGradeEntity.query.byTeacher({ teacherId: sub }).go({ limit: 1000 }),
+  ]);
+
+  // Unique student count across all the teacher's bookings. Dedup with a Set
+  // so one student who books a package + a trial still counts once.
+  const uniqueStudents = new Set(bookings.data.map((b) => b.studentId));
+
+  // Completed-session approximation of hours taught. SessionEntity has
+  // startsAt/endsAt so a future pass could compute real durations; MVP keeps
+  // the one-hour fallback used elsewhere in the analytics surface.
+  const completed = sessions.data.filter((s) => s.status === "completed");
+
+  // Earnings: net of platformFeeCents so the number matches /teacher/earnings
+  // (teachers see take-home, not gross). Refunded payments are excluded.
+  const succeeded = payments.data.filter((p) => p.status === "succeeded");
+  const totalEarningsCents = succeeded.reduce(
+    (sum, p) => sum + (p.amountCents ?? 0) - (p.platformFeeCents ?? 0),
+    0,
+  );
+  const currency = succeeded[0]?.currency ?? "EUR";
+
+  return c.json({
+    userId: sub,
+    displayName: user.data.displayName,
+    sessionsHeld: completed.length,
+    upcomingSessions: sessions.data.filter(
+      (s) => s.status === "scheduled" || s.status === "live",
+    ).length,
+    hoursTaught: completed.length,
+    uniqueStudents: uniqueStudents.size,
+    totalBookings: bookings.data.length,
+    totalEarningsCents,
+    currency,
+    ratingAvg: profile.data?.ratingAvg ?? null,
+    ratingCount: profile.data?.ratingCount ?? 0,
+    gradesGiven: grades.data.length,
+  });
 });
 
 // Parent view: aggregate across all accepted children, plus the parent's own
