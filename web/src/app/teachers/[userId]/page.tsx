@@ -52,6 +52,8 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [wallDraft, setWallDraft] = useState("");
   const [wallSubmitting, setWallSubmitting] = useState(false);
+  const [favorited, setFavorited] = useState<boolean | null>(null);
+  const [favoriteSubmitting, setFavoriteSubmitting] = useState(false);
 
   const fetchTeacher = useCallback(() => {
     return api<TeacherResponse>(`/teachers/${userId}`)
@@ -81,8 +83,34 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
       if (!s) return;
       setViewerSub((s.getIdToken().payload.sub as string) ?? null);
       setViewerIsAdmin(isAdmin(s));
+      // Check current favorite state for the signed-in viewer. Silent on
+      // failure — an anonymous visitor simply sees no bookmark affordance.
+      api<{ favorited: boolean }>(`/favorites/check/${userId}`)
+        .then((r) => setFavorited(r.favorited))
+        .catch(() => setFavorited(null));
     });
-  }, [fetchTeacher, fetchReviews, fetchWall]);
+  }, [fetchTeacher, fetchReviews, fetchWall, userId]);
+
+  async function toggleFavorite() {
+    if (favorited === null) return;
+    setFavoriteSubmitting(true);
+    try {
+      if (favorited) {
+        await api(`/favorites/${userId}`, { method: "DELETE" });
+        setFavorited(false);
+      } else {
+        await api(`/favorites`, {
+          method: "POST",
+          body: JSON.stringify({ favoriteId: userId, kind: "teacher" }),
+        });
+        setFavorited(true);
+      }
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setFavoriteSubmitting(false);
+    }
+  }
 
   async function postToWall(e: React.FormEvent) {
     e.preventDefault();
@@ -151,6 +179,21 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
           </div>
         </div>
         <div className="text-right">
+          {favorited !== null && viewerSub && (
+            <button
+              onClick={toggleFavorite}
+              disabled={favoriteSubmitting}
+              aria-pressed={favorited}
+              className={`mb-3 inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 text-xs uppercase tracking-widest transition ${
+                favorited
+                  ? "border-seal/40 bg-seal/10 text-seal"
+                  : "border-ink-faded/50 bg-parchment/40 text-ink-soft hover:border-seal/40 hover:bg-seal/5 hover:text-seal"
+              }`}
+            >
+              <span aria-hidden>{favorited ? "★" : "☆"}</span>
+              {favorited ? "Saved" : "Save"}
+            </button>
+          )}
           <div className="font-display text-3xl text-ink">€{Math.round(profile.hourlyRateCents / 100)}</div>
           <div className="text-sm text-ink-soft">per hour</div>
           {profile.ratingCount > 0 && (

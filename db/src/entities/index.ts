@@ -137,3 +137,8 @@ export {
   dmThreadId,
   makeMailboxMessageId,
 } from "./mailbox.js";
+export {
+  FavoriteEntity,
+  FAVORITE_KINDS,
+  type FavoriteKind,
+} from "./favorite.js";

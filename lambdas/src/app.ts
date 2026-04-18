@@ -37,6 +37,7 @@ import { assessmentRoutes } from "./routes/assessments.js";
 import { studyMaterialRoutes } from "./routes/study-materials.js";
 import { reviewSessionRoutes } from "./routes/review-sessions.js";
 import { mailboxRoutes } from "./routes/mailbox.js";
+import { favoriteRoutes } from "./routes/favorites.js";
 
 export const app = new Hono();
 
@@ -85,6 +86,7 @@ app.route("/assessments", assessmentRoutes);
 app.route("/study-materials", studyMaterialRoutes);
 app.route("/review-sessions", reviewSessionRoutes);
 app.route("/mailbox", mailboxRoutes);
+app.route("/favorites", favoriteRoutes);
 
 app.onError((err, c) => {
   console.error(err);

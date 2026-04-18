@@ -66,6 +66,7 @@ export default function DashboardPage() {
       { href: "/grades", label: "My grades", description: "Feedback from AI-graded submissions" },
       { href: "/analytics", label: "Analytics", description: "Your spend, attendance, grades, and activity" },
       { href: "/notes", label: "My notes", description: "Personal notes from classroom sessions" },
+      { href: "/favorites", label: "My favorites", description: "Teachers and organizations you've bookmarked" },
     );
   }
   if (role === "parent") {
@@ -167,6 +168,7 @@ export default function DashboardPage() {
       title: "Classes & learning",
       hrefs: [
         "/teachers",
+        "/favorites",
         "/bookings",
         "/teacher/bookings",
         "/requests",
