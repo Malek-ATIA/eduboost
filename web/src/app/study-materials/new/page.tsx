@@ -15,6 +15,7 @@ export default function NewMaterialPage() {
   const [subject, setSubject] = useState("");
   const [kind, setKind] = useState<Kind>("notes");
   const [description, setDescription] = useState("");
+  const [premium, setPremium] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export default function NewMaterialPage() {
           subject: subject.trim(),
           kind,
           description: description.trim() || undefined,
+          premium,
         }),
       });
       setProgress("Uploading file...");
@@ -126,6 +128,19 @@ export default function NewMaterialPage() {
             onChange={(e) => setDescription(e.target.value)}
             className="input"
           />
+        </label>
+        <label className="flex items-start gap-2 text-sm text-ink-soft">
+          <input
+            type="checkbox"
+            checked={premium}
+            onChange={(e) => setPremium(e.target.checked)}
+            className="mt-0.5 accent-seal"
+          />
+          <span>
+            <strong className="text-ink">Premium</strong> — only students with
+            an active premium membership can download. Authors and admins
+            always have access.
+          </span>
         </label>
         <label className="block">
           <span className="label">File</span>

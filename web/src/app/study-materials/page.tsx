@@ -10,6 +10,7 @@ type Material = {
   title: string;
   subject: string;
   description?: string;
+  premium?: boolean;
   fileS3Key?: string;
   createdAt: string;
 };
@@ -92,7 +93,14 @@ export default function StudyMaterialsPage() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-display text-base text-ink">{m.title}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-base text-ink">{m.title}</span>
+                      {m.premium && (
+                        <span className="rounded-sm border border-seal/40 bg-seal/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-seal">
+                          Premium
+                        </span>
+                      )}
+                    </div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {m.kind} · {m.subject} · {new Date(m.createdAt).toLocaleDateString()}
                     </div>

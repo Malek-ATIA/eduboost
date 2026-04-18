@@ -11,6 +11,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   StudyMaterialEntity,
   STUDY_MATERIAL_KINDS,
+  SubscriptionEntity,
   makeMaterialId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
@@ -75,6 +76,7 @@ const createSchema = z.object({
   title: z.string().trim().min(3).max(200),
   subject: z.string().trim().min(1).max(100),
   description: z.string().trim().max(2000).optional(),
+  premium: z.boolean().default(false),
 });
 
 studyMaterialRoutes.post(
@@ -147,10 +149,29 @@ studyMaterialRoutes.get(
   "/:materialId/download-url",
   zValidator("param", z.object({ materialId: z.string().min(1) })),
   async (c) => {
+    const { sub, groups } = c.get("auth");
     const { materialId } = c.req.valid("param");
     const r = await StudyMaterialEntity.get({ materialId }).go();
     if (!r.data) return c.json({ error: "not_found" }, 404);
     if (!r.data.fileS3Key) return c.json({ error: "no_file" }, 404);
+
+    // Gate premium materials behind an active student_premium membership.
+    // Authors + admins bypass the paywall so they can audit their own or
+    // platform content. Active = Stripe subscription in "active" or "trialing".
+    if (r.data.premium) {
+      const isAuthor = r.data.authorId === sub;
+      const isAdmin = groups.includes("admin");
+      if (!isAuthor && !isAdmin) {
+        const sub$ = await SubscriptionEntity.get({ userId: sub }).go();
+        // Accept both "active" and "trialing" so free-trial subscribers aren't
+        // blocked at the paywall during their Stripe-managed trial window.
+        const ok =
+          sub$.data?.planId === "student_premium" &&
+          (sub$.data.status === "active" || sub$.data.status === "trialing");
+        if (!ok) return c.json({ error: "premium_required" }, 402);
+      }
+    }
+
     const cmd = new GetObjectCommand({
       Bucket: env.uploadsBucket,
       Key: r.data.fileS3Key,

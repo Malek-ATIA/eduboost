@@ -19,6 +19,11 @@ export const StudyMaterialEntity = new Entity(
       title: { type: "string", required: true },
       subject: { type: "string", required: true },
       description: { type: "string" },
+      // Premium materials require an active student_premium membership to
+      // download. The listing + metadata remains visible to all users so
+      // upsell hooks can render a "premium" badge and a "Subscribe to unlock"
+      // prompt. Authors and admins can always download their own/any material.
+      premium: { type: "boolean", default: false },
       fileS3Key: { type: "string" },
       fileMimeType: { type: "string" },
       fileSizeBytes: { type: "number" },
