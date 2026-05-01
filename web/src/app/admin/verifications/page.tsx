@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Row = {
   userId: string;
@@ -27,6 +29,8 @@ const STATUS_COLORS: Record<Status, string> = {
 
 export default function AdminVerificationsPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { prompt: showPrompt } = useDialog();
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState<Status>("pending");
   const [items, setItems] = useState<Row[] | null>(null);
@@ -57,7 +61,7 @@ export default function AdminVerificationsPage() {
   }, [ready, load]);
 
   async function approve(userId: string) {
-    const notes = prompt("Optional internal note for this approval (visible in history):") ?? undefined;
+    const notes = await showPrompt({ title: "Approve teacher", message: "Optional internal note for this approval (visible in history):", inputLabel: "Note" }) ?? undefined;
     try {
       await api(`/admin/verifications/${userId}/approve`, {
         method: "POST",
@@ -65,16 +69,13 @@ export default function AdminVerificationsPage() {
       });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
   async function reject(userId: string) {
-    const notes = prompt("Reason (shown to the teacher, min 10 chars):");
-    if (!notes || notes.trim().length < 10) {
-      alert("Reason is required (min 10 characters).");
-      return;
-    }
+    const notes = await showPrompt({ title: "Reject teacher", message: "Reason (shown to the teacher):", inputLabel: "Reason", inputMinLength: 10 });
+    if (!notes) return;
     try {
       await api(`/admin/verifications/${userId}/reject`, {
         method: "POST",
@@ -82,7 +83,7 @@ export default function AdminVerificationsPage() {
       });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

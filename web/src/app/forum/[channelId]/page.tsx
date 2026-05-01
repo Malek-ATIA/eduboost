@@ -4,6 +4,8 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
 import { Avatar } from "@/components/Avatar";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 import {
   ThumbsUp,
   MessageCircle,
@@ -51,6 +53,8 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
   const [error, setError] = useState<string | null>(null);
   const [sharedPostId, setSharedPostId] = useState<string | null>(null);
   const [viewerSub, setViewerSub] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [reactions, setReactions] = useState<
     Record<string, { counts: Record<string, number>; mine: string[] }>
   >({});
@@ -112,12 +116,13 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
   }
 
   async function deletePost(postId: string) {
-    if (!confirm("Delete this post and all its comments? This cannot be undone.")) return;
+    const yes = await showConfirm({ title: "Delete post", message: "Delete this post and all its comments? This cannot be undone.", destructive: true, confirmLabel: "Delete" });
+    if (!yes) return;
     try {
       await api(`/forum/posts/${postId}/delete`, { method: "POST" });
       await loadPosts();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

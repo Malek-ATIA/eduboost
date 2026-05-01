@@ -4,6 +4,8 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Resource = {
   url: string;
@@ -55,6 +57,8 @@ export default function ClassroomInfoPage({
 }) {
   const { classroomId } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [sub, setSub] = useState<string | null>(null);
   const [data, setData] = useState<Classroom | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -124,7 +128,7 @@ export default function ClassroomInfoPage({
       });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setChatBusy(false);
     }
@@ -137,7 +141,7 @@ export default function ClassroomInfoPage({
       );
       window.open(r.url, "_blank", "noopener,noreferrer");
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
@@ -170,12 +174,13 @@ export default function ClassroomInfoPage({
   }
 
   async function removeMember(userId: string) {
-    if (!confirm("Remove this member from the classroom?")) return;
+    const yes = await showConfirm({ title: "Remove member", message: "Remove this member from the classroom?", destructive: true, confirmLabel: "Remove" });
+    if (!yes) return;
     try {
       await api(`/classrooms/${classroomId}/members/${userId}`, { method: "DELETE" });
       await loadMembers();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

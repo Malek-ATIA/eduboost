@@ -6,6 +6,7 @@ import { currentRole, currentSession, type Role } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
+import { useToast } from "@/components/Toast";
 
 type Payment = {
   paymentId: string;
@@ -27,6 +28,7 @@ const STATUS_COLORS: Record<Payment["status"], string> = {
 
 export default function PaymentsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [items, setItems] = useState<Payment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export default function PaymentsPage() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setDownloadingId(null);
     }

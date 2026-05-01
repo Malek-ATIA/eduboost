@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/money";
+import { useDialog } from "@/components/Dialog";
 
 type Role = "owner" | "admin" | "teacher" | "student";
 
@@ -186,6 +187,7 @@ export default function OrgDetailPage({
 }) {
   const { orgId } = use(params);
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const [data, setData] = useState<OrgResponse | null>(null);
   const [classrooms, setClassrooms] = useState<Classroom[] | null>(null);
   const [listings, setListings] = useState<OrgListing[] | null>(null);
@@ -237,7 +239,8 @@ export default function OrgDetailPage({
   }
 
   async function removeMember(userId: string) {
-    if (!confirm("Remove this member?")) return;
+    const ok = await showConfirm({ title: "Remove member", message: "Remove this member?", destructive: true });
+    if (!ok) return;
     try {
       await api(`/orgs/${orgId}/members/${userId}`, { method: "DELETE" });
       await load();

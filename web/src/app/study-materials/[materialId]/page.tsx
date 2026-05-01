@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { Avatar } from "@/components/Avatar";
+import { useDialog } from "@/components/Dialog";
 
 type Material = {
   materialId: string;
@@ -39,6 +40,7 @@ export default function MaterialDetailPage({
 }) {
   const { materialId } = use(params);
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const [item, setItem] = useState<Material | null>(null);
   const [author, setAuthor] = useState<AuthorInfo | null>(null);
   const [viewerSub, setViewerSub] = useState<string | null>(null);
@@ -87,7 +89,8 @@ export default function MaterialDetailPage({
   }
 
   async function deleteMaterial() {
-    if (!confirm("Delete this study material? This cannot be undone.")) return;
+    const ok = await showConfirm({ title: "Delete material", message: "Delete this study material? This cannot be undone.", destructive: true });
+    if (!ok) return;
     setDeleting(true);
     try {
       await api(`/study-materials/${materialId}`, { method: "DELETE" });

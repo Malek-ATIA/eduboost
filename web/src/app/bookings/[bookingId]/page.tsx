@@ -5,6 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoneySymbol } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 import { Avatar } from "@/components/Avatar";
 import {
   ArrowLeft,
@@ -50,6 +52,8 @@ const TYPE_LABELS: Record<Booking["type"], string> = {
 
 export default function BookingDetailPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { prompt: showPrompt } = useDialog();
   const params = useParams();
   const bookingId = params.bookingId as string;
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -70,13 +74,14 @@ export default function BookingDetailPage() {
   }, [router, bookingId]);
 
   async function cancelBooking() {
-    const reason = prompt(
-      "Cancel this booking. Tell us briefly why — if the session is more than 24h away you'll be auto-refunded; otherwise this opens a support ticket.",
-    );
-    if (!reason || reason.trim().length < 10) {
-      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
-      return;
-    }
+    const reason = await showPrompt({
+      title: "Cancel booking",
+      message: "Tell us briefly why — if the session is more than 24h away you'll be auto-refunded; otherwise this opens a support ticket.",
+      inputLabel: "Reason",
+      inputPlaceholder: "Why are you cancelling?",
+      inputMinLength: 10,
+    });
+    if (!reason) return;
     setCancelling(true);
     try {
       const r = await api<{ outcome: "auto_refunded" | "dispute_created"; ticketId?: string }>(
@@ -84,9 +89,9 @@ export default function BookingDetailPage() {
         { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
       );
       if (r.outcome === "auto_refunded") {
-        alert("Booking cancelled and refund issued.");
+        toast("Booking cancelled and refund issued.", "success");
       } else {
-        alert(`A dispute ticket was opened: ${r.ticketId}. An admin will review it.`);
+        toast(`A dispute ticket was opened: ${r.ticketId}. An admin will review it.`, "info");
         if (r.ticketId) router.push(`/support/${r.ticketId}` as never);
       }
       const data = await api<Booking>(`/bookings/${bookingId}`);

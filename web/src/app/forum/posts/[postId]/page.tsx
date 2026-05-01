@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
 import { Avatar } from "@/components/Avatar";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 import {
   ThumbsUp,
   MessageCircle,
@@ -80,6 +82,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
   const [shared, setShared] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [viewerSub, setViewerSub] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [reactions, setReactions] = useState<
     Record<string, { counts: Record<string, number>; mine: string[] }>
   >({});
@@ -136,7 +140,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
         },
       }));
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
@@ -156,31 +160,33 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
       setDraft("");
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function deletePost() {
-    if (!confirm("Delete this post and all its comments? This cannot be undone.")) return;
+    const yes = await showConfirm({ title: "Delete post", message: "Delete this post and all its comments? This cannot be undone.", destructive: true, confirmLabel: "Delete" });
+    if (!yes) return;
     setDeleting(true);
     try {
       await api(`/forum/posts/${postId}/delete`, { method: "POST" });
       router.push(`/forum/${data?.post.channelId}` as never);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
       setDeleting(false);
     }
   }
 
   async function deleteComment(commentId: string) {
-    if (!confirm("Delete this comment? This cannot be undone.")) return;
+    const yes = await showConfirm({ title: "Delete comment", message: "Delete this comment? This cannot be undone.", destructive: true, confirmLabel: "Delete" });
+    if (!yes) return;
     try {
       await api(`/forum/comments/${encodeURIComponent(commentId)}/delete?postId=${encodeURIComponent(postId)}`, { method: "POST" });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

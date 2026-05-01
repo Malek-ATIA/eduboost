@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useDialog } from "@/components/Dialog";
 
 type User = {
   userId: string;
@@ -18,6 +19,7 @@ type User = {
 export default function AdminUserDetailPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
       setError("Reason must be at least 10 characters.");
       return;
     }
-    if (!confirm(`Ban ${user?.email}? They will be signed out and blocked from the platform.`)) return;
+    const okBan = await showConfirm({ title: "Ban user", message: `Ban ${user?.email}? They will be signed out and blocked from the platform.`, destructive: true });
+    if (!okBan) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -67,7 +70,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
   }
 
   async function onUnban() {
-    if (!confirm(`Restore ${user?.email}? They will regain access.`)) return;
+    const ok = await showConfirm({ title: "Restore user", message: `Restore ${user?.email}? They will regain access.`, destructive: true });
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {

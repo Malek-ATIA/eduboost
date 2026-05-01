@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 type Ticket = {
   ticketId: string;
@@ -53,6 +54,7 @@ type TicketResponse = { ticket: Ticket; messages: Message[] };
 export default function TicketPage({ params }: { params: Promise<{ ticketId: string }> }) {
   const { ticketId } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
   const [data, setData] = useState<TicketResponse | null>(null);
   const [draft, setDraft] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -185,7 +187,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
       );
       window.open(r.downloadUrl, "_blank");
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setDownloadingKey(null);
     }

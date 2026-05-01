@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 type ParentLink = {
   parentId: string;
@@ -22,6 +23,7 @@ const STATUS_COLORS: Record<ParentLink["status"], string> = {
 
 export default function StudentParentsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [items, setItems] = useState<ParentLink[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export default function StudentParentsPage() {
       await api(`/family/parents/${parentId}/${decision}`, { method: "POST" });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setBusyId(null);
     }

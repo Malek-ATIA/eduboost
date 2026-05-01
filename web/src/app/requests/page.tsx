@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession, type Role } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { Avatar } from "@/components/Avatar";
+import { useDialog } from "@/components/Dialog";
 
 type LessonRequest = {
   requestId: string;
@@ -40,6 +41,7 @@ function timeAgo(dateStr: string): string {
 
 export default function RequestsPage() {
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const [role, setRole] = useState<Role | null>(null);
   const [items, setItems] = useState<LessonRequest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,8 @@ export default function RequestsPage() {
   }, [router]);
 
   async function cancelRequest(requestId: string) {
-    if (!confirm("Cancel this lesson request?")) return;
+    const ok = await showConfirm({ title: "Cancel request", message: "Cancel this lesson request?", destructive: true });
+    if (!ok) return;
     setCancellingId(requestId);
     try {
       await api(`/lesson-requests/${requestId}/cancel`, { method: "POST" });

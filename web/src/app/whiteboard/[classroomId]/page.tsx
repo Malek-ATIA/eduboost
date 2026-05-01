@@ -3,6 +3,7 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { useDialog } from "@/components/Dialog";
 
 type Point = [number, number];
 
@@ -40,6 +41,7 @@ export default function WhiteboardPage({
   params: Promise<{ classroomId: string }>;
 }) {
   const { classroomId } = use(params);
+  const { confirm: showConfirm } = useDialog();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef<Stroke[]>([]);
   const versionRef = useRef<number>(0);
@@ -182,7 +184,8 @@ export default function WhiteboardPage({
   }
 
   async function clearBoard() {
-    if (!confirm("Clear the whiteboard for everyone?")) return;
+    const ok = await showConfirm({ title: "Clear whiteboard", message: "Clear the whiteboard for everyone?", destructive: true });
+    if (!ok) return;
     setClearing(true);
     setError(null);
     try {

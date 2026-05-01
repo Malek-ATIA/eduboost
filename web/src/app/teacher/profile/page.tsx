@@ -6,6 +6,8 @@ import { api } from "@/lib/api";
 import { toMinorUnits } from "@/lib/money";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { VideoPicker } from "@/components/VideoPicker";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type TeacherProfile = {
   bio?: string;
@@ -25,6 +27,8 @@ type TeacherProfile = {
 
 export default function TeacherProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,15 +98,16 @@ export default function TeacherProfilePage() {
   }
 
   async function submitVerification() {
-    if (!confirm("Submit your profile for team review? You won't be able to edit certain fields until it's decided.")) return;
+    const ok = await showConfirm({ title: "Submit for review", message: "Submit your profile for team review? You won't be able to edit certain fields until it's decided.", destructive: true });
+    if (!ok) return;
     try {
       await api(`/teachers/me/submit-verification`, { method: "POST" });
       setForm((f) => ({ ...f, verificationStatus: "pending" }));
     } catch (err) {
       const msg = (err as Error).message;
-      if (msg.includes("already_pending")) alert("Already under review.");
-      else if (msg.includes("already_verified")) alert("Already verified.");
-      else alert(msg);
+      if (msg.includes("already_pending")) toast("Already under review.", "info");
+      else if (msg.includes("already_verified")) toast("Already verified.", "info");
+      else toast(msg, "error");
     }
   }
 

@@ -5,6 +5,8 @@ import { api } from "@/lib/api";
 import { currentSession, isAdmin } from "@/lib/cognito";
 import { formatMoneySymbol } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type TeacherResponse = {
   user: { userId: string; displayName: string; email: string; avatarUrl?: string };
@@ -46,6 +48,8 @@ type WallPost = {
 
 export default function TeacherDetailPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params);
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [data, setData] = useState<TeacherResponse | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [wall, setWall] = useState<WallPost[] | null>(null);
@@ -110,7 +114,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
         setFavorited(true);
       }
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setFavoriteSubmitting(false);
     }
@@ -128,20 +132,21 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
       setWallDraft("");
       await fetchWall();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setWallSubmitting(false);
     }
   }
 
   async function onDelete(reviewId: string) {
-    if (!confirm("Delete this review? This cannot be undone.")) return;
+    const ok = await showConfirm({ title: "Delete review", message: "Delete this review? This cannot be undone.", destructive: true });
+    if (!ok) return;
     setDeletingId(reviewId);
     try {
       await api(`/reviews/${reviewId}`, { method: "DELETE" });
       await Promise.all([fetchReviews(), fetchTeacher()]);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setDeletingId(null);
     }

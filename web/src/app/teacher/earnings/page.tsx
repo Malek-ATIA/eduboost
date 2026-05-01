@@ -6,6 +6,7 @@ import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
 import { formatMoney, formatAmount } from "@/lib/money";
+import { useToast } from "@/components/Toast";
 
 type Totals = { gross: number; fee: number; net: number; count: number };
 type Breakdown = { booking: Totals; marketplace: Totals };
@@ -23,6 +24,7 @@ type Summary = {
 
 export default function EarningsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [data, setData] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -61,7 +63,7 @@ export default function EarningsPage() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setDownloading(false);
     }

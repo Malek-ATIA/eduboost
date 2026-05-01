@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Listing = {
   listingId: string;
@@ -29,6 +31,8 @@ const STATUS_STYLES: Record<Listing["status"], { label: string; color: string; b
 
 export default function SellerListingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [items, setItems] = useState<Listing[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -52,11 +56,12 @@ export default function SellerListingsPage() {
   }, [router]);
 
   async function deleteListing(listingId: string) {
-    if (!confirm("Delete this listing? Any active orders will be automatically refunded. This cannot be undone.")) return;
+    const ok = await showConfirm({ title: "Delete listing", message: "Delete this listing? Any active orders will be automatically refunded. This cannot be undone.", destructive: true });
+    if (!ok) return;
     try {
       const r = await api<{ ok: boolean; ordersRefunded?: number }>(`/marketplace/listings/${listingId}`, { method: "DELETE" });
       if (r.ordersRefunded && r.ordersRefunded > 0) {
-        alert(`Listing removed. ${r.ordersRefunded} order(s) were refunded and buyers notified.`);
+        toast(`Listing removed. ${r.ordersRefunded} order(s) were refunded and buyers notified.`, "success");
       }
       await load();
     } catch (err) {

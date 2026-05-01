@@ -3,6 +3,8 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type WallPost = {
   postId: string;
@@ -26,6 +28,8 @@ type Hydrated = { post: WallPost; comments: WallComment[] };
 
 export default function WallPostPage({ params }: { params: Promise<{ postId: string }> }) {
   const { postId } = use(params);
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [data, setData] = useState<Hydrated | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -63,29 +67,31 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
       setDraft("");
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function deleteComment(commentId: string) {
-    if (!confirm("Delete this comment?")) return;
+    const yes = await showConfirm({ title: "Delete comment", message: "Delete this comment?", destructive: true, confirmLabel: "Delete" });
+    if (!yes) return;
     try {
       await api(`/wall/posts/${postId}/comments/${commentId}`, { method: "DELETE" });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
   async function deletePost() {
-    if (!confirm("Delete this post and all its comments? This cannot be undone.")) return;
+    const yes = await showConfirm({ title: "Delete post", message: "Delete this post and all its comments? This cannot be undone.", destructive: true, confirmLabel: "Delete" });
+    if (!yes) return;
     try {
       await api(`/wall/posts/${postId}`, { method: "DELETE" });
       if (data?.post.teacherId) window.location.assign(`/teachers/${data.post.teacherId}`);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

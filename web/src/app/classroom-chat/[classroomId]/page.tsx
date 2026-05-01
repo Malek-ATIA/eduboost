@@ -3,6 +3,8 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type ChatMessage = {
   channelId: string;
@@ -29,6 +31,8 @@ export default function ClassroomChatPage({
 }) {
   const { classroomId } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [sub, setSub] = useState<string | null>(null);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
@@ -96,7 +100,8 @@ export default function ClassroomChatPage({
   }
 
   async function deleteMessage(messageId: string) {
-    if (!confirm("Delete this message for everyone?")) return;
+    const ok = await showConfirm({ title: "Delete message", message: "Delete this message for everyone?", destructive: true });
+    if (!ok) return;
     try {
       await api(
         `/chat/classroom/${encodeURIComponent(classroomId)}/${encodeURIComponent(
@@ -106,7 +111,7 @@ export default function ClassroomChatPage({
       );
       setMessages((prev) => prev?.filter((m) => m.messageId !== messageId) ?? null);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

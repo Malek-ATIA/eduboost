@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/money";
+import { useDialog } from "@/components/Dialog";
 
 type Plan = {
   id: "student_premium" | "teacher_pro";
@@ -31,6 +32,7 @@ const PLAN_ICONS: Record<string, string> = {
 
 function MembershipInner() {
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const searchParams = useSearchParams();
   const checkoutStatus = searchParams.get("status");
 
@@ -85,7 +87,8 @@ function MembershipInner() {
   }
 
   async function cancel() {
-    if (!confirm("Cancel your subscription at the end of the billing period?")) return;
+    const ok = await showConfirm({ title: "Cancel subscription", message: "Cancel your subscription at the end of the billing period?", destructive: true });
+    if (!ok) return;
     setBusy(true);
     setError(null);
     try {

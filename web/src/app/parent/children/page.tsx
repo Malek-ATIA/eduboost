@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type ChildLink = {
   parentId: string;
@@ -22,6 +24,8 @@ const STATUS_COLORS: Record<ChildLink["status"], string> = {
 
 export default function ParentChildrenPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [items, setItems] = useState<ChildLink[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [childEmail, setChildEmail] = useState("");
@@ -75,12 +79,13 @@ export default function ParentChildrenPage() {
   }
 
   async function onRemove(childId: string) {
-    if (!confirm("Remove this child link? They will be unlinked immediately.")) return;
+    const ok = await showConfirm({ title: "Remove child link", message: "Remove this child link? They will be unlinked immediately.", destructive: true });
+    if (!ok) return;
     try {
       await api(`/family/children/${childId}`, { method: "DELETE" });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
@@ -95,7 +100,7 @@ export default function ParentChildrenPage() {
       });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 

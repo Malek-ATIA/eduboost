@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useDialog } from "@/components/Dialog";
 
 type GoogleStatus =
   | { connected: false }
@@ -17,6 +18,7 @@ type GoogleStatus =
 
 function GoogleSettingsInner() {
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const reason = searchParams.get("reason");
@@ -60,7 +62,8 @@ function GoogleSettingsInner() {
   }
 
   async function disconnect() {
-    if (!confirm("Disconnect Google? Calendar events already pushed will remain but won't stay in sync.")) return;
+    const ok = await showConfirm({ title: "Disconnect Google", message: "Disconnect Google? Calendar events already pushed will remain but won't stay in sync.", destructive: true });
+    if (!ok) return;
     setBusy(true);
     setError(null);
     try {

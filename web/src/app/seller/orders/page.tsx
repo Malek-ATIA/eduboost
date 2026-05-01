@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatAmount } from "@/lib/money";
+import { useToast } from "@/components/Toast";
 
 type ShippingAddress = {
   name: string;
@@ -42,6 +43,7 @@ const STATUS_COLORS: Record<Order["status"], string> = {
 
 export default function SellerOrdersPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [items, setItems] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [shipOrderId, setShipOrderId] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export default function SellerOrdersPage() {
       setTracking("");
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setShipping(false);
     }

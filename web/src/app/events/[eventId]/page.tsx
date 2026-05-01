@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 import { Avatar } from "@/components/Avatar";
 
 type EventData = {
@@ -50,6 +52,8 @@ export default function EventDetailPage({
 }) {
   const { eventId } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [event, setEvent] = useState<EventData | null>(null);
   const [organizer, setOrganizer] = useState<OrganizerInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -114,14 +118,19 @@ export default function EventDetailPage({
   }
 
   async function cancelEvent() {
-    if (!confirm("Cancel this event? All ticket holders will be refunded and notified. This cannot be undone.")) return;
+    const confirmed = await showConfirm({
+      title: "Cancel event",
+      message: "All ticket holders will be refunded and notified. This cannot be undone.",
+      destructive: true,
+    });
+    if (!confirmed) return;
     try {
       const r = await api<{ ok: boolean; ticketsRefunded?: number; ticketsFailed?: number }>(`/events/${eventId}`, {
         method: "PATCH",
         body: JSON.stringify({ status: "cancelled" }),
       });
       if (r.ticketsRefunded && r.ticketsRefunded > 0) {
-        alert(`Event cancelled. ${r.ticketsRefunded} ticket(s) refunded.${r.ticketsFailed ? ` ${r.ticketsFailed} refund(s) failed — check support.` : ""}`);
+        toast(`Event cancelled. ${r.ticketsRefunded} ticket(s) refunded.${r.ticketsFailed ? ` ${r.ticketsFailed} refund(s) failed — check support.` : ""}`, "success");
       }
       await load();
     } catch (err) {

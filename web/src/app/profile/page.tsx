@@ -6,6 +6,8 @@ import { currentSession, currentRole, type Role } from "@/lib/cognito";
 import { toMinorUnits } from "@/lib/money";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { VideoPicker } from "@/components/VideoPicker";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Me = {
   userId: string;
@@ -32,6 +34,8 @@ type TeacherProfile = {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const [me, setMe] = useState<Me | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -134,15 +138,16 @@ export default function ProfilePage() {
   }
 
   async function submitVerification() {
-    if (!confirm("Submit your profile for team review? You won't be able to edit certain fields until it's decided.")) return;
+    const ok = await showConfirm({ title: "Submit for review", message: "Submit your profile for team review? You won't be able to edit certain fields until it's decided.", destructive: true });
+    if (!ok) return;
     try {
       await api(`/teachers/me/submit-verification`, { method: "POST" });
       setTeacherForm((f) => ({ ...f, verificationStatus: "pending" }));
     } catch (err) {
       const msg = (err as Error).message;
-      if (msg.includes("already_pending")) alert("Already under review.");
-      else if (msg.includes("already_verified")) alert("Already verified.");
-      else alert(msg);
+      if (msg.includes("already_pending")) toast("Already under review.", "info");
+      else if (msg.includes("already_verified")) toast("Already verified.", "info");
+      else toast(msg, "error");
     }
   }
 

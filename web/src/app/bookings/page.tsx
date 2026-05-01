@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoneySymbol } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Booking = {
   bookingId: string;
@@ -26,6 +28,8 @@ const STATUS_COLORS: Record<Booking["status"], string> = {
 
 export default function BookingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { prompt: showPrompt } = useDialog();
   const [items, setItems] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -51,13 +55,14 @@ export default function BookingsPage() {
   }, [router]);
 
   async function cancelBooking(bookingId: string) {
-    const reason = prompt(
-      "Cancel this booking. Tell us briefly why — if the session is more than 24h away you'll be auto-refunded; otherwise this opens a support ticket.",
-    );
-    if (!reason || reason.trim().length < 10) {
-      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
-      return;
-    }
+    const reason = await showPrompt({
+      title: "Cancel booking",
+      message: "Tell us briefly why — if the session is more than 24h away you'll be auto-refunded; otherwise this opens a support ticket.",
+      inputLabel: "Reason",
+      inputPlaceholder: "Why are you cancelling?",
+      inputMinLength: 10,
+    });
+    if (!reason) return;
     setCancellingId(bookingId);
     setError(null);
     try {
@@ -66,9 +71,9 @@ export default function BookingsPage() {
         { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
       );
       if (r.outcome === "auto_refunded") {
-        alert("Booking cancelled and refund issued.");
+        toast("Booking cancelled and refund issued.", "success");
       } else {
-        alert(`A dispute ticket was opened: ${r.ticketId}. An admin will review it.`);
+        toast(`A dispute ticket was opened: ${r.ticketId}. An admin will review it.`, "info");
         if (r.ticketId) router.push(`/support/${r.ticketId}` as never);
       }
       await load();
@@ -127,15 +132,21 @@ export default function BookingsPage() {
                       </Link>
                       <button
                         onClick={async () => {
-                          const notes = prompt("Request a review session with the teacher. Add a note (optional).") ?? "";
+                          const notes = await showPrompt({
+                            title: "Request review session",
+                            message: "Request a review session with the teacher. Add a note (optional).",
+                            inputLabel: "Note",
+                            inputPlaceholder: "Any details for the teacher...",
+                          });
+                          if (notes === null) return;
                           try {
                             await api(`/review-sessions`, {
                               method: "POST",
                               body: JSON.stringify({ bookingId: b.bookingId, notes: notes || undefined }),
                             });
-                            alert("Review session requested.");
+                            toast("Review session requested.", "success");
                           } catch (err) {
-                            alert((err as Error).message);
+                            toast((err as Error).message, "error");
                           }
                         }}
                         className="btn-secondary"

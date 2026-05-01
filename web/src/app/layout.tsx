@@ -5,6 +5,8 @@ import { Header } from "@/components/Header";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AppShell } from "@/components/AppShell";
 import { Footer } from "@/components/Footer";
+import { ToastProvider } from "@/components/Toast";
+import { DialogProvider } from "@/components/Dialog";
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -23,12 +25,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={nunito.variable}>
       <body className="flex min-h-screen flex-col font-sans text-ink">
-        <Header />
-        <Breadcrumbs />
-        <div className="flex-1">
-          <AppShell>{children}</AppShell>
-        </div>
-        <Footer />
+        <ToastProvider>
+          <DialogProvider>
+            <Header />
+            <Breadcrumbs />
+            <div className="flex-1">
+              <AppShell>{children}</AppShell>
+            </div>
+            <Footer />
+          </DialogProvider>
+        </ToastProvider>
       </body>
     </html>
   );

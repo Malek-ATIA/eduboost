@@ -11,6 +11,8 @@ import {
 } from "amazon-chime-sdk-js";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type JoinResponse = { meeting: unknown; attendee: unknown };
 type SessionResponse = { sessionId: string; classroomId: string; teacherId: string; status: string };
@@ -48,6 +50,8 @@ const STATUS_COLORS: Record<AttendanceStatus, string> = {
 
 export default function ClassroomPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = use(params);
+  const { toast } = useToast();
+  const { confirm: showConfirm } = useDialog();
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<DefaultMeetingSession | null>(null);
@@ -104,7 +108,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       setNoteSaved(true);
       setTimeout(() => setNoteSaved(false), 2500);
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setNoteSaving(false);
     }
@@ -178,7 +182,8 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   }
 
   async function endBreakout(breakoutId: string) {
-    if (!confirm("End this breakout and disconnect participants?")) return;
+    const yes = await showConfirm({ title: "End breakout", message: "End this breakout and disconnect participants?", destructive: true, confirmLabel: "End breakout" });
+    if (!yes) return;
     try {
       await api(`/chime/sessions/${sessionId}/breakouts/${breakoutId}`, { method: "DELETE" });
       await loadBreakouts();
@@ -210,7 +215,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     try {
       await api(`/attendance/sessions/${sessionId}`, { method: "POST", body: JSON.stringify({ entries: [{ userId, status: newStatus }] }) });
       await loadAttendance();
-    } catch (err) { alert((err as Error).message); }
+    } catch (err) { toast((err as Error).message, "error"); }
   }
 
   function togglePanel(panel: Panel) {

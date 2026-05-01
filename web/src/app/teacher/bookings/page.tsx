@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoneySymbol } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Booking = {
   bookingId: string;
@@ -27,6 +29,8 @@ const STATUS_COLORS: Record<Booking["status"], string> = {
 
 export default function TeacherBookingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { prompt: showPrompt } = useDialog();
   const [items, setItems] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -50,20 +54,21 @@ export default function TeacherBookingsPage() {
   }, [router]);
 
   async function cancelBooking(bookingId: string) {
-    const reason = prompt(
-      "Cancel this booking? The student will be notified and auto-refunded. Please provide a reason.",
-    );
-    if (!reason || reason.trim().length < 10) {
-      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
-      return;
-    }
+    const reason = await showPrompt({
+      title: "Cancel booking",
+      message: "The student will be notified and auto-refunded. Please provide a reason.",
+      inputLabel: "Reason",
+      inputPlaceholder: "Why are you cancelling?",
+      inputMinLength: 10,
+    });
+    if (!reason) return;
     setCancellingId(bookingId);
     try {
       await api(`/bookings/${bookingId}/cancel`, {
         method: "POST",
         body: JSON.stringify({ reason: reason.trim() }),
       });
-      alert("Booking cancelled and student refunded.");
+      toast("Booking cancelled and student refunded.", "success");
       await load();
     } catch (err) {
       setError((err as Error).message);

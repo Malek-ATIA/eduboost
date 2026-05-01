@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { useDialog } from "@/components/Dialog";
 
 type Note = {
   sessionId: string;
@@ -14,6 +15,7 @@ type Note = {
 
 export default function MyNotesPage() {
   const router = useRouter();
+  const { confirm: showConfirm } = useDialog();
   const [items, setItems] = useState<Note[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,8 @@ export default function MyNotesPage() {
   }, [router]);
 
   async function deleteNote(sessionId: string) {
-    if (!confirm("Delete this note? This cannot be undone.")) return;
+    const ok = await showConfirm({ title: "Delete note", message: "Delete this note? This cannot be undone.", destructive: true });
+    if (!ok) return;
     try {
       await api(`/notes/sessions/${sessionId}`, { method: "DELETE" });
       await load();

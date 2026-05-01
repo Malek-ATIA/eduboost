@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/money";
+import { useToast } from "@/components/Toast";
+import { useDialog } from "@/components/Dialog";
 
 type Order = {
   orderId: string;
@@ -39,6 +41,8 @@ const SHIPPING_STYLES: Record<string, { label: string; color: string }> = {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { prompt: showPrompt } = useDialog();
   const [items, setItems] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -63,13 +67,14 @@ export default function OrdersPage() {
   }, [router]);
 
   async function requestRefund(orderId: string) {
-    const reason = prompt(
-      "Request a refund. Within 1 hour of purchase AND before you download, refunds are automatic. Otherwise this opens a support ticket.",
-    );
-    if (!reason || reason.trim().length < 10) {
-      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
-      return;
-    }
+    const reason = await showPrompt({
+      title: "Request refund",
+      message: "Within 1 hour of purchase AND before you download, refunds are automatic. Otherwise this opens a support ticket.",
+      inputLabel: "Reason",
+      inputPlaceholder: "Why are you requesting a refund?",
+      inputMinLength: 10,
+    });
+    if (!reason) return;
     setRefundingId(orderId);
     setError(null);
     try {
@@ -78,9 +83,9 @@ export default function OrdersPage() {
         { method: "POST", body: JSON.stringify({ reason: reason.trim() }) },
       );
       if (r.outcome === "auto_refunded") {
-        alert("Refund issued.");
+        toast("Refund issued.", "success");
       } else {
-        alert(`A dispute ticket was opened: ${r.ticketId}.`);
+        toast(`A dispute ticket was opened: ${r.ticketId}.`, "info");
         if (r.ticketId) router.push(`/support/${r.ticketId}` as never);
       }
       await load();
@@ -99,7 +104,7 @@ export default function OrdersPage() {
       );
       window.open(r.downloadUrl, "_blank");
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     } finally {
       setDownloadingId(null);
     }
@@ -110,7 +115,7 @@ export default function OrdersPage() {
       await api(`/marketplace/orders/${orderId}/mark-delivered`, { method: "POST" });
       await load();
     } catch (err) {
-      alert((err as Error).message);
+      toast((err as Error).message, "error");
     }
   }
 
