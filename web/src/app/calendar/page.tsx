@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { currentSession } from "@/lib/cognito";
+import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 
 type Session = {
@@ -12,6 +12,7 @@ type Session = {
   startsAt: string;
   endsAt: string;
   status: "scheduled" | "live" | "completed" | "cancelled" | "booked";
+  childName?: string;
 };
 
 type Booking = {
@@ -24,6 +25,12 @@ type Booking = {
   priceCents: number;
   currency: string;
   createdAt: string;
+  childName?: string;
+};
+
+type FamilyCalendar = {
+  sessions: (Session & { childName?: string })[];
+  bookings: (Booking & { childName?: string })[];
 };
 
 const STATUS_STYLE: Record<Session["status"], { dot: string; text: string; bg: string }> = {
@@ -49,24 +56,24 @@ export default function CalendarPage() {
   const [view, setView] = useState<View>("month");
   const [current, setCurrent] = useState(() => new Date());
 
+  const [isParent, setIsParent] = useState(false);
+
   useEffect(() => {
     (async () => {
       const session = await currentSession();
       if (!session) return router.replace("/login");
+      const role = currentRole(session);
+      const parentMode = role === "parent";
+      setIsParent(parentMode);
+
       try {
-        const [sessionsRes, bookingsRes] = await Promise.all([
-          api<{ items: Session[] }>(`/sessions/upcoming`).catch(() => ({ items: [] as Session[] })),
-          api<{ items: Booking[] }>(`/bookings/mine`).catch(() => ({ items: [] as Booking[] })),
-        ]);
-
-        const sessionBookingIds = new Set<string>();
-        for (const s of sessionsRes.items) {
-          if (s.classroomId) sessionBookingIds.add(s.classroomId);
-        }
-
-        const bookingItems: Session[] = bookingsRes.items
-          .filter((b) => b.status === "confirmed" || b.status === "completed")
-          .map((b) => {
+        if (parentMode) {
+          const family = await api<FamilyCalendar>(`/family/calendar`);
+          const sessions: Session[] = family.sessions.map((s) => ({
+            ...s,
+            childName: s.childName,
+          }));
+          const bookingItems: Session[] = family.bookings.map((b) => {
             const created = new Date(b.createdAt);
             const end = new Date(created.getTime() + 60 * 60_000);
             return {
@@ -76,10 +83,33 @@ export default function CalendarPage() {
               startsAt: created.toISOString(),
               endsAt: end.toISOString(),
               status: "booked" as const,
+              childName: b.childName,
             };
           });
+          setItems([...sessions, ...bookingItems]);
+        } else {
+          const [sessionsRes, bookingsRes] = await Promise.all([
+            api<{ items: Session[] }>(`/sessions/upcoming`).catch(() => ({ items: [] as Session[] })),
+            api<{ items: Booking[] }>(`/bookings/mine`).catch(() => ({ items: [] as Booking[] })),
+          ]);
 
-        setItems([...sessionsRes.items, ...bookingItems]);
+          const bookingItems: Session[] = bookingsRes.items
+            .filter((b) => b.status === "confirmed" || b.status === "completed")
+            .map((b) => {
+              const created = new Date(b.createdAt);
+              const end = new Date(created.getTime() + 60 * 60_000);
+              return {
+                sessionId: b.bookingId,
+                classroomId: b.classroomId ?? "",
+                teacherId: b.teacherId,
+                startsAt: created.toISOString(),
+                endsAt: end.toISOString(),
+                status: "booked" as const,
+              };
+            });
+
+          setItems([...sessionsRes.items, ...bookingItems]);
+        }
       } catch (err) {
         setError((err as Error).message);
       }
@@ -132,7 +162,9 @@ export default function CalendarPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="eyebrow">Schedule</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My calendar</h1>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+            {isParent ? "Family calendar" : "My calendar"}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border border-ink-faded/40">
@@ -339,7 +371,7 @@ function MonthGrid({
                       <div
                         className={`block cursor-pointer truncate rounded border px-1 py-0.5 text-[10px] leading-tight transition hover:opacity-80 ${st.bg} ${st.text}`}
                       >
-                        {time}
+                        {s.childName ? `${s.childName.split(" ")[0]} ${time}` : time}
                       </div>
                     </SessionPeek>
                   );
@@ -528,6 +560,9 @@ function SessionCard({ session: s }: { session: Session }) {
             {isBooked ? (
               <div className="mt-1 text-sm text-ink">
                 Booked session — awaiting schedule
+                {s.childName && (
+                  <span className="ml-2 text-xs text-ink-faded">({s.childName})</span>
+                )}
               </div>
             ) : (
               <>
@@ -535,6 +570,9 @@ function SessionCard({ session: s }: { session: Session }) {
                   {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} –{" "}
                   {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   <span className="ml-2 text-ink-faded">({durationMin} min)</span>
+                  {s.childName && (
+                    <span className="ml-2 text-xs text-ink-faded">({s.childName})</span>
+                  )}
                 </div>
                 {s.classroomId && (
                   <div className="mt-0.5 text-xs text-ink-faded">
@@ -606,6 +644,9 @@ function SessionPeek({ session, children }: { session: Session; children: React.
               <div className="mt-2 text-sm font-medium text-ink">
                 Booked on {starts.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
               </div>
+              {session.childName && (
+                <div className="mt-0.5 text-xs font-medium text-seal">{session.childName}</div>
+              )}
               <div className="mt-0.5 text-xs text-ink-faded">Awaiting teacher to schedule</div>
               <Link
                 href={`/bookings/${session.sessionId}` as never}
@@ -621,6 +662,9 @@ function SessionPeek({ session, children }: { session: Session; children: React.
                 {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} –{" "}
                 {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </div>
+              {session.childName && (
+                <div className="mt-0.5 text-xs font-medium text-seal">{session.childName}</div>
+              )}
               <div className="mt-0.5 text-xs text-ink-faded">{durationMin} min session</div>
               {session.classroomId && (
                 <div className="mt-1 truncate text-xs text-ink-faded">

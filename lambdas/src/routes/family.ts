@@ -4,6 +4,9 @@ import { z } from "zod";
 import {
   ParentChildLinkEntity,
   UserEntity,
+  SessionEntity,
+  ClassroomMembershipEntity,
+  BookingEntity,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { notify } from "../lib/notifications.js";
@@ -103,6 +106,78 @@ familyRoutes.delete("/children/:childId", async (c) => {
   if (!existing.data) return c.json({ error: "not_found" }, 404);
   await ParentChildLinkEntity.delete({ parentId: sub, childId }).go();
   return c.json({ ok: true });
+});
+
+familyRoutes.get("/calendar", async (c) => {
+  const { sub } = c.get("auth");
+  const links = await ParentChildLinkEntity.query
+    .primary({ parentId: sub })
+    .go({ limit: 50 });
+
+  const acceptedChildIds = links.data
+    .filter((l) => l.status === "accepted")
+    .map((l) => l.childId);
+
+  if (acceptedChildIds.length === 0) {
+    return c.json({ sessions: [], bookings: [] });
+  }
+
+  const now = new Date().toISOString();
+
+  const allSessions: Record<string, unknown>[] = [];
+  const allBookings: Record<string, unknown>[] = [];
+
+  const childUsers = await Promise.all(
+    acceptedChildIds.map((id) => UserEntity.get({ userId: id }).go()),
+  );
+  const childNameMap = new Map<string, string>();
+  for (const u of childUsers) {
+    if (u.data) childNameMap.set(u.data.userId, u.data.displayName ?? u.data.email);
+  }
+
+  await Promise.all(
+    acceptedChildIds.map(async (childId) => {
+      const childName = childNameMap.get(childId) ?? "Child";
+
+      const memberships = await ClassroomMembershipEntity.query
+        .byUser({ userId: childId })
+        .go({ limit: 100 });
+
+      const sessionResults = await Promise.all(
+        memberships.data
+          .filter((m) => m.role !== "teacher")
+          .map((m) =>
+            SessionEntity.query
+              .byClassroom({ classroomId: m.classroomId })
+              .gte({ startsAt: now })
+              .go({ limit: 50 })
+              .then((r) => r.data),
+          ),
+      );
+
+      for (const s of sessionResults.flat()) {
+        allSessions.push({ ...s, childId, childName });
+      }
+
+      const bookings = await BookingEntity.query
+        .byStudent({ studentId: childId })
+        .go({ limit: 50 });
+
+      for (const b of bookings.data) {
+        if (b.status === "confirmed" || b.status === "completed") {
+          allBookings.push({ ...b, childId, childName });
+        }
+      }
+    }),
+  );
+
+  const sessionMap = new Map<string, Record<string, unknown>>();
+  for (const s of allSessions) sessionMap.set(s.sessionId as string, s);
+
+  return c.json({
+    sessions: Array.from(sessionMap.values()),
+    bookings: allBookings,
+  });
 });
 
 familyRoutes.get("/parents", async (c) => {
