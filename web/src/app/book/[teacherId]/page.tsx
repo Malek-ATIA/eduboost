@@ -5,6 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { getStripe } from "@/lib/stripe";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { formatMoneySymbol } from "@/lib/money";
 
 type BookingType = "trial" | "single" | "package";
 
@@ -29,6 +30,7 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [teacher, setTeacher] = useState<TeacherResponse | null>(null);
   const [amountCents, setAmountCents] = useState(0);
+  const [currency, setCurrency] = useState("TND");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,8 +43,9 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
       try {
         const t = await api<TeacherResponse>(`/teachers/${teacherId}`);
         setTeacher(t);
-        const price =
-          type === "trial" ? Math.min(1000, Math.round(t.profile.hourlyRateCents / 2)) : t.profile.hourlyRateCents;
+        const teacherCurrency = t.profile.currency ?? "TND";
+        setCurrency(teacherCurrency);
+        const price = type === "trial" ? 0 : t.profile.hourlyRateCents;
         setAmountCents(price);
 
         const resp = await api<CreateBookingResponse>(`/bookings`, {
@@ -51,7 +54,7 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
             teacherId: teacherId,
             type,
             amountCents: price,
-            currency: t.profile.currency ?? "EUR",
+            currency: teacherCurrency,
           }),
         });
         setClientSecret(resp.clientSecret);
@@ -66,6 +69,8 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
   if (!teacher || !clientSecret)
     return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Preparing checkout...</main>;
 
+  const isDemo = clientSecret.startsWith("demo_");
+
   return (
     <main className="mx-auto max-w-md px-6 pb-24 pt-16">
       <p className="eyebrow">Checkout</p>
@@ -73,13 +78,95 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
         Book with {teacher.user.displayName}
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
-        <span className="capitalize">{type}</span> session · €{(amountCents / 100).toFixed(2)}
+        <span className="capitalize">{type}</span> session · {formatMoneySymbol(amountCents, currency, { trim: true })}
       </p>
 
-      <Elements stripe={getStripe()} options={{ clientSecret }}>
-        <CheckoutForm bookingId={bookingId!} />
-      </Elements>
+      {isDemo ? (
+        <DemoCheckoutForm bookingId={bookingId!} amountCents={amountCents} currency={currency} />
+      ) : (
+        <Elements stripe={getStripe()} options={{ clientSecret }}>
+          <CheckoutForm bookingId={bookingId!} />
+        </Elements>
+      )}
     </main>
+  );
+}
+
+function DemoCheckoutForm({
+  bookingId,
+  amountCents,
+  currency,
+}: {
+  bookingId: string;
+  amountCents: number;
+  currency: string;
+}) {
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    await new Promise((r) => setTimeout(r, 1200));
+    router.push(`/book/success?bookingId=${bookingId}&redirect_status=succeeded`);
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
+      <div className="rounded-lg border border-dashed border-ink/20 bg-cream/40 p-6">
+        <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-ink-soft">
+          Demo payment
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-soft">
+              Card number
+            </label>
+            <input
+              type="text"
+              defaultValue="4242 4242 4242 4242"
+              readOnly
+              className="w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm text-ink"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-soft">
+                Expiry
+              </label>
+              <input
+                type="text"
+                defaultValue="12/30"
+                readOnly
+                className="w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-soft">
+                CVC
+              </label>
+              <input
+                type="text"
+                defaultValue="123"
+                readOnly
+                className="w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-center text-xs text-ink-soft">
+          Stripe is not configured — this is a simulated checkout.
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="btn-seal w-full"
+      >
+        {submitting ? "Processing..." : `Pay ${formatMoneySymbol(amountCents, currency, { trim: true })}`}
+      </button>
+    </form>
   );
 }
 

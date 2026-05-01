@@ -73,12 +73,15 @@ export {
   ForumPostEntity,
   ForumCommentEntity,
   ForumVoteEntity,
+  ForumReactionEntity,
   FORUM_VOTE_TARGETS,
   FORUM_VOTE_DIRECTIONS,
+  FORUM_REACTIONS,
   makePostId,
   makeCommentId,
   type ForumVoteTarget,
   type ForumVoteDirection,
+  type ForumReaction,
 } from "./forum.js";
 export {
   WallPostEntity,

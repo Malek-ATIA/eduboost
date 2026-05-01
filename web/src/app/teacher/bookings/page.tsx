@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { formatMoneySymbol } from "@/lib/money";
 
 type Booking = {
   bookingId: string;
@@ -28,20 +29,48 @@ export default function TeacherBookingsPage() {
   const router = useRouter();
   const [items, setItems] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const r = await api<{ items: Booking[] }>(`/bookings/as-teacher`);
+      setItems(r.items);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   useEffect(() => {
     (async () => {
       const session = await currentSession();
       if (!session) return router.replace("/login");
       if (currentRole(session) !== "teacher") return router.replace("/dashboard");
-      try {
-        const r = await api<{ items: Booking[] }>(`/bookings/as-teacher`);
-        setItems(r.items);
-      } catch (err) {
-        setError((err as Error).message);
-      }
+      await load();
     })();
   }, [router]);
+
+  async function cancelBooking(bookingId: string) {
+    const reason = prompt(
+      "Cancel this booking? The student will be notified and auto-refunded. Please provide a reason.",
+    );
+    if (!reason || reason.trim().length < 10) {
+      if (reason !== null) alert("Please provide a reason of at least 10 characters.");
+      return;
+    }
+    setCancellingId(bookingId);
+    try {
+      await api(`/bookings/${bookingId}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      alert("Booking cancelled and student refunded.");
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
@@ -70,18 +99,27 @@ export default function TeacherBookingsPage() {
                 </div>
                 <div className="flex items-center gap-3 text-right">
                   <div>
-                    <div className="font-display text-base text-ink">€{(b.amountCents / 100).toFixed(2)}</div>
+                    <div className="font-display text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
                     <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>
                       {b.status}
                     </div>
                   </div>
                   {canSchedule && (
-                    <Link
-                      href={`/sessions/new?bookingId=${b.bookingId}`}
-                      className="btn-seal"
-                    >
-                      Schedule
-                    </Link>
+                    <>
+                      <Link
+                        href={`/sessions/new?bookingId=${b.bookingId}`}
+                        className="btn-seal"
+                      >
+                        Schedule
+                      </Link>
+                      <button
+                        onClick={() => cancelBooking(b.bookingId)}
+                        disabled={cancellingId === b.bookingId}
+                        className="rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-red-500 transition hover:border-red-200 hover:bg-red-50"
+                      >
+                        {cancellingId === b.bookingId ? "..." : "Cancel"}
+                      </button>
+                    </>
                   )}
                 </div>
               </li>

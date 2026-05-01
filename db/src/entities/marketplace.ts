@@ -31,7 +31,7 @@ export const ListingEntity = new Entity(
       description: { type: "string" },
       subjects: { type: "list", items: { type: "string" }, default: [] },
       priceCents: { type: "number", required: true },
-      currency: { type: "string", default: "EUR" },
+      currency: { type: "string", default: "TND" },
       fileS3Key: { type: "string" },
       fileMimeType: { type: "string" },
       fileSizeBytes: { type: "number" },
@@ -80,7 +80,7 @@ export const OrderEntity = new Entity(
       sellerId: { type: "string", required: true },
       priceCents: { type: "number", required: true },
       platformFeeCents: { type: "number", default: 0 },
-      currency: { type: "string", default: "EUR" },
+      currency: { type: "string", default: "TND" },
       status: { type: ORDER_STATUSES, default: "pending" },
       stripePaymentIntentId: { type: "string" },
       // Set the first time the buyer's client fetches a presigned download URL.

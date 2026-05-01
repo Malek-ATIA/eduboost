@@ -7,6 +7,8 @@ cdk.out/
 .env
 .env.local
 .env.*.local
+.env.test
+tests/integration/.cache/
 .DS_Store
 .turbo/
 coverage/

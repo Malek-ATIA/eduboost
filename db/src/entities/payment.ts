@@ -12,7 +12,7 @@ export const PaymentEntity = new Entity(
       payeeId: { type: "string", required: true },
       amountCents: { type: "number", required: true },
       platformFeeCents: { type: "number", default: 0 },
-      currency: { type: "string", default: "EUR" },
+      currency: { type: "string", default: "TND" },
       provider: { type: ["stripe"] as const, default: "stripe" },
       providerPaymentId: { type: "string" },
       status: { type: ["pending", "succeeded", "failed", "refunded"] as const, default: "pending" },

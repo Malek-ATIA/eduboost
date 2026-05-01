@@ -1,0 +1,16 @@
+{
+  "name": "@eduboost/integration-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "amazon-cognito-identity-js": "^6.3.12",
+    "dotenv": "^16.4.5",
+    "playwright": "^1.59.1",
+    "vitest": "^4.1.5"
+  }
+}

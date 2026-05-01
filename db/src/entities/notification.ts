@@ -23,6 +23,9 @@ export const NOTIFICATION_TYPES = [
   "profile_verified",
   "profile_rejected",
   "new_grade",
+  "event_cancelled",
+  "session_cancelled",
+  "member_removed",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

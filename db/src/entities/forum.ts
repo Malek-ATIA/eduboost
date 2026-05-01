@@ -93,6 +93,34 @@ export const ForumVoteEntity = new Entity(
   { client: ddbDoc, table: TABLE_NAME },
 );
 
+export const FORUM_REACTIONS = ["like", "love", "laugh", "wow", "insightful", "celebrate"] as const;
+export type ForumReaction = (typeof FORUM_REACTIONS)[number];
+
+export const ForumReactionEntity = new Entity(
+  {
+    model: { entity: "forumReaction", version: "1", service: SERVICE },
+    attributes: {
+      targetId: { type: "string", required: true },
+      userId: { type: "string", required: true },
+      targetType: { type: FORUM_VOTE_TARGETS, required: true },
+      reaction: { type: FORUM_REACTIONS, required: true },
+      createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
+    },
+    indexes: {
+      primary: {
+        pk: { field: "pk", composite: ["targetId"] },
+        sk: { field: "sk", composite: ["userId", "reaction"] },
+      },
+      byUser: {
+        index: "gsi1",
+        pk: { field: "gsi1pk", composite: ["userId"] },
+        sk: { field: "gsi1sk", composite: ["targetId"] },
+      },
+    },
+  },
+  { client: ddbDoc, table: TABLE_NAME },
+);
+
 export function makePostId(): string {
   return `post_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   EventEntity,
   EventTicketEntity,
+  PaymentEntity,
   EVENT_STATUSES,
   UserEntity,
   makeEventId,
@@ -11,6 +12,55 @@ import {
 import { requireAuth } from "../middleware/auth.js";
 import { stripe, MIN_PRICE_CENTS } from "../lib/stripe.js";
 import { notify } from "../lib/notifications.js";
+
+async function cancelEventWithRefunds(eventId: string, event: { title: string; priceCents: number }) {
+  const tickets = await EventTicketEntity.query.primary({ eventId }).go({ limit: 500 });
+  const paidTickets = tickets.data.filter((t) => t.status === "paid");
+
+  const results: { userId: string; refunded: boolean; error?: string }[] = [];
+
+  for (const ticket of paidTickets) {
+    let refunded = false;
+    if (ticket.priceCents > 0 && ticket.stripePaymentIntentId) {
+      try {
+        await stripe().refunds.create({ payment_intent: ticket.stripePaymentIntentId });
+        refunded = true;
+      } catch (err) {
+        console.error(`event.cancel: refund failed for ticket user=${ticket.userId}`, err);
+        results.push({ userId: ticket.userId, refunded: false, error: (err as Error).message });
+      }
+    } else {
+      refunded = true;
+    }
+
+    try {
+      await EventTicketEntity.patch({ eventId, userId: ticket.userId })
+        .set({ status: refunded ? "refunded" : "cancelled" })
+        .go();
+    } catch (err) {
+      console.error(`event.cancel: ticket status patch failed user=${ticket.userId}`, err);
+    }
+
+    try {
+      await notify({
+        userId: ticket.userId,
+        type: "event_cancelled",
+        title: "Event cancelled",
+        body: `"${event.title}" has been cancelled.${refunded && ticket.priceCents > 0 ? " Your payment has been refunded." : ""}`,
+        linkPath: `/events/${eventId}`,
+      });
+    } catch (err) {
+      console.error(`event.cancel: notify failed user=${ticket.userId}`, err);
+    }
+
+    if (!results.find((r) => r.userId === ticket.userId)) {
+      results.push({ userId: ticket.userId, refunded });
+    }
+  }
+
+  await EventEntity.patch({ eventId }).set({ status: "cancelled" }).go();
+  return { ticketsRefunded: results.filter((r) => r.refunded).length, ticketsFailed: results.filter((r) => !r.refunded).length };
+}
 
 export const eventRoutes = new Hono();
 
@@ -55,7 +105,7 @@ const createSchema = z.object({
   endsAt: z.string().datetime(),
   capacity: z.number().int().min(1).max(10_000),
   priceCents: z.number().int().min(0),
-  currency: z.string().length(3).default("EUR"),
+  currency: z.string().length(3).default("TND"),
 });
 
 // Events are organizer-run experiences. Teachers and admins can create them;
@@ -115,6 +165,13 @@ eventRoutes.patch(
     if (body.priceCents !== undefined && body.priceCents > 0 && body.priceCents < MIN_PRICE_CENTS) {
       return c.json({ error: `price_below_minimum_${MIN_PRICE_CENTS}` }, 400);
     }
+
+    if (body.status === "cancelled") {
+      if (event.data.status === "cancelled") return c.json({ error: "already_cancelled" }, 409);
+      const result = await cancelEventWithRefunds(eventId, event.data);
+      return c.json({ ok: true, ...result });
+    }
+
     await EventEntity.patch({ eventId }).set(body).go();
     return c.json({ ok: true });
   },
@@ -183,7 +240,7 @@ eventRoutes.post(
           eventId,
           userId: sub,
           priceCents: 0,
-          currency: event.data.currency ?? "EUR",
+          currency: event.data.currency ?? "TND",
           status: "paid",
         }).go();
       }
@@ -192,7 +249,7 @@ eventRoutes.post(
 
     const intent = await stripe().paymentIntents.create({
       amount: event.data.priceCents,
-      currency: (event.data.currency ?? "EUR").toLowerCase(),
+      currency: (event.data.currency ?? "TND").toLowerCase(),
       automatic_payment_methods: { enabled: true },
       metadata: {
         kind: "event_ticket",
@@ -219,7 +276,7 @@ eventRoutes.post(
         status: "pending",
         stripePaymentIntentId: intent.id,
         priceCents: event.data.priceCents,
-        currency: event.data.currency ?? "EUR",
+        currency: event.data.currency ?? "TND",
       }).go();
     }
 
@@ -228,7 +285,7 @@ eventRoutes.post(
         userId: event.data.organizerId,
         type: "listing_sold", // reuse generic type; dedicated "ticket_sold" deferred
         title: "New event ticket",
-        body: `${event.data.title}: a buyer started checkout for ${((event.data.priceCents ?? 0) / 100).toFixed(2)} ${event.data.currency ?? "EUR"}`,
+        body: `${event.data.title}: a buyer started checkout for ${((event.data.priceCents ?? 0) / 100).toFixed(2)} ${event.data.currency ?? "TND"}`,
         linkPath: `/events/${eventId}`,
       });
     } catch (err) {

@@ -4,16 +4,43 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signUp, confirmSignUp, type Role } from "@/lib/cognito";
 
+// Display-only signup option that maps to a Cognito role. "Organization" is
+// an onboarding label only — there is no `organization` Cognito role; the
+// user signs up as a teacher and we flag the dashboard to redirect them to
+// the org-creation flow right after their first login.
+type SignupOption = "student" | "parent" | "teacher" | "organization";
+const SIGNUP_OPTIONS: { key: SignupOption; label: string; hint: string }[] = [
+  { key: "student", label: "Student", hint: "Take lessons" },
+  { key: "parent", label: "Parent", hint: "For your child" },
+  { key: "teacher", label: "Teacher", hint: "Teach solo" },
+  { key: "organization", label: "Organization", hint: "Tutoring center" },
+];
+
+function roleForOption(option: SignupOption): Role {
+  // Organizations sign up as teachers and then create an OrganizationEntity
+  // from /orgs/new. The dashboard auto-redirects them there on first visit.
+  return option === "organization" ? "teacher" : option;
+}
+
 function SignupInner() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState<"credentials" | "confirm">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("student");
+  const [option, setOption] = useState<SignupOption>("student");
   const [tosAccepted, setTosAccepted] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Honour ?role=teacher etc. from external CTAs (e.g. the landing page's
+  // "Apply as a teacher" button).
+  useEffect(() => {
+    const r = searchParams.get("role");
+    if (r === "teacher" || r === "student" || r === "parent" || r === "organization") {
+      setOption(r);
+    }
+  }, [searchParams]);
 
   // Capture ?ref= from the signup share link and stash it in sessionStorage so
   // the dashboard can auto-claim it once the user completes signup + login.
@@ -40,7 +67,14 @@ function SignupInner() {
     setError(null);
     setLoading(true);
     try {
-      await signUp(email, password, role, new Date().toISOString());
+      await signUp(email, password, roleForOption(option), new Date().toISOString());
+      if (option === "organization" && typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("eduboost_pending_org_create", "1");
+        } catch {
+          /* storage disabled — dashboard just won't auto-redirect */
+        }
+      }
       setStep("confirm");
     } catch (err) {
       setError((err as Error).message);
@@ -75,22 +109,39 @@ function SignupInner() {
         <form onSubmit={onSignup} className="card mt-10 space-y-5 p-8">
           <div>
             <span className="label">I am a…</span>
-            <div className="grid grid-cols-3 gap-2">
-              {(["student", "parent", "teacher"] as const).map((r) => (
+            <div className="flex flex-col gap-2">
+              {SIGNUP_OPTIONS.map((opt) => (
                 <button
-                  key={r}
+                  key={opt.key}
                   type="button"
-                  onClick={() => setRole(r)}
-                  className={`rounded-md border px-2 py-2 text-sm font-medium capitalize transition ${
-                    role === r
+                  onClick={() => setOption(opt.key)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3 text-left transition ${
+                    option === opt.key
                       ? "border-ink bg-ink text-parchment shadow-vellum"
-                      : "border-ink-faded/60 bg-parchment/60 text-ink hover:bg-parchment-dark"
+                      : "border-ink-faded/60 bg-white text-ink hover:bg-parchment-dark"
                   }`}
                 >
-                  {r}
+                  <div>
+                    <div className="text-sm font-medium">{opt.label}</div>
+                    <div
+                      className={`mt-0.5 text-xs ${
+                        option === opt.key ? "text-parchment/80" : "text-ink-faded"
+                      }`}
+                    >
+                      {opt.hint}
+                    </div>
+                  </div>
+                  {option === opt.key && (
+                    <span aria-hidden className="text-lg">✓</span>
+                  )}
                 </button>
               ))}
             </div>
+            {option === "organization" && (
+              <p className="mt-2 text-xs text-ink-soft">
+                You&apos;ll create your organization profile right after confirming your account.
+              </p>
+            )}
           </div>
           <label className="block">
             <span className="label">Email</span>

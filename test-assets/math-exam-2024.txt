@@ -1,0 +1,41 @@
+MATHEMATICS BAC PREP - EXAM 2024
+================================
+
+Section A: Analysis (8 points)
+
+Exercise 1 (4 pts):
+Let f(x) = x³ - 3x² + 2x + 1
+
+a) Study the variations of f on [-1, 4]
+b) Determine the equation of the tangent at x = 1
+c) Calculate the integral of f from 0 to 2
+
+Exercise 2 (4 pts):
+Let (un) be the sequence defined by u0 = 2, un+1 = (3un + 4) / (un + 2)
+
+a) Show that (un) is bounded
+b) Study the monotonicity of (un)
+c) Determine lim(un)
+
+Section B: Geometry (6 points)
+
+Exercise 3 (6 pts):
+In the space with orthonormal frame (O, i, j, k):
+A(1, 0, 2), B(3, 1, -1), C(0, 2, 1)
+
+a) Calculate AB × AC
+b) Determine the equation of plane (ABC)
+c) Calculate the area of triangle ABC
+
+Section C: Probability (6 points)
+
+Exercise 4 (6 pts):
+A bag contains 3 red balls, 5 blue balls, 2 green balls.
+Two balls are drawn without replacement.
+
+a) P(both red)
+b) P(at least one blue)
+c) E(X) where X = number of blue balls drawn
+
+Duration: 3 hours
+Calculator: allowed (non-programmable)

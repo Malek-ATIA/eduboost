@@ -12,6 +12,7 @@ import {
   makeOrgId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
+import { notify } from "../lib/notifications.js";
 
 export const organizationRoutes = new Hono();
 
@@ -194,6 +195,21 @@ organizationRoutes.delete(
     }
 
     await OrganizationMembershipEntity.delete({ orgId, userId }).go();
+
+    if (userId !== sub) {
+      try {
+        await notify({
+          userId,
+          type: "member_removed",
+          title: "Removed from organization",
+          body: `You have been removed from the organization "${org.data.name}".`,
+          linkPath: `/orgs`,
+        });
+      } catch (err) {
+        console.error("orgs.removeMember: notify failed (non-fatal)", err);
+      }
+    }
+
     return c.json({ ok: true });
   },
 );

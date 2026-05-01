@@ -5,11 +5,14 @@ import {
   ForumPostEntity,
   ForumCommentEntity,
   ForumVoteEntity,
+  ForumReactionEntity,
   FORUM_VOTE_DIRECTIONS,
+  FORUM_REACTIONS,
   UserEntity,
   makePostId,
   makeCommentId,
   type ForumVoteDirection,
+  type ForumReaction,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { FORUM_CHANNELS, getChannel } from "../lib/forum-channels.js";
@@ -67,7 +70,11 @@ forumRoutes.get(
 forumRoutes.use("/posts", requireAuth);
 forumRoutes.use("/posts/:postId/comments", requireAuth);
 forumRoutes.use("/posts/:postId/vote", requireAuth);
+forumRoutes.use("/posts/:postId/reactions", requireAuth);
+forumRoutes.use("/posts/:postId/delete", requireAuth);
 forumRoutes.use("/comments/:commentId/vote", requireAuth);
+forumRoutes.use("/comments/:commentId/reactions", requireAuth);
+forumRoutes.use("/comments/:commentId/delete", requireAuth);
 
 const createPostSchema = z.object({
   channelId: z.string().min(1),
@@ -273,6 +280,154 @@ forumRoutes.get(
       }),
     );
     return c.json({ items: results.filter(Boolean) });
+  },
+);
+
+// Toggle a reaction on a post or comment. Idempotent: adding the same
+// reaction twice removes it; adding a different one is additive (a user
+// can leave multiple distinct reactions on the same target).
+const reactionSchema = z.object({
+  reaction: z.enum(FORUM_REACTIONS),
+});
+
+forumRoutes.post(
+  "/posts/:postId/reactions",
+  zValidator("param", z.object({ postId: z.string().min(1) })),
+  zValidator("json", reactionSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { postId } = c.req.valid("param");
+    const { reaction } = c.req.valid("json");
+    const post = await ForumPostEntity.get({ postId }).go();
+    if (!post.data) return c.json({ error: "post_not_found" }, 404);
+    return c.json(await toggleReaction(postId, "post", sub, reaction));
+  },
+);
+
+forumRoutes.post(
+  "/comments/:commentId/reactions",
+  zValidator("param", z.object({ commentId: z.string().min(1) })),
+  zValidator("query", z.object({ postId: z.string().min(1) })),
+  zValidator("json", reactionSchema),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { commentId } = c.req.valid("param");
+    const { reaction } = c.req.valid("json");
+    return c.json(await toggleReaction(commentId, "comment", sub, reaction));
+  },
+);
+
+async function toggleReaction(
+  targetId: string,
+  targetType: "post" | "comment",
+  userId: string,
+  reaction: ForumReaction,
+): Promise<{ added: boolean; counts: Record<string, number> }> {
+  const existing = await ForumReactionEntity.query
+    .primary({ targetId })
+    .go({ limit: 500 });
+  const mine = existing.data.find(
+    (r) => r.userId === userId && r.reaction === reaction,
+  );
+  if (mine) {
+    await ForumReactionEntity.delete({
+      targetId,
+      userId,
+      reaction,
+    }).go();
+  } else {
+    try {
+      await ForumReactionEntity.create({
+        targetId,
+        userId,
+        targetType,
+        reaction,
+      }).go();
+    } catch {
+      // duplicate — ignore
+    }
+  }
+  const updated = await ForumReactionEntity.query
+    .primary({ targetId })
+    .go({ limit: 500 });
+  const counts: Record<string, number> = {};
+  for (const r of updated.data) {
+    counts[r.reaction] = (counts[r.reaction] ?? 0) + 1;
+  }
+  return { added: !mine, counts };
+}
+
+// Bulk-fetch reactions for a set of target IDs.
+forumRoutes.use("/reactions", requireAuth);
+forumRoutes.get(
+  "/reactions",
+  zValidator("query", z.object({ ids: z.string().min(1) })),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { ids } = c.req.valid("query");
+    const targetIds = ids.split(",").filter(Boolean).slice(0, 100);
+    const allReactions: Record<
+      string,
+      { counts: Record<string, number>; mine: string[] }
+    > = {};
+    await Promise.all(
+      targetIds.map(async (tid) => {
+        try {
+          const res = await ForumReactionEntity.query
+            .primary({ targetId: tid })
+            .go({ limit: 500 });
+          const counts: Record<string, number> = {};
+          const mine: string[] = [];
+          for (const r of res.data) {
+            counts[r.reaction] = (counts[r.reaction] ?? 0) + 1;
+            if (r.userId === sub) mine.push(r.reaction);
+          }
+          allReactions[tid] = { counts, mine };
+        } catch {
+          // ignore
+        }
+      }),
+    );
+    return c.json(allReactions);
+  },
+);
+
+// Delete own post.
+forumRoutes.post(
+  "/posts/:postId/delete",
+  zValidator("param", z.object({ postId: z.string().min(1) })),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { postId } = c.req.valid("param");
+    const post = await ForumPostEntity.get({ postId }).go();
+    if (!post.data) return c.json({ error: "not_found" }, 404);
+    if (post.data.authorId !== sub) return c.json({ error: "forbidden" }, 403);
+    const comments = await ForumCommentEntity.query.primary({ postId }).go({ limit: 500 });
+    await Promise.all(
+      comments.data.map((cm) => ForumCommentEntity.delete({ postId, commentId: cm.commentId }).go()),
+    );
+    await ForumPostEntity.delete({ postId }).go();
+    return c.json({ ok: true });
+  },
+);
+
+// Delete own comment.
+forumRoutes.post(
+  "/comments/:commentId/delete",
+  zValidator("param", z.object({ commentId: z.string().min(1) })),
+  zValidator("query", z.object({ postId: z.string().min(1) })),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { commentId } = c.req.valid("param");
+    const { postId } = c.req.valid("query");
+    const comment = await ForumCommentEntity.get({ postId, commentId }).go();
+    if (!comment.data) return c.json({ error: "not_found" }, 404);
+    if (comment.data.authorId !== sub) return c.json({ error: "forbidden" }, 403);
+    await ForumCommentEntity.delete({ postId, commentId }).go();
+    try {
+      await ForumPostEntity.patch({ postId }).add({ commentCount: -1 }).go();
+    } catch { /* non-fatal */ }
+    return c.json({ ok: true });
   },
 );
 

@@ -16,13 +16,15 @@
     "cdk:deploy": "npm run deploy --workspace cdk",
     "cdk:diff": "npm run diff --workspace cdk",
     "api:dev": "npm run dev --workspace lambdas",
-    "web:dev": "npm run dev --workspace web"
+    "web:dev": "npm run dev --workspace web",
+    "seed:demo": "AWS_PROFILE=malek.atia2 AWS_REGION=eu-west-1 TABLE_NAME=eduboost-dev npx tsx scripts/seed-demo.ts"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "@types/node": "^22.9.0"
+    "@types/node": "^22.9.0",
+    "playwright": "^1.59.1",
+    "typescript": "^5.6.3"
   }
 }

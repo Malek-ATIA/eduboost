@@ -80,7 +80,7 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
   }
 
   async function deletePost() {
-    if (!confirm("Delete this post? Comments will remain orphaned.")) return;
+    if (!confirm("Delete this post and all its comments? This cannot be undone.")) return;
     try {
       await api(`/wall/posts/${postId}`, { method: "DELETE" });
       if (data?.post.teacherId) window.location.assign(`/teachers/${data.post.teacherId}`);

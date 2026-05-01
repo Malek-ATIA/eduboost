@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "synth": "cdk synth --profile malek.atia2",
-    "deploy": "cdk deploy --all --profile malek.atia2 --require-approval never",
+    "deploy": "cdk deploy --profile malek.atia2 --require-approval never",
     "deploy:db": "cdk deploy EduBoost-Db --profile malek.atia2 --require-approval never",
     "deploy:auth": "cdk deploy EduBoost-Auth --profile malek.atia2 --require-approval never",
     "deploy:storage": "cdk deploy EduBoost-Storage --profile malek.atia2 --require-approval never",

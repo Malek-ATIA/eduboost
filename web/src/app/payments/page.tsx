@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession, type Role } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
+import { formatMoney } from "@/lib/money";
 
 type Payment = {
   paymentId: string;
@@ -97,7 +98,7 @@ export default function PaymentsPage() {
             <li key={p.paymentId} className="flex items-center justify-between p-4">
               <div>
                 <div className="font-display text-base text-ink">
-                  {p.currency} {(p.amountCents / 100).toFixed(2)}
+                  {formatMoney(p.amountCents, p.currency)}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-faded">
                   {new Date(p.createdAt).toLocaleString()} · booking{" "}

@@ -12,20 +12,9 @@ import {
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
 
-type JoinResponse = {
-  meeting: unknown;
-  attendee: unknown;
-};
-
-type SessionResponse = {
-  sessionId: string;
-  classroomId: string;
-  teacherId: string;
-  status: string;
-};
-
+type JoinResponse = { meeting: unknown; attendee: unknown };
+type SessionResponse = { sessionId: string; classroomId: string; teacherId: string; status: string };
 type ChatEntry = { senderId: string; body: string; at: string };
-
 type AttendanceItem = {
   sessionId: string;
   userId: string;
@@ -34,11 +23,6 @@ type AttendanceItem = {
   notes?: string;
   user?: { userId: string; displayName: string; email: string } | null;
 };
-
-const ATTENDANCE_STATUSES = ["present", "late", "absent", "excused"] as const;
-type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
-const CHAT_TOPIC = "classroom-chat";
-
 type BreakoutRoom = {
   sessionId: string;
   breakoutId: string;
@@ -49,11 +33,25 @@ type BreakoutRoom = {
   createdAt: string;
 };
 
+const ATTENDANCE_STATUSES = ["present", "late", "absent", "excused"] as const;
+type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
+const CHAT_TOPIC = "classroom-chat";
+
+type Panel = "chat" | "participants" | "notes" | "breakouts" | null;
+
+const STATUS_COLORS: Record<AttendanceStatus, string> = {
+  present: "bg-emerald-400",
+  late: "bg-amber-400",
+  absent: "bg-red-400",
+  excused: "bg-slate-400",
+};
+
 export default function ClassroomPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = use(params);
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sessionRef = useRef<DefaultMeetingSession | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"idle" | "joining" | "joined" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [chat, setChat] = useState<ChatEntry[]>([]);
@@ -70,15 +68,31 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const [noteBody, setNoteBody] = useState("");
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
+  const [activePanel, setActivePanel] = useState<Panel>(null);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [elapsed, setElapsed] = useState(0);
+  const joinedAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (status !== "joined") return;
+    joinedAtRef.current = Date.now();
+    const t = setInterval(() => {
+      if (joinedAtRef.current) setElapsed(Math.floor((Date.now() - joinedAtRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [status]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
 
   useEffect(() => {
     (async () => {
       try {
         const r = await api<{ body?: string }>(`/notes/sessions/${sessionId}`);
         setNoteBody(r.body ?? "");
-      } catch {
-        /* not a participant yet — stay empty */
-      }
+      } catch { /* not a participant yet */ }
     })();
   }, [sessionId]);
 
@@ -86,10 +100,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     setNoteSaving(true);
     setNoteSaved(false);
     try {
-      await api(`/notes/sessions/${sessionId}`, {
-        method: "PUT",
-        body: JSON.stringify({ body: noteBody }),
-      });
+      await api(`/notes/sessions/${sessionId}`, { method: "PUT", body: JSON.stringify({ body: noteBody }) });
       setNoteSaved(true);
       setTimeout(() => setNoteSaved(false), 2500);
     } catch (err) {
@@ -103,18 +114,14 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     try {
       const r = await api<{ items: BreakoutRoom[] }>(`/chime/sessions/${sessionId}/breakouts`);
       setBreakouts(r.items);
-    } catch (err) {
-      console.warn("breakouts load failed", err);
-    }
+    } catch (err) { console.warn("breakouts load failed", err); }
   }, [sessionId]);
 
   const loadAttendance = useCallback(async () => {
     try {
       const r = await api<{ items: AttendanceItem[] }>(`/attendance/sessions/${sessionId}`);
       setAttendance(r.items);
-    } catch (err) {
-      console.warn("attendance load failed", err);
-    }
+    } catch (err) { console.warn("attendance load failed", err); }
   }, [sessionId]);
 
   useEffect(() => {
@@ -124,53 +131,36 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       try {
         const s = await currentSession();
         if (s) setViewerSub((s.getIdToken().payload.sub as string) ?? null);
-
         const sessionInfo = await api<SessionResponse>(`/sessions/${sessionId}`);
         if (cancelled) return;
         setClassroomId(sessionInfo.classroomId);
         setTeacherId(sessionInfo.teacherId);
-
-        const { meeting, attendee } = await api<JoinResponse>(
-          `/chime/sessions/${sessionId}/join`,
-          { method: "POST" },
-        );
+        const { meeting, attendee } = await api<JoinResponse>(`/chime/sessions/${sessionId}/join`, { method: "POST" });
         if (cancelled) return;
-
         const logger = new ConsoleLogger("chime", LogLevel.WARN);
         const deviceController = new DefaultDeviceController(logger);
         const config = new MeetingSessionConfiguration(meeting, attendee);
         const session = new DefaultMeetingSession(config, logger, deviceController);
         sessionRef.current = session;
-
         const audioInputs = await session.audioVideo.listAudioInputDevices();
         if (audioInputs[0]) await session.audioVideo.startAudioInput(audioInputs[0].deviceId);
         const videoInputs = await session.audioVideo.listVideoInputDevices();
         if (videoInputs[0]) await session.audioVideo.startVideoInput(videoInputs[0].deviceId);
-
         if (audioRef.current) session.audioVideo.bindAudioElement(audioRef.current);
-
         session.audioVideo.realtimeSubscribeToReceiveDataMessage(CHAT_TOPIC, (msg: DataMessage) => {
           const body = new TextDecoder().decode(msg.data);
-          setChat((prev) => [
-            ...prev,
-            { senderId: msg.senderAttendeeId, body, at: new Date(msg.timestampMs).toISOString() },
-          ]);
+          setChat((prev) => [...prev, { senderId: msg.senderAttendeeId, body, at: new Date(msg.timestampMs).toISOString() }]);
         });
-
         session.audioVideo.start();
         session.audioVideo.startLocalVideoTile();
         setStatus("joined");
-
         await Promise.all([loadAttendance(), loadBreakouts()]);
       } catch (err) {
         setError((err as Error).message);
         setStatus("error");
       }
     })();
-    return () => {
-      cancelled = true;
-      sessionRef.current?.audioVideo.stop();
-    };
+    return () => { cancelled = true; sessionRef.current?.audioVideo.stop(); };
   }, [sessionId, loadAttendance, loadBreakouts]);
 
   async function createBreakout(e: React.FormEvent) {
@@ -178,21 +168,13 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     setBreakoutError(null);
     const label = newBreakoutLabel.trim();
     if (!label) return;
-    const assignedUserIds = newBreakoutAssignees
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const assignedUserIds = newBreakoutAssignees.split(",").map((s) => s.trim()).filter(Boolean);
     try {
-      await api(`/chime/sessions/${sessionId}/breakouts`, {
-        method: "POST",
-        body: JSON.stringify({ label, assignedUserIds }),
-      });
+      await api(`/chime/sessions/${sessionId}/breakouts`, { method: "POST", body: JSON.stringify({ label, assignedUserIds }) });
       setNewBreakoutLabel("");
       setNewBreakoutAssignees("");
       await loadBreakouts();
-    } catch (err) {
-      setBreakoutError((err as Error).message);
-    }
+    } catch (err) { setBreakoutError((err as Error).message); }
   }
 
   async function endBreakout(breakoutId: string) {
@@ -200,9 +182,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     try {
       await api(`/chime/sessions/${sessionId}/breakouts/${breakoutId}`, { method: "DELETE" });
       await loadBreakouts();
-    } catch (err) {
-      setBreakoutError((err as Error).message);
-    }
+    } catch (err) { setBreakoutError((err as Error).message); }
   }
 
   async function sendMessage() {
@@ -214,13 +194,8 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     session.audioVideo.realtimeSendDataMessage(CHAT_TOPIC, bytes);
     setChat((prev) => [...prev, { senderId: "me", body, at: new Date().toISOString() }]);
     try {
-      await api(`/chat/classroom/${classroomId}`, {
-        method: "POST",
-        body: JSON.stringify({ body }),
-      });
-    } catch (err) {
-      console.warn("chat persistence failed", err);
-    }
+      await api(`/chat/classroom/${classroomId}`, { method: "POST", body: JSON.stringify({ body }) });
+    } catch (err) { console.warn("chat persistence failed", err); }
   }
 
   async function toggleRecording() {
@@ -228,240 +203,429 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     try {
       await api(`/chime/sessions/${sessionId}/recording/${path}`, { method: "POST" });
       setRecording(!recording);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    } catch (err) { setError((err as Error).message); }
   }
 
   async function markAttendance(userId: string, newStatus: AttendanceStatus) {
     try {
-      await api(`/attendance/sessions/${sessionId}`, {
-        method: "POST",
-        body: JSON.stringify({ entries: [{ userId, status: newStatus }] }),
-      });
+      await api(`/attendance/sessions/${sessionId}`, { method: "POST", body: JSON.stringify({ entries: [{ userId, status: newStatus }] }) });
       await loadAttendance();
-    } catch (err) {
-      alert((err as Error).message);
-    }
+    } catch (err) { alert((err as Error).message); }
+  }
+
+  function togglePanel(panel: Panel) {
+    setActivePanel((cur) => (cur === panel ? null : panel));
   }
 
   const isTeacher = viewerSub !== null && viewerSub === teacherId;
+  const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
+  const secs = String(elapsed % 60).padStart(2, "0");
+  const participantCount = attendance?.length ?? 0;
+
+  if (status === "idle" || status === "joining") {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white/80" />
+          <p className="mt-6 font-display text-xl text-white/90">Joining session...</p>
+          <p className="mt-2 text-sm text-white/50">Connecting to classroom</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#1a1a2e] px-6">
+        <div className="rounded-2xl bg-white/10 p-10 text-center backdrop-blur">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
+            <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h2 className="mt-4 font-display text-xl text-white">Unable to join</h2>
+          <p className="mt-2 max-w-sm text-sm text-white/60">{error}</p>
+          <Link href="/classrooms" className="mt-6 inline-block rounded-lg bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/20">
+            Back to classrooms
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-24 pt-16">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="eyebrow">Classroom</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">Classroom · <span className="font-mono text-2xl">{sessionId}</span></h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {classroomId && (
-            <Link
-              href={`/whiteboard/${classroomId}` as never}
-              target="_blank"
-              className="btn-secondary"
-            >
-              Whiteboard
-            </Link>
-          )}
-          {isTeacher && (
-            <button
-              onClick={toggleRecording}
-              disabled={status !== "joined"}
-              className={recording ? "btn-seal" : "btn-secondary"}
-            >
-              {recording ? "Stop recording" : "Start recording"}
-            </button>
-          )}
-        </div>
-      </div>
-      <p className="mt-2 text-sm text-ink-soft">Status: {status}</p>
-      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="aspect-video w-full overflow-hidden rounded-md bg-ink/90">
-          <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#1a1a2e] text-white">
+      {/* ── Top bar ─────────────────────────────────────────────── */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-5">
+        <div className="flex items-center gap-3">
+          <Link href="/classrooms" className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            EduBoost
+          </Link>
+          <div className="h-5 w-px bg-white/20" />
+          <span className="text-sm font-medium text-white/90">Live Session</span>
         </div>
 
-        <div className="card flex h-[480px] flex-col">
-          <div className="flex-1 overflow-y-auto p-3">
-            {chat.length === 0 && <p className="text-sm text-ink-soft">No messages yet.</p>}
-            {chat.map((m, i) => (
-              <div key={i} className="mb-2">
-                <div className="text-xs text-ink-faded">{m.senderId}</div>
-                <div className="text-sm text-ink">{m.body}</div>
+        <div className="flex items-center gap-3">
+          {recording && (
+            <div className="flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+              <span className="text-xs font-medium text-red-400">REC</span>
+            </div>
+          )}
+          <div className="rounded-lg bg-white/10 px-3 py-1 font-mono text-sm text-white/70">
+            {mins}:{secs}
+          </div>
+          {participantCount > 0 && (
+            <div className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1 text-sm text-white/70">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {participantCount}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ── Main content ────────────────────────────────────────── */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Video area */}
+        <div className={`flex flex-1 flex-col items-center justify-center p-4 transition-all duration-300 ${activePanel ? "mr-[380px]" : ""}`}>
+          <div className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-[#0f0f23] shadow-2xl shadow-black/50">
+            <div className="aspect-video">
+              <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
+            </div>
+            {status === "joined" && (
+              <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+                <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-medium text-white/90">You</span>
               </div>
-            ))}
-          </div>
-          <div className="border-t border-ink-faded/30 p-2">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                sendMessage();
-              }}
-              className="flex gap-2"
-            >
-              <input
-                className="input flex-1"
-                placeholder="Type a message..."
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                disabled={status !== "joined"}
-              />
-              <button
-                type="submit"
-                className="btn-seal"
-                disabled={status !== "joined" || !draft.trim()}
-              >
-                Send
-              </button>
-            </form>
+            )}
           </div>
         </div>
+
+        {/* ── Slide-out panel ──────────────────────────────────── */}
+        {activePanel && (
+          <div className="absolute inset-y-0 right-0 flex w-[380px] flex-col border-l border-white/10 bg-[#16162a]">
+            {/* Panel header */}
+            <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
+              <h3 className="text-sm font-semibold capitalize text-white/90">
+                {activePanel === "participants" ? `Participants (${participantCount})` : activePanel}
+              </h3>
+              <button onClick={() => setActivePanel(null)} className="rounded-lg p-1.5 text-white/50 transition hover:bg-white/10 hover:text-white">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* ── Chat panel ──────────────────────────────────── */}
+            {activePanel === "chat" && (
+              <>
+                <div className="flex-1 overflow-y-auto p-4">
+                  {chat.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                        <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                      </div>
+                      <p className="mt-3 text-sm text-white/40">No messages yet</p>
+                      <p className="mt-1 text-xs text-white/25">Start the conversation</p>
+                    </div>
+                  )}
+                  {chat.map((m, i) => (
+                    <div key={i} className="mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${m.senderId === "me" ? "bg-indigo-500" : "bg-white/20"}`}>
+                          {m.senderId === "me" ? "Y" : m.senderId.slice(0, 1).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-medium text-white/70">{m.senderId === "me" ? "You" : m.senderId.slice(0, 8)}</span>
+                        <span className="text-[10px] text-white/30">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
+                      <p className="mt-1 pl-8 text-sm leading-relaxed text-white/85">{m.body}</p>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+                <div className="border-t border-white/10 p-3">
+                  <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex gap-2">
+                    <input
+                      className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
+                      placeholder="Type a message..."
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      disabled={status !== "joined"}
+                    />
+                    <button type="submit" disabled={status !== "joined" || !draft.trim()} className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+
+            {/* ── Participants panel ──────────────────────────── */}
+            {activePanel === "participants" && (
+              <div className="flex-1 overflow-y-auto p-4">
+                {(!attendance || attendance.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                      <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                    <p className="mt-3 text-sm text-white/40">No participants yet</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {attendance.map((a) => (
+                      <li key={a.userId} className="flex items-center justify-between rounded-xl px-3 py-2.5 transition hover:bg-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-sm font-semibold text-white/80">
+                              {(a.user?.displayName ?? a.userId).slice(0, 1).toUpperCase()}
+                            </div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#16162a] ${STATUS_COLORS[a.status]}`} />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-white/90">{a.user?.displayName ?? a.userId.slice(0, 12)}</div>
+                            <div className="text-[11px] text-white/40">{a.status}</div>
+                          </div>
+                        </div>
+                        {isTeacher && (
+                          <select
+                            value={a.status}
+                            onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
+                            className="rounded-md bg-white/10 px-2 py-1 text-xs text-white/70 outline-none"
+                          >
+                            {ATTENDANCE_STATUSES.map((s) => (<option key={s} value={s} className="bg-[#16162a]">{s}</option>))}
+                          </select>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* ── Notes panel ────────────────────────────────── */}
+            {activePanel === "notes" && (
+              <div className="flex flex-1 flex-col p-4">
+                <p className="mb-3 text-xs text-white/40">Private notes — only you can see these.</p>
+                <textarea
+                  value={noteBody}
+                  onChange={(e) => setNoteBody(e.target.value)}
+                  rows={12}
+                  maxLength={20000}
+                  className="flex-1 resize-none rounded-lg bg-white/5 p-3 text-sm leading-relaxed text-white/85 placeholder-white/25 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
+                  placeholder="Capture key learning points..."
+                />
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xs text-white/40">{noteSaved ? "Saved" : noteBody.length > 0 ? `${noteBody.length.toLocaleString()} chars` : ""}</span>
+                  <button onClick={saveNote} disabled={noteSaving} className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
+                    {noteSaving ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Breakout rooms panel ───────────────────────── */}
+            {activePanel === "breakouts" && (
+              <div className="flex-1 overflow-y-auto p-4">
+                {isTeacher && (
+                  <form onSubmit={createBreakout} className="mb-4 space-y-2">
+                    <input
+                      value={newBreakoutLabel}
+                      onChange={(e) => setNewBreakoutLabel(e.target.value)}
+                      placeholder="Room label (e.g. Group A)"
+                      maxLength={60}
+                      className="w-full rounded-lg bg-white/10 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
+                    />
+                    <input
+                      value={newBreakoutAssignees}
+                      onChange={(e) => setNewBreakoutAssignees(e.target.value)}
+                      placeholder="Student IDs (comma-separated)"
+                      className="w-full rounded-lg bg-white/10 px-3 py-2 font-mono text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
+                    />
+                    <button type="submit" disabled={!newBreakoutLabel.trim()} className="w-full rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
+                      Create breakout
+                    </button>
+                  </form>
+                )}
+                {breakoutError && <p className="mb-3 text-xs text-red-400">{breakoutError}</p>}
+                {breakouts && breakouts.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                      <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    </div>
+                    <p className="mt-3 text-sm text-white/40">No breakout rooms</p>
+                    {isTeacher && <p className="mt-1 text-xs text-white/25">Create one above to split the class</p>}
+                  </div>
+                )}
+                {breakouts && breakouts.length > 0 && (
+                  <ul className="space-y-2">
+                    {breakouts.map((b) => {
+                      const canJoin = isTeacher || (viewerSub && b.assignedUserIds.includes(viewerSub));
+                      return (
+                        <li key={b.breakoutId} className="rounded-xl bg-white/5 p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium text-white/90">{b.label}</div>
+                              <div className="mt-0.5 text-[11px] text-white/40">{b.assignedUserIds.length} assigned</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {canJoin && (
+                                <Link href={`/breakout/${sessionId}/${b.breakoutId}`} target="_blank" className="rounded-lg bg-indigo-500/20 px-3 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/30">
+                                  Join
+                                </Link>
+                              )}
+                              {isTeacher && (
+                                <button onClick={() => endBreakout(b.breakoutId)} className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/30">
+                                  End
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {isTeacher && attendance && (
-        <section className="mt-10">
-          <h2 className="font-display text-xl text-ink">Attendance</h2>
-          <p className="mt-1 text-xs text-ink-faded">
-            Students are auto-marked present when they join. Override below.
-          </p>
-          {attendance.length === 0 ? (
-            <p className="mt-4 text-sm text-ink-soft">No students have joined yet.</p>
-          ) : (
-            <ul className="card mt-4 divide-y divide-ink-faded/30">
-              {attendance.map((a) => (
-                <li key={a.userId} className="flex items-center justify-between p-3">
-                  <div>
-                    <div className="font-display text-base text-ink">{a.user?.displayName ?? a.userId}</div>
-                    <div className="text-xs text-ink-faded">
-                      {a.user?.email ?? ""} · marked {new Date(a.markedAt).toLocaleString()}
-                    </div>
-                  </div>
-                  <select
-                    value={a.status}
-                    onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
-                    className="input max-w-[8rem]"
-                  >
-                    {ATTENDANCE_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-
-      <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">My notes</h2>
-        <p className="mt-1 text-xs text-ink-faded">
-          Private to you. Use this space to capture key learning points during the session.
-        </p>
-        <textarea
-          value={noteBody}
-          onChange={(e) => setNoteBody(e.target.value)}
-          rows={6}
-          maxLength={20000}
-          className="input mt-3"
-          placeholder="Write your notes here..."
+      {/* ── Bottom toolbar ──────────────────────────────────────── */}
+      <div className="flex h-20 shrink-0 items-center justify-center gap-3 border-t border-white/10 bg-[#12122a] px-6">
+        {/* Mic toggle */}
+        <ToolbarButton
+          active={micOn}
+          onClick={() => setMicOn(!micOn)}
+          label={micOn ? "Mute" : "Unmute"}
+          icon={micOn
+            ? <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            : <><path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" /></>
+          }
+          danger={!micOn}
         />
-        <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs text-ink-faded">
-            {noteSaved ? "Saved." : noteBody.length > 0 ? "Unsaved" : ""}
-          </span>
-          <button
-            onClick={saveNote}
-            disabled={noteSaving}
-            className="btn-seal"
-          >
-            {noteSaving ? "Saving..." : "Save notes"}
-          </button>
-        </div>
-      </section>
 
-      <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Breakout rooms</h2>
-        <p className="mt-1 text-xs text-ink-faded">
-          {isTeacher
-            ? "Split the class into smaller groups. Each breakout is a separate video room; students you assign can join from here."
-            : "If the teacher assigns you to a breakout, click Join to move there."}
-        </p>
+        {/* Camera toggle */}
+        <ToolbarButton
+          active={camOn}
+          onClick={() => setCamOn(!camOn)}
+          label={camOn ? "Stop video" : "Start video"}
+          icon={camOn
+            ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            : <><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" /></>
+          }
+          danger={!camOn}
+        />
 
+        <div className="mx-1 h-8 w-px bg-white/15" />
+
+        {/* Whiteboard */}
+        {classroomId && (
+          <ToolbarButton
+            onClick={() => window.open(`/whiteboard/${classroomId}`, "_blank")}
+            label="Whiteboard"
+            icon={<path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />}
+          />
+        )}
+
+        {/* Record (teacher only) */}
         {isTeacher && (
-          <form onSubmit={createBreakout} className="mt-4 grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
-            <input
-              value={newBreakoutLabel}
-              onChange={(e) => setNewBreakoutLabel(e.target.value)}
-              placeholder="Room label (e.g. Group A)"
-              maxLength={60}
-              className="input"
-            />
-            <input
-              value={newBreakoutAssignees}
-              onChange={(e) => setNewBreakoutAssignees(e.target.value)}
-              placeholder="Assigned student IDs (comma-separated)"
-              className="input font-mono"
-            />
-            <button
-              type="submit"
-              disabled={!newBreakoutLabel.trim()}
-              className="btn-seal"
-            >
-              Create breakout
-            </button>
-          </form>
+          <ToolbarButton
+            active={recording}
+            onClick={toggleRecording}
+            label={recording ? "Stop recording" : "Record"}
+            icon={<circle cx="12" cy="12" r="5" fill={recording ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} />}
+            danger={recording}
+          />
         )}
 
-        {breakoutError && <p className="mt-2 text-sm text-seal">{breakoutError}</p>}
+        <div className="mx-1 h-8 w-px bg-white/15" />
 
-        {breakouts && breakouts.length === 0 && (
-          <p className="mt-4 text-sm text-ink-soft">No breakouts yet.</p>
-        )}
+        {/* Chat */}
+        <ToolbarButton
+          active={activePanel === "chat"}
+          onClick={() => togglePanel("chat")}
+          label="Chat"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />}
+          badge={chat.length > 0 ? chat.length : undefined}
+        />
 
-        {breakouts && breakouts.length > 0 && (
-          <ul className="card mt-4 divide-y divide-ink-faded/30">
-            {breakouts.map((b) => {
-              const canJoin = isTeacher || (viewerSub && b.assignedUserIds.includes(viewerSub));
-              return (
-                <li key={b.breakoutId} className="flex items-center justify-between p-3">
-                  <div>
-                    <div className="font-display text-base text-ink">{b.label}</div>
-                    <div className="text-xs text-ink-faded">
-                      {b.assignedUserIds.length} assigned · created{" "}
-                      {new Date(b.createdAt).toLocaleTimeString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {canJoin && (
-                      <Link
-                        href={`/breakout/${sessionId}/${b.breakoutId}`}
-                        target="_blank"
-                        className="btn-secondary"
-                      >
-                        Join
-                      </Link>
-                    )}
-                    {isTeacher && (
-                      <button
-                        onClick={() => endBreakout(b.breakoutId)}
-                        className="btn-ghost text-seal"
-                      >
-                        End
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+        {/* Participants */}
+        <ToolbarButton
+          active={activePanel === "participants"}
+          onClick={() => togglePanel("participants")}
+          label="Participants"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />}
+          badge={participantCount > 0 ? participantCount : undefined}
+        />
+
+        {/* Notes */}
+        <ToolbarButton
+          active={activePanel === "notes"}
+          onClick={() => togglePanel("notes")}
+          label="Notes"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />}
+        />
+
+        {/* Breakout rooms */}
+        <ToolbarButton
+          active={activePanel === "breakouts"}
+          onClick={() => togglePanel("breakouts")}
+          label="Breakouts"
+          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />}
+        />
+
+        <div className="mx-1 h-8 w-px bg-white/15" />
+
+        {/* Leave */}
+        <button
+          onClick={() => { sessionRef.current?.audioVideo.stop(); window.location.href = "/classrooms"; }}
+          className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/25 transition hover:bg-red-600"
+        >
+          Leave
+        </button>
+      </div>
 
       <audio ref={audioRef} />
-    </main>
+    </div>
+  );
+}
+
+function ToolbarButton({
+  icon,
+  label,
+  onClick,
+  active,
+  danger,
+  badge,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  danger?: boolean;
+  badge?: number;
+}) {
+  return (
+    <div className="group relative flex flex-col items-center">
+      <button
+        onClick={onClick}
+        className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition ${
+          danger
+            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+            : active
+              ? "bg-indigo-500/20 text-indigo-400"
+              : "bg-white/10 text-white/70 hover:bg-white/15 hover:text-white"
+        }`}
+        aria-label={label}
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          {icon}
+        </svg>
+        {badge !== undefined && badge > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-bold text-white">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
+      </button>
+      <span className="mt-1 text-[10px] text-white/40 opacity-0 transition group-hover:opacity-100">{label}</span>
+    </div>
   );
 }

@@ -62,7 +62,7 @@ async function metricsFor(userId: string): Promise<UserMetrics> {
   // net-money-out number is what parents actually want to see.
   const succeeded = payments.data.filter((p) => p.status === "succeeded");
   const totalSpentCents = succeeded.reduce((sum, p) => sum + (p.amountCents ?? 0), 0);
-  const currency = succeeded[0]?.currency ?? "EUR";
+  const currency = succeeded[0]?.currency ?? "TND";
 
   // Grades: average as a percentage (score/maxScore), excluding edge cases
   // where maxScore is 0 or missing.
@@ -139,7 +139,7 @@ analyticsRoutes.get("/teacher", async (c) => {
     (sum, p) => sum + (p.amountCents ?? 0) - (p.platformFeeCents ?? 0),
     0,
   );
-  const currency = succeeded[0]?.currency ?? "EUR";
+  const currency = succeeded[0]?.currency ?? "TND";
 
   return c.json({
     userId: sub,

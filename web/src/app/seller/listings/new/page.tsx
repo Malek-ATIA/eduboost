@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { toMinorUnits } from "@/lib/money";
 
 type NewListing = {
   listingId: string;
@@ -23,8 +24,8 @@ export default function NewSellerListingPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subjects, setSubjects] = useState("");
-  const [priceEur, setPriceEur] = useState("10");
-  const [shippingEur, setShippingEur] = useState("0");
+  const [priceTnd, setPriceTnd] = useState("10");
+  const [shippingTnd, setShippingTnd] = useState("0");
   const [inStockCount, setInStockCount] = useState("1");
   const [shipsFrom, setShipsFrom] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -74,12 +75,12 @@ export default function NewSellerListingPage() {
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean),
-          priceCents: Math.round(Number(priceEur) * 100),
-          currency: "EUR",
+          priceCents: toMinorUnits(Number(priceTnd), "TND"),
+          currency: "TND",
           sellerOrgId: sellerOrgId || undefined,
           ...(kind === "physical"
             ? {
-                shippingCostCents: Math.round(Number(shippingEur) * 100),
+                shippingCostCents: toMinorUnits(Number(shippingTnd), "TND"),
                 inStockCount: Math.max(0, Math.round(Number(inStockCount))),
                 shipsFrom: shipsFrom.trim() ? shipsFrom.trim().toUpperCase() : undefined,
               }
@@ -180,14 +181,15 @@ export default function NewSellerListingPage() {
           />
         </label>
         <label className="block">
-          <span className="label">Price (EUR)</span>
+          <span className="label">Price (TND)</span>
           <input
             required
             type="number"
             min={1}
+            step="0.001"
             className="input"
-            value={priceEur}
-            onChange={(e) => setPriceEur(e.target.value)}
+            value={priceTnd}
+            onChange={(e) => setPriceTnd(e.target.value)}
           />
         </label>
         {commercialOrgs.length > 0 && (
@@ -221,13 +223,13 @@ export default function NewSellerListingPage() {
                 />
               </label>
               <label className="block">
-                <span className="label">Shipping cost (EUR)</span>
+                <span className="label">Shipping cost (TND)</span>
                 <input
                   type="number"
                   min={0}
-                  step="0.01"
-                  value={shippingEur}
-                  onChange={(e) => setShippingEur(e.target.value)}
+                  step="0.001"
+                  value={shippingTnd}
+                  onChange={(e) => setShippingTnd(e.target.value)}
                   className="input"
                 />
               </label>
@@ -239,7 +241,7 @@ export default function NewSellerListingPage() {
                 value={shipsFrom}
                 onChange={(e) => setShipsFrom(e.target.value.toUpperCase())}
                 className="input font-mono"
-                placeholder="IE"
+                placeholder="TN"
               />
             </label>
           </>

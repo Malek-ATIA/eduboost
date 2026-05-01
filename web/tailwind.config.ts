@@ -5,31 +5,26 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Playfair Display for headings + body reads; IM Fell English for
-        // display moments (hero titles, folios); Courier for codes, IDs,
-        // anything that should read as monospace.
-        sans: ["var(--font-playfair)", "Georgia", "ui-serif", "serif"],
-        serif: ["var(--font-playfair)", "Georgia", "ui-serif", "serif"],
-        display: ["var(--font-im-fell)", "var(--font-playfair)", "ui-serif", "serif"],
+        sans: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        serif: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        display: ["var(--font-nunito)", "system-ui", "sans-serif"],
         mono: ['"Courier New"', "Courier", "ui-monospace", "monospace"],
       },
       colors: {
-        // Parchment surface + faded-ink text. `parchment` is the default page
-        // colour; deeper panels use `parchment-dark`. Text runs on the `ink`
-        // scale — deep brown for headings, muted soft-ink for body, faded tan
-        // for borders. `seal` is the wax-seal accent, used only for CTAs and
-        // the strongest callouts so it keeps its weight.
+        // Near-white parchment surface. The page background is pure white;
+        // panels, hover states, and borders carry the residual parchment
+        // identity. `seal` stays the wax-seal accent for CTAs and callouts.
         parchment: {
-          DEFAULT: "#f1e9d2",
-          dark: "#e8d9c1",
-          shade: "#dcc9a8",
+          DEFAULT: "#ffffff",
+          dark: "#ffffff",
+          shade: "#f5f5f5",
           deep: "#cbb68d",
         },
         ink: {
-          DEFAULT: "#4b3621",
-          soft: "#6b5b47",
-          faded: "#8b7355",
-          quill: "#333333",
+          DEFAULT: "#1a1a1a",
+          soft: "#4b4b4b",
+          faded: "#8c8c8c",
+          quill: "#111111",
         },
         seal: {
           DEFAULT: "#8b3a3a",

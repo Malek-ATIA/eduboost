@@ -42,12 +42,18 @@ function NewRequestForm() {
     setSubmitting(true);
     setError(null);
     try {
+      // preferredTime is captured with a datetime-local picker, which yields
+      // "YYYY-MM-DDTHH:mm" (no TZ). Convert to ISO so downstream rendering can
+      // use `new Date(x).toLocaleString()` safely. Empty = omit.
+      const preferredIso = preferredTime
+        ? new Date(preferredTime).toISOString()
+        : undefined;
       const r = await api<LessonRequest>(`/lesson-requests`, {
         method: "POST",
         body: JSON.stringify({
           teacherId,
           subject,
-          preferredTime: preferredTime.trim() || undefined,
+          preferredTime: preferredIso,
           message: message.trim() || undefined,
         }),
       });
@@ -90,12 +96,21 @@ function NewRequestForm() {
         <label className="block">
           <span className="label">Preferred time (optional)</span>
           <input
-            maxLength={200}
+            type="datetime-local"
+            min={new Intl.DateTimeFormat("sv-SE", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(new Date()).replace(" ", "T")}
             className="input"
             value={preferredTime}
             onChange={(e) => setPreferredTime(e.target.value)}
-            placeholder="Weekday evenings, or Saturday afternoon"
           />
+          <span className="mt-1 block text-xs text-ink-faded">
+            Pick a specific slot, or leave empty and let the teacher propose one.
+          </span>
         </label>
 
         <label className="block">

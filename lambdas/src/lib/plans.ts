@@ -20,7 +20,7 @@ export function getPlans(): Plan[] {
       description: "Advanced search, priority support, exclusive study materials.",
       audience: "student",
       priceMonthlyCents: 999,
-      currency: "EUR",
+      currency: "TND",
       stripePriceId: env.stripeStudentPremiumPriceId,
       features: [
         "Priority support",
@@ -34,7 +34,7 @@ export function getPlans(): Plan[] {
       description: "Larger classrooms, featured placement, advanced analytics.",
       audience: "teacher",
       priceMonthlyCents: 2900,
-      currency: "EUR",
+      currency: "TND",
       stripePriceId: env.stripeTeacherProPriceId,
       features: [
         "Host classrooms up to 25 students",

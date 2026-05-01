@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession, type Role } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/money";
 
 type UserMetrics = {
   userId: string;
@@ -92,10 +93,7 @@ export default function AnalyticsPage() {
                 : "My learning analytics"}
           </h1>
         </div>
-        <Link href="/dashboard" className="btn-ghost">
-          ← Dashboard
-        </Link>
-      </div>
+</div>
 
       {error && <p className="mt-4 text-sm text-seal">{error}</p>}
       {!error && !student && !parent && !teacher && (
@@ -110,7 +108,7 @@ export default function AnalyticsPage() {
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             <Stat
               label="Earnings (net)"
-              value={`${teacher.currency} ${(teacher.totalEarningsCents / 100).toFixed(2)}`}
+              value={formatMoney(teacher.totalEarningsCents, teacher.currency)}
             />
             <Stat label="Sessions held" value={String(teacher.sessionsHeld)} />
             <Stat label="Hours taught" value={String(teacher.hoursTaught)} />
@@ -137,9 +135,7 @@ export default function AnalyticsPage() {
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <Stat
                 label="Total spent"
-                value={`${parent.summary.currency} ${(
-                  parent.summary.totalSpentCents / 100
-                ).toFixed(2)}`}
+                value={formatMoney(parent.summary.totalSpentCents, parent.summary.currency)}
               />
               <Stat
                 label="Sessions attended"
@@ -178,7 +174,7 @@ function MetricsGrid({ title, m }: { title: string; m: UserMetrics }) {
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <Stat
           label="Total spent"
-          value={`${m.currency} ${(m.totalSpentCents / 100).toFixed(2)}`}
+          value={formatMoney(m.totalSpentCents, m.currency)}
         />
         <Stat label="Sessions attended" value={String(m.sessionsAttended)} />
         <Stat

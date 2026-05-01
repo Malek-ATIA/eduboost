@@ -54,7 +54,7 @@ export default function SmsSettingsPage() {
       setInfo("Code sent. Check your phone.");
     } catch (err) {
       const msg = (err as Error).message;
-      if (msg.includes("E.164")) setError("Use international format, e.g. +35318001234.");
+      if (msg.includes("E.164")) setError("Use international format, e.g. +21655555555.");
       else if (msg.includes("sms_send_failed")) setError("Couldn't send SMS. Double-check the number.");
       else setError(msg);
     } finally {
@@ -121,7 +121,7 @@ export default function SmsSettingsPage() {
                 className="input font-mono"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+35318001234"
+                placeholder="+21655555555"
               />
               <span className="mt-1 block text-xs text-ink-faded">
                 International format (E.164), starting with +.
@@ -195,12 +195,6 @@ export default function SmsSettingsPage() {
           )}
         </section>
       )}
-
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }

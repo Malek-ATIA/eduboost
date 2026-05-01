@@ -1,0 +1,42 @@
+EduBoost teacher space tour — 2026-04-26T09:06:45.915Z
+account: malek.freelance2@gmail.com
+38 screenshots
+
+01-teacher-landing.png | https://d29jvbfa3ftzxl.cloudfront.net/dashboard | post-login landing
+02-teacher-teacher-space-hub.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher | teacher-space-hub
+03-teacher-dashboard-with-sidebar.png | https://d29jvbfa3ftzxl.cloudfront.net/dashboard | dashboard-with-sidebar
+04-teacher-edit-teacher-profile.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher/profile | edit-teacher-profile
+05-teacher-my-account-profile.png | https://d29jvbfa3ftzxl.cloudfront.net/profile | my-account-profile
+06-teacher-my-classrooms.png | https://d29jvbfa3ftzxl.cloudfront.net/classrooms | my-classrooms
+07-teacher-new-classroom-form.png | https://d29jvbfa3ftzxl.cloudfront.net/classrooms/new | new-classroom-form
+08-teacher-my-students.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher/students | my-students
+09-teacher-teacher-bookings.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher/bookings | teacher-bookings
+10-teacher-lesson-requests-incoming.png | https://d29jvbfa3ftzxl.cloudfront.net/requests | lesson-requests-incoming
+11-teacher-my-calendar.png | https://d29jvbfa3ftzxl.cloudfront.net/calendar | my-calendar
+12-teacher-attendance.png | https://d29jvbfa3ftzxl.cloudfront.net/attendance | attendance
+13-teacher-session-notes-cross.png | https://d29jvbfa3ftzxl.cloudfront.net/notes | session-notes-cross
+14-teacher-assessments-list.png | https://d29jvbfa3ftzxl.cloudfront.net/assessments | assessments-list
+15-teacher-new-assessment-form.png | https://d29jvbfa3ftzxl.cloudfront.net/assessments/new | new-assessment-form
+16-teacher-grades-given.png | https://d29jvbfa3ftzxl.cloudfront.net/grades | grades-given
+17-teacher-ai-grader.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher/grader | ai-grader
+18-teacher-study-materials.png | https://d29jvbfa3ftzxl.cloudfront.net/study-materials | study-materials
+19-teacher-share-a-document.png | https://d29jvbfa3ftzxl.cloudfront.net/study-materials/new | share-a-document
+20-teacher-marketplace-listings.png | https://d29jvbfa3ftzxl.cloudfront.net/seller/listings | marketplace-listings
+21-teacher-new-listing-form.png | https://d29jvbfa3ftzxl.cloudfront.net/seller/listings/new | new-listing-form
+22-teacher-marketplace-sales.png | https://d29jvbfa3ftzxl.cloudfront.net/seller/orders | marketplace-sales
+23-teacher-earnings.png | https://d29jvbfa3ftzxl.cloudfront.net/teacher/earnings | earnings
+24-teacher-payments-received.png | https://d29jvbfa3ftzxl.cloudfront.net/payments | payments-received
+25-teacher-membership-pro.png | https://d29jvbfa3ftzxl.cloudfront.net/membership | membership-pro
+26-teacher-events-feed.png | https://d29jvbfa3ftzxl.cloudfront.net/events | events-feed
+27-teacher-new-event-form.png | https://d29jvbfa3ftzxl.cloudfront.net/events/new | new-event-form
+28-teacher-organizations.png | https://d29jvbfa3ftzxl.cloudfront.net/orgs | organizations
+29-teacher-forum.png | https://d29jvbfa3ftzxl.cloudfront.net/forum | forum
+30-teacher-mailbox.png | https://d29jvbfa3ftzxl.cloudfront.net/mailbox | mailbox
+31-teacher-notifications.png | https://d29jvbfa3ftzxl.cloudfront.net/notifications | notifications
+32-teacher-favorites.png | https://d29jvbfa3ftzxl.cloudfront.net/favorites | favorites
+33-teacher-analytics.png | https://d29jvbfa3ftzxl.cloudfront.net/analytics | analytics
+34-teacher-invite-a-friend.png | https://d29jvbfa3ftzxl.cloudfront.net/referrals | invite-a-friend
+35-teacher-support-tickets.png | https://d29jvbfa3ftzxl.cloudfront.net/support | support-tickets
+36-teacher-file-a-ticket.png | https://d29jvbfa3ftzxl.cloudfront.net/support/new | file-a-ticket
+37-teacher-sms-reminders.png | https://d29jvbfa3ftzxl.cloudfront.net/settings/sms | sms-reminders
+38-teacher-google-calendar.png | https://d29jvbfa3ftzxl.cloudfront.net/settings/google | google-calendar

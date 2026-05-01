@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { formatMoneySymbol } from "@/lib/money";
 
 type Booking = {
   bookingId: string;
@@ -107,7 +108,7 @@ export default function BookingsPage() {
                 </div>
                 <div className="flex items-center gap-3 text-right">
                   <div>
-                    <div className="font-display text-base text-ink">€{(b.amountCents / 100).toFixed(2)}</div>
+                    <div className="font-display text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
                     <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>{b.status}</div>
                   </div>
                   {canReview && (

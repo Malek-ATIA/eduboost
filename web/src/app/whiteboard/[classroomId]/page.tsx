@@ -261,12 +261,6 @@ export default function WhiteboardPage({
           onPointerCancel={onPointerUp}
         />
       </div>
-
-      <p className="mt-6 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }

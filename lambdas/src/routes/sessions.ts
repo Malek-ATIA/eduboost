@@ -7,11 +7,13 @@ import {
   ClassroomEntity,
   ClassroomMembershipEntity,
   BookingEntity,
+  PaymentEntity,
   UserEntity,
   GoogleCalendarEventEntity,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
 import { notify } from "../lib/notifications.js";
+import { stripe } from "../lib/stripe.js";
 import { scheduleReminders, rescheduleReminders, cancelReminders } from "../lib/scheduler.js";
 import {
   createCalendarEvent,
@@ -245,6 +247,7 @@ sessionRoutes.post("/", zValidator("json", createSchema), async (c) => {
     startsAt: body.startsAt,
     endsAt: body.endsAt,
     status: "scheduled",
+    ...(body.bookingId ? { bookingId: body.bookingId } : {}),
   }).go();
 
   // Schedule 24h / 1h reminders via EventBridge Scheduler (non-fatal on failure).
@@ -337,6 +340,67 @@ sessionRoutes.patch(
     // Keep any linked Google Calendar events in sync (non-fatal).
     if (body.status === "cancelled") {
       await removeCalendarsForSession(sessionId);
+
+      // Notify all classroom members about cancellation.
+      try {
+        const members = await ClassroomMembershipEntity.query
+          .primary({ classroomId: session.data.classroomId })
+          .go({ limit: 100 });
+        const startLocal = new Date(session.data.startsAt).toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
+        await Promise.all(
+          members.data
+            .filter((m) => m.userId !== sub)
+            .map((m) =>
+              notify({
+                userId: m.userId,
+                type: "session_cancelled",
+                title: "Session cancelled",
+                body: `The session on ${startLocal} has been cancelled by the teacher.`,
+                linkPath: `/calendar`,
+              }),
+            ),
+        );
+      } catch (err) {
+        console.error("sessions.patch: cancel notify failed (non-fatal)", err);
+      }
+
+      // If session was created from a booking, auto-refund it.
+      if (session.data.bookingId) {
+        try {
+          const booking = await BookingEntity.get({ bookingId: session.data.bookingId }).go();
+          if (booking.data && (booking.data.status === "confirmed" || booking.data.status === "completed")) {
+            const payments = await PaymentEntity.query
+              .byBooking({ bookingId: session.data.bookingId })
+              .go({ limit: 5 });
+            const succeeded = payments.data.find((p) => p.status === "succeeded");
+            if (succeeded?.providerPaymentId) {
+              try {
+                await stripe().refunds.create({ payment_intent: succeeded.providerPaymentId });
+                await PaymentEntity.patch({ paymentId: succeeded.paymentId })
+                  .set({ status: "refunded" })
+                  .go();
+              } catch (refErr) {
+                console.error("sessions.patch: booking refund failed", refErr);
+              }
+            }
+            await BookingEntity.patch({ bookingId: session.data.bookingId })
+              .set({ status: "refunded" })
+              .go();
+            await notify({
+              userId: booking.data.studentId,
+              type: "booking_refunded",
+              title: "Booking refunded",
+              body: `Your booking has been refunded because the session was cancelled.`,
+              linkPath: `/bookings`,
+            });
+          }
+        } catch (err) {
+          console.error("sessions.patch: booking refund flow failed (non-fatal)", err);
+        }
+      }
     } else if (
       (body.startsAt && body.startsAt !== session.data.startsAt) ||
       (body.endsAt && body.endsAt !== session.data.endsAt)

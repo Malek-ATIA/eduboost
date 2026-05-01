@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/money";
 
 type Booking = {
   bookingId: string;
@@ -48,7 +49,7 @@ function BookSuccessInner() {
       </p>
       {booking && (
         <p className="mt-6 font-mono text-sm text-ink-soft">
-          Booking {booking.bookingId} · {booking.type} · €{(booking.amountCents / 100).toFixed(2)}
+          Booking {booking.bookingId} · {booking.type} · {formatMoney(booking.amountCents, booking.currency)}
         </p>
       )}
       <div className="mt-8 flex justify-center gap-3">

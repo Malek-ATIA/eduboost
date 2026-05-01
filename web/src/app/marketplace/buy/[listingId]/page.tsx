@@ -5,6 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { getStripe } from "@/lib/stripe";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { formatMoney } from "@/lib/money";
 
 type Listing = {
   listingId: string;
@@ -39,8 +40,10 @@ const EMPTY_ADDR: ShippingAddress = {
   city: "",
   state: "",
   postalCode: "",
-  country: "",
-  phone: "",
+  // Default shipping country is Tunisia — the platform's primary market.
+  // Buyers shipping elsewhere override the ISO code in the form.
+  country: "TN",
+  phone: "+216 ",
 };
 
 export default function BuyListingPage({ params }: { params: Promise<{ listingId: string }> }) {
@@ -132,13 +135,13 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
       <p className="eyebrow">Checkout</p>
       <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Buy {listing.title}</h1>
       <p className="mt-1 text-sm text-ink-soft">
-        {listing.currency} {(listing.priceCents / 100).toFixed(2)}
+        {formatMoney(listing.priceCents, listing.currency)}
         {isPhysical && (
           <>
             {" "}
             +{" "}
             {shipping > 0
-              ? `${listing.currency} ${(shipping / 100).toFixed(2)} shipping`
+              ? `${formatMoney(shipping, listing.currency)} shipping`
               : "free shipping"}
           </>
         )}
@@ -147,7 +150,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
         <p className="mt-1 text-sm text-ink-soft">
           Total:{" "}
           <strong className="text-ink">
-            {listing.currency} {(total / 100).toFixed(2)}
+            {formatMoney(total, listing.currency)}
           </strong>
         </p>
       )}
@@ -226,7 +229,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
                   setAddress({ ...address, country: e.target.value.toUpperCase() })
                 }
                 className="input font-mono"
-                placeholder="IE"
+                placeholder="TN"
               />
             </label>
           </div>
@@ -237,6 +240,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
               value={address.phone}
               onChange={(e) => setAddress({ ...address, phone: e.target.value })}
               className="input"
+              placeholder="+216 55 555 555"
             />
           </label>
           <button type="submit" disabled={creating} className="btn-seal w-full">

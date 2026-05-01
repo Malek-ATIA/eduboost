@@ -25,6 +25,7 @@ import {
 import { requireAuth } from "../middleware/auth.js";
 import { stripe, computePlatformFeeCents, MIN_PRICE_CENTS } from "../lib/stripe.js";
 import { env } from "../env.js";
+import { notify } from "../lib/notifications.js";
 
 export const marketplaceRoutes = new Hono();
 
@@ -35,7 +36,11 @@ const listQuery = z.object({
   minPriceCents: z.coerce.number().int().nonnegative().optional(),
   maxPriceCents: z.coerce.number().int().nonnegative().optional(),
   sellerId: z.string().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+  // Scan-based browse with post-filter: DDB's Limit caps items EXAMINED per
+  // page (not returned). Other entities share the table, so a low limit can
+  // return fewer matches than you'd expect. 200 is enough for MVP volume;
+  // proper cursor-based pagination is the next upgrade.
+  limit: z.coerce.number().int().min(1).max(200).default(200),
 });
 
 marketplaceRoutes.get("/listings", zValidator("query", listQuery), async (c) => {
@@ -52,6 +57,17 @@ marketplaceRoutes.get("/listings", zValidator("query", listQuery), async (c) => 
   return c.json({ items: result.data });
 });
 
+// /listings/mine must be registered before /listings/:listingId so "mine"
+// isn't swallowed by the param route.
+marketplaceRoutes.use("/listings/mine", requireAuth);
+marketplaceRoutes.get("/listings/mine", async (c) => {
+  const { sub } = c.get("auth");
+  const result = await ListingEntity.query
+    .bySeller({ sellerId: sub })
+    .go({ limit: 50, order: "desc" });
+  return c.json({ items: result.data });
+});
+
 marketplaceRoutes.get(
   "/listings/:listingId",
   zValidator("param", z.object({ listingId: z.string().min(1) })),
@@ -65,18 +81,9 @@ marketplaceRoutes.get(
 );
 
 // All routes below require auth.
-marketplaceRoutes.use("/listings/mine", requireAuth);
 marketplaceRoutes.use("/listings/:listingId/upload-url", requireAuth);
 marketplaceRoutes.use("/listings/:listingId/download-url", requireAuth);
 marketplaceRoutes.use("/orders/*", requireAuth);
-
-marketplaceRoutes.get("/listings/mine", async (c) => {
-  const { sub } = c.get("auth");
-  const result = await ListingEntity.query
-    .bySeller({ sellerId: sub })
-    .go({ limit: 50, order: "desc" });
-  return c.json({ items: result.data });
-});
 
 const createListingSchema = z.object({
   kind: z.enum(["digital", "physical"]).default("digital"),
@@ -86,7 +93,7 @@ const createListingSchema = z.object({
   priceCents: z.number().int().min(MIN_PRICE_CENTS, {
     message: `priceCents below platform minimum of ${MIN_PRICE_CENTS}`,
   }),
-  currency: z.string().length(3).default("EUR"),
+  currency: z.string().length(3).default("TND"),
   // Physical-only fields. inStockCount defaults to 1 for a just-created
   // physical listing so sellers don't accidentally publish with 0 stock.
   // shippingCostCents defaults to 0 (free shipping) rather than forcing
@@ -213,8 +220,59 @@ marketplaceRoutes.delete(
     const listing = await ListingEntity.get({ listingId }).go();
     if (!listing.data) return c.json({ error: "not_found" }, 404);
     if (listing.data.sellerId !== sub) return c.json({ error: "forbidden" }, 403);
+
+    const orders = await OrderEntity.query
+      .bySeller({ sellerId: sub })
+      .where(({ listingId: lid, status }, { eq }) =>
+        `${eq(lid, listingId)} AND (${eq(status, "paid")} OR ${eq(status, "pending")})`,
+      )
+      .go({ limit: 200 });
+
+    let ordersRefunded = 0;
+    for (const order of orders.data) {
+      if (order.status === "paid") {
+        const payments = await PaymentEntity.query
+          .byBooking({ bookingId: order.orderId })
+          .go({ limit: 5 });
+        const succeeded = payments.data.find((p) => p.status === "succeeded");
+        if (succeeded?.providerPaymentId) {
+          try {
+            await stripe().refunds.create({ payment_intent: succeeded.providerPaymentId });
+            await PaymentEntity.patch({ paymentId: succeeded.paymentId })
+              .set({ status: "refunded" })
+              .go();
+          } catch (err) {
+            console.error(`listing.delete: refund failed order=${order.orderId}`, err);
+          }
+        }
+        if (listing.data.kind === "physical") {
+          try {
+            const currentListing = await ListingEntity.get({ listingId }).go();
+            if (currentListing.data) {
+              await ListingEntity.patch({ listingId })
+                .set({ inStockCount: (currentListing.data.inStockCount ?? 0) + 1 })
+                .go();
+            }
+          } catch { /* non-fatal */ }
+        }
+      }
+      await OrderEntity.patch({ orderId: order.orderId })
+        .set({ status: "refunded" })
+        .go();
+      try {
+        await notify({
+          userId: order.buyerId,
+          type: "booking_refunded",
+          title: "Order refunded",
+          body: `"${listing.data.title}" has been removed by the seller. Your payment has been refunded.`,
+          linkPath: `/orders`,
+        });
+      } catch { /* non-fatal */ }
+      ordersRefunded++;
+    }
+
     await ListingEntity.patch({ listingId }).set({ status: "archived" }).go();
-    return c.json({ ok: true });
+    return c.json({ ok: true, ordersRefunded });
   },
 );
 
@@ -361,20 +419,38 @@ marketplaceRoutes.post("/orders", requireAuth, zValidator("json", createOrderSch
   const totalCents = listing.data.priceCents + shippingCostCents;
 
   const orderId = makeOrderId();
-  const intent = await stripe().paymentIntents.create({
-    amount: totalCents,
-    currency: (listing.data.currency ?? "EUR").toLowerCase(),
-    automatic_payment_methods: { enabled: true },
-    metadata: {
-      kind: "marketplace_order",
-      orderId,
-      listingId,
-      buyerId: sub,
-      sellerId: listing.data.sellerId,
-    },
-    receipt_email: email,
-    description: `EduBoost marketplace: ${listing.data.title}`,
-  });
+  // Stripe init happens lazily inside stripe(); if STRIPE_SECRET_KEY isn't
+  // wired (dev environments before the secret is set, or a misconfigured
+  // deploy) we want to return a structured 503 instead of leaking a stack
+  // trace. Same handling on PaymentIntent creation in case Stripe rejects
+  // the request (bad price ID, account-suspended, etc.).
+  let intent: Awaited<ReturnType<ReturnType<typeof stripe>["paymentIntents"]["create"]>>;
+  try {
+    intent = await stripe().paymentIntents.create({
+      amount: totalCents,
+      currency: (listing.data.currency ?? "TND").toLowerCase(),
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        kind: "marketplace_order",
+        orderId,
+        listingId,
+        buyerId: sub,
+        sellerId: listing.data.sellerId,
+      },
+      receipt_email: email,
+      description: `EduBoost marketplace: ${listing.data.title}`,
+    });
+  } catch (err) {
+    const msg = (err as Error).message ?? String(err);
+    console.error("marketplace order: Stripe call failed", msg);
+    if (msg.includes("STRIPE_SECRET_KEY not set")) {
+      return c.json(
+        { error: "payments_not_configured", detail: "Stripe is not wired in this environment." },
+        503,
+      );
+    }
+    return c.json({ error: "payment_intent_failed", detail: msg }, 502);
+  }
 
   const order = await OrderEntity.create({
     orderId,

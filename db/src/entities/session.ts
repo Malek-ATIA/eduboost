@@ -14,6 +14,7 @@ export const SessionEntity = new Entity(
       status: { type: ["scheduled", "live", "completed", "cancelled"] as const, default: "scheduled" },
       chimeMeetingId: { type: "string" },
       chimePipelineId: { type: "string" },
+      bookingId: { type: "string" },
       recordingS3Key: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },

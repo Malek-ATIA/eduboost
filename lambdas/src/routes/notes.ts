@@ -63,6 +63,17 @@ noteRoutes.put(
   },
 );
 
+noteRoutes.delete(
+  "/sessions/:sessionId",
+  zValidator("param", z.object({ sessionId: z.string().min(1) })),
+  async (c) => {
+    const { sub } = c.get("auth");
+    const { sessionId } = c.req.valid("param");
+    await SessionNoteEntity.delete({ sessionId, userId: sub }).go();
+    return c.json({ ok: true });
+  },
+);
+
 // Lightweight cross-session index for the current user — used by a dedicated
 // notes UI so learners can revisit prior sessions they took notes on.
 noteRoutes.get("/mine", async (c) => {

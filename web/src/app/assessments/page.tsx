@@ -120,12 +120,6 @@ export default function AssessmentsPage() {
           </ul>
         )}
       </section>
-
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }

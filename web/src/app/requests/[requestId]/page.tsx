@@ -89,7 +89,8 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
 
       {req.preferredTime && (
         <p className="mt-6 text-sm text-ink">
-          <span className="text-ink-soft">Preferred time:</span> {req.preferredTime}
+          <span className="text-ink-soft">Preferred time:</span>{" "}
+          {formatPreferredTime(req.preferredTime)}
         </p>
       )}
       {req.message && (
@@ -160,4 +161,12 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
       )}
     </main>
   );
+}
+
+// Older rows may carry freeform strings like "weekday evenings" from before
+// the picker switch; fall back to the raw value if the string doesn't parse
+// as a date so we never show "Invalid Date" on the detail page.
+function formatPreferredTime(value: string): string {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d.toLocaleString();
 }

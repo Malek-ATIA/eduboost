@@ -84,6 +84,21 @@ export default function ParentChildrenPage() {
     }
   }
 
+  async function onChangeRelationship(
+    childId: string,
+    nextRelationship: "mother" | "father" | "guardian",
+  ) {
+    try {
+      await api(`/family/children/${childId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ relationship: nextRelationship }),
+      });
+      await load();
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
       <p className="eyebrow">Family</p>
@@ -147,6 +162,21 @@ export default function ParentChildrenPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <select
+                  value={link.relationship}
+                  onChange={(e) =>
+                    onChangeRelationship(
+                      link.childId,
+                      e.target.value as "mother" | "father" | "guardian",
+                    )
+                  }
+                  className="input !py-1 !text-xs"
+                  aria-label="Change relationship"
+                >
+                  <option value="mother">Mother</option>
+                  <option value="father">Father</option>
+                  <option value="guardian">Guardian</option>
+                </select>
                 <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[link.status]}`}>
                   {link.status}
                 </span>
@@ -161,12 +191,6 @@ export default function ParentChildrenPage() {
           ))}
         </ul>
       )}
-
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }

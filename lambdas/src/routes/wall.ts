@@ -102,6 +102,10 @@ wallRoutes.delete(
     const post = await WallPostEntity.get({ postId }).go();
     if (!post.data) return c.json({ error: "not_found" }, 404);
     if (post.data.teacherId !== sub) return c.json({ error: "forbidden" }, 403);
+    const comments = await WallCommentEntity.query.primary({ postId }).go({ limit: 500 });
+    await Promise.all(
+      comments.data.map((cm) => WallCommentEntity.delete({ postId, commentId: cm.commentId }).go()),
+    );
     await WallPostEntity.delete({ postId }).go();
     return c.json({ ok: true });
   },

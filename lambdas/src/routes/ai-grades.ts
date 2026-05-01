@@ -28,13 +28,14 @@ aiGradeRoutes.post("/", zValidator("json", createSchema), async (c) => {
   const { sub } = c.get("auth");
   const body = c.req.valid("json");
 
-  const teacher = await UserEntity.get({ userId: sub }).go();
+  const [teacher, student] = await Promise.all([
+    UserEntity.get({ userId: sub }).go(),
+    UserEntity.get({ userId: body.studentId }).go(),
+  ]);
   if (!teacher.data) return c.json({ error: "user_not_found" }, 404);
   if (teacher.data.role !== "teacher") return c.json({ error: "only_teachers" }, 403);
+  if (!student.data) return c.json({ error: "student_not_found" }, 404);
 
-  // Membership check: if a classroomId is supplied, the student must actually
-  // be a member. This prevents a teacher from grading submissions for a
-  // student they have no teaching relationship with.
   if (body.classroomId) {
     const membership = await ClassroomMembershipEntity.get({
       classroomId: body.classroomId,

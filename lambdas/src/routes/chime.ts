@@ -28,8 +28,19 @@ import { deleteCalendarEvent } from "../lib/google.js";
 
 export const chimeRoutes = new Hono();
 
-const chime = new ChimeSDKMeetingsClient({ region: env.region });
-const pipelines = new ChimeSDKMediaPipelinesClient({ region: env.region });
+// Chime SDK Meetings + MediaPipelines control-plane regions are NOT the
+// same thing as the meeting's MediaRegion (where audio/video traffic flows).
+// Control planes live only in a handful of regions; eu-west-1 is NOT one of
+// them, so we MUST point the SDK clients at a control-plane region while
+// keeping MediaRegion: env.region in the CreateMeeting call so media still
+// routes locally.
+//
+// Override via CHIME_CONTROL_REGION env var if AWS rolls eu-west-1 support
+// out, or if a future stack lives in us-west-2 / ap-southeast-1.
+const chimeControlRegion = process.env.CHIME_CONTROL_REGION ?? "eu-central-1";
+
+const chime = new ChimeSDKMeetingsClient({ region: chimeControlRegion });
+const pipelines = new ChimeSDKMediaPipelinesClient({ region: chimeControlRegion });
 
 chimeRoutes.use("*", requireAuth);
 

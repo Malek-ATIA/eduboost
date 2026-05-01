@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
+import { Bell } from "lucide-react";
 
 export function NotificationBell() {
   const [count, setCount] = useState<number | null>(null);
@@ -38,12 +39,12 @@ export function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className="relative inline-flex items-center rounded-md border border-ink-faded/50 bg-parchment-dark/60 px-3 py-1 text-sm text-ink transition hover:border-ink-faded hover:bg-parchment-shade"
+      className="relative inline-flex items-center gap-1.5 rounded-md border border-ink-faded/50 bg-parchment-dark/60 px-3 py-1.5 text-sm text-ink-soft transition hover:border-ink-faded hover:bg-parchment-shade hover:text-ink"
       aria-label={`Notifications (${count} unread)`}
     >
-      <span>Notifications</span>
+      <Bell size={16} />
       {count > 0 && (
-        <span className="ml-2 min-w-[1.25rem] rounded-full bg-seal px-1.5 text-center text-xs text-parchment">
+        <span className="min-w-[1.25rem] rounded-full bg-seal px-1.5 text-center text-xs font-medium text-white">
           {count > 99 ? "99+" : count}
         </span>
       )}

@@ -84,7 +84,7 @@ favoriteRoutes.get("/mine", async (c) => {
                   ratingAvg: profile.data?.ratingAvg ?? 0,
                   ratingCount: profile.data?.ratingCount ?? 0,
                   hourlyRateCents: profile.data?.hourlyRateCents ?? 0,
-                  currency: profile.data?.currency ?? "EUR",
+                  currency: profile.data?.currency ?? "TND",
                 }
               : null,
           };

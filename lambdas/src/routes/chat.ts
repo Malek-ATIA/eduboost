@@ -4,6 +4,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import {
   ChatMessageEntity,
+  ClassroomEntity,
   ClassroomMembershipEntity,
   UserEntity,
   dmChannelId,
@@ -77,6 +78,12 @@ chatRoutes.post("/classroom/:classroomId", zValidator("json", sendSchema), async
   const { body } = c.req.valid("json");
   const membership = await ClassroomMembershipEntity.get({ classroomId, userId: sub }).go();
   if (!membership.data) return c.json({ error: "forbidden" }, 403);
+  // Classroom group chat can be turned off by the teacher. When disabled
+  // members can still READ historical messages but can't post new ones.
+  const cls = await ClassroomEntity.get({ classroomId }).go();
+  if (cls.data && cls.data.chatEnabled === false) {
+    return c.json({ error: "chat_disabled" }, 403);
+  }
   const channelId = classroomChannelId(classroomId);
   const message = await ChatMessageEntity.create({
     channelId,
@@ -110,4 +117,28 @@ chatRoutes.post("/classroom/:classroomId", zValidator("json", sendSchema), async
   }
 
   return c.json(message.data, 201);
+});
+
+// Delete a classroom chat message. Teacher (classroom.teacherId) can delete
+// any message; any author can delete their own. DMs are NOT moderated — if
+// you want to delete a DM, handle it through support tickets.
+chatRoutes.delete("/classroom/:classroomId/:messageId", async (c) => {
+  const { sub } = c.get("auth");
+  const classroomId = c.req.param("classroomId");
+  const messageId = c.req.param("messageId");
+  const channelId = classroomChannelId(classroomId);
+
+  const [cls, existing] = await Promise.all([
+    ClassroomEntity.get({ classroomId }).go(),
+    ChatMessageEntity.get({ channelId, messageId }).go(),
+  ]);
+  if (!cls.data) return c.json({ error: "not_found" }, 404);
+  if (!existing.data) return c.json({ error: "not_found" }, 404);
+
+  const isTeacher = cls.data.teacherId === sub;
+  const isAuthor = existing.data.senderId === sub;
+  if (!isTeacher && !isAuthor) return c.json({ error: "forbidden" }, 403);
+
+  await ChatMessageEntity.delete({ channelId, messageId }).go();
+  return c.json({ ok: true });
 });

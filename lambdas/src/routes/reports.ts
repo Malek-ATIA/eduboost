@@ -48,7 +48,7 @@ reportRoutes.get("/teacher/summary", async (c) => {
     prevMonth: { booking: zero(), marketplace: zero() } as Breakdown,
   };
 
-  let currency = "EUR";
+  let currency = "TND";
 
   for (const p of all.data) {
     if (p.status !== "succeeded") continue;
@@ -95,7 +95,7 @@ reportRoutes.get("/teacher/export.csv", async (c) => {
         csv(p.bookingId),
         csv(kind),
         csv(p.createdAt ?? ""),
-        csv(p.currency ?? "EUR"),
+        csv(p.currency ?? "TND"),
         String(p.amountCents),
         String(fee),
         String(net),

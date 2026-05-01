@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/money";
 
 type Role = "owner" | "admin" | "teacher" | "student";
 
@@ -420,7 +421,7 @@ export default function OrgDetailPage({
                     <div className="text-xs text-ink-faded">status {l.status}</div>
                   </div>
                   <span className="font-mono text-ink">
-                    {l.currency} {(l.priceCents / 100).toFixed(2)}
+                    {formatMoney(l.priceCents, l.currency)}
                   </span>
                 </li>
               ))}

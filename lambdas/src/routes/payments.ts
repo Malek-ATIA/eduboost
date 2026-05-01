@@ -89,7 +89,7 @@ paymentRoutes.get(
       createdAt: payment.data.createdAt ?? new Date().toISOString(),
       bookingId: payment.data.bookingId,
       bookingType: booking.data.type,
-      currency: payment.data.currency ?? "EUR",
+      currency: payment.data.currency ?? "TND",
       amountCents: payment.data.amountCents,
       platformFeeCents: payment.data.platformFeeCents ?? 0,
       payer: { displayName: payer.data.displayName, email: payer.data.email },

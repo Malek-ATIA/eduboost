@@ -14,7 +14,7 @@ export const BookingEntity = new Entity(
       type: { type: ["trial", "single", "package"] as const, required: true },
       status: { type: ["pending", "confirmed", "cancelled", "refunded", "completed"] as const, default: "pending" },
       amountCents: { type: "number", required: true },
-      currency: { type: "string", default: "EUR" },
+      currency: { type: "string", default: "TND" },
       stripePaymentIntentId: { type: "string" },
       createdAt: { type: "string", default: () => new Date().toISOString(), readOnly: true },
       updatedAt: { type: "string", watch: "*", set: () => new Date().toISOString() },

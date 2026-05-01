@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { formatAmount } from "@/lib/money";
 
 type ShippingAddress = {
   name: string;
@@ -117,8 +118,8 @@ export default function SellerOrdersPage() {
                     </div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {new Date(o.createdAt).toLocaleString()} · fee{" "}
-                      {(o.platformFeeCents / 100).toFixed(2)} · net{" "}
-                      {((o.priceCents - o.platformFeeCents) / 100).toFixed(2)} {o.currency}
+                      {formatAmount(o.platformFeeCents, o.currency)} · net{" "}
+                      {formatAmount(o.priceCents - o.platformFeeCents, o.currency)} {o.currency}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

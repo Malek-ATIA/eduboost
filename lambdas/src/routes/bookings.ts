@@ -13,7 +13,9 @@ import {
   makeTicketMessageId,
 } from "@eduboost/db";
 import { requireAuth } from "../middleware/auth.js";
+import { env } from "../env.js";
 import { stripe, computePlatformFeeCents, MIN_PRICE_CENTS } from "../lib/stripe.js";
+import { formatMoney } from "../lib/money.js";
 import { notify } from "../lib/notifications.js";
 
 // Money-back guarantee: students can cancel a booking and get an automatic
@@ -63,7 +65,7 @@ const createSchema = z.object({
     .refine((v) => v === 0 || v >= MIN_PRICE_CENTS, {
       message: `amountCents below platform minimum of ${MIN_PRICE_CENTS}`,
     }),
-  currency: z.string().length(3).default("EUR"),
+  currency: z.string().length(3).default("TND"),
 });
 
 bookingRoutes.post("/", zValidator("json", createSchema), async (c) => {
@@ -80,25 +82,39 @@ bookingRoutes.post("/", zValidator("json", createSchema), async (c) => {
     return c.json({ error: "teacher_not_found" }, 404);
   }
 
-  const intent = await stripe().paymentIntents.create({
-    amount: body.amountCents,
-    currency: body.currency.toLowerCase(),
-    automatic_payment_methods: { enabled: true },
-    metadata: {
-      bookingId,
-      studentId: sub,
-      teacherId: body.teacherId,
-      type: body.type,
-    },
-    receipt_email: email,
-    description: `EduBoost ${body.type} session booking`,
-  });
+  const stripeConfigured = !!env.stripeSecretKey;
+  let intentId: string;
+  let clientSecret: string;
+  let bookingStatus: "pending" | "confirmed";
+
+  if (stripeConfigured) {
+    const intent = await stripe().paymentIntents.create({
+      amount: body.amountCents,
+      currency: body.currency.toLowerCase(),
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        bookingId,
+        studentId: sub,
+        teacherId: body.teacherId,
+        type: body.type,
+      },
+      receipt_email: email,
+      description: `EduBoost ${body.type} session booking`,
+    });
+    intentId = intent.id;
+    clientSecret = intent.client_secret!;
+    bookingStatus = "pending";
+  } else {
+    intentId = `demo_pi_${nanoid(12)}`;
+    clientSecret = `demo_secret_${nanoid(16)}`;
+    bookingStatus = "confirmed";
+  }
 
   const result = await BookingEntity.create({
     bookingId,
     studentId: sub,
-    status: "pending",
-    stripePaymentIntentId: intent.id,
+    status: bookingStatus,
+    stripePaymentIntentId: intentId,
     ...body,
   }).go();
 
@@ -112,16 +128,14 @@ bookingRoutes.post("/", zValidator("json", createSchema), async (c) => {
       subject: "New booking on EduBoost",
       html: `<p>Hi ${escapeHtml(teacher.data.displayName)},</p><p><strong>${escapeHtml(
         student.data.displayName,
-      )}</strong> just booked a ${body.type} session with you for €${(body.amountCents / 100).toFixed(
-        2,
-      )}. Payment is pending confirmation.</p>`,
+      )}</strong> just booked a ${body.type} session with you for ${formatMoney(body.amountCents, body.currency)}. Payment is pending confirmation.</p>`,
     },
   });
 
   return c.json(
     {
       booking: result.data,
-      clientSecret: intent.client_secret,
+      clientSecret,
       platformFeeCents: computePlatformFeeCents(body.amountCents),
     },
     201,

@@ -1,16 +1,11 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { currentRole, currentSession, isAdmin, signOut, type Role } from "@/lib/cognito";
-import { NotificationBell } from "@/components/NotificationBell";
+import { currentRole, currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     currentSession().then((s) => {
@@ -18,265 +13,39 @@ export default function DashboardPage() {
         router.replace("/login");
         return;
       }
-      setEmail(s.getIdToken().payload.email as string);
-      setRole(currentRole(s));
-      setAdmin(isAdmin(s));
 
-      // Auto-claim referral code captured from ?ref= on the signup page.
-      // sessionStorage persists across the signup → confirm → login → dashboard
-      // flow within a single tab. We consume the key best-effort: success is
-      // silent (the user will see the referrer on /referrals), and we drop the
-      // key regardless of outcome so we never retry (the backend endpoint is
-      // one-shot anyway — a second POST would just return already_claimed).
       if (typeof window !== "undefined") {
         let pendingRef: string | null = null;
+        let pendingOrg = false;
         try {
           pendingRef = sessionStorage.getItem("eduboost_pending_ref");
-        } catch {
-          /* storage disabled */
-        }
+          pendingOrg = sessionStorage.getItem("eduboost_pending_org_create") === "1";
+        } catch {}
         if (pendingRef) {
-          try {
-            sessionStorage.removeItem("eduboost_pending_ref");
-          } catch {
-            /* ignore */
-          }
-          api<{ referrerDisplayName: string }>(`/referrals/claim`, {
+          try { sessionStorage.removeItem("eduboost_pending_ref"); } catch {}
+          api(`/referrals/claim`, {
             method: "POST",
             body: JSON.stringify({ code: pendingRef }),
-          }).catch(() => {
-            /* swallow: already_claimed, unknown_code, self-referral, etc. */
-          });
+          }).catch(() => {});
+        }
+        if (pendingOrg) {
+          try { sessionStorage.removeItem("eduboost_pending_org_create"); } catch {}
+          router.replace("/orgs/new");
+          return;
         }
       }
+
+      const role = currentRole(s);
+      if (isAdmin(s)) return router.replace("/admin");
+      if (role === "teacher") return router.replace("/teacher");
+      if (role === "parent") return router.replace("/parent");
+      router.replace("/student");
     });
   }, [router]);
 
-  const links: { href: string; label: string; description: string }[] = [];
-  if (role === "student" || role === "parent") {
-    links.push(
-      { href: "/teachers", label: "Find a teacher", description: "Browse verified tutors and book a trial session" },
-      { href: "/bookings", label: "My bookings", description: "Upcoming and past sessions" },
-      { href: "/requests", label: "My lesson requests", description: "Requests you've sent to teachers" },
-      { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
-      { href: "/payments", label: "Payment history", description: "Download invoices for past payments" },
-      { href: "/attendance", label: "My attendance", description: "Your attendance record across sessions" },
-      { href: "/marketplace", label: "Marketplace", description: "Browse study materials for sale" },
-      { href: "/orders", label: "My orders", description: "Digital tutorials you've purchased" },
-      { href: "/grades", label: "My grades", description: "Feedback from AI-graded submissions" },
-      { href: "/analytics", label: "Analytics", description: "Your spend, attendance, grades, and activity" },
-      { href: "/notes", label: "My notes", description: "Personal notes from classroom sessions" },
-      { href: "/favorites", label: "My favorites", description: "Teachers and organizations you've bookmarked" },
-    );
-  }
-  if (role === "parent") {
-    links.push({
-      href: "/parent/children",
-      label: "My children",
-      description: "Manage linked student accounts",
-    });
-  }
-  if (role === "student") {
-    links.push({
-      href: "/student/parents",
-      label: "My parents / guardians",
-      description: "Accept or view parent link requests",
-    });
-  }
-  if (role === "teacher") {
-    links.push(
-      { href: "/teacher/profile", label: "Edit your profile", description: "Bio, subjects, hourly rate" },
-      { href: "/teacher/bookings", label: "My bookings (teacher)", description: "Schedule sessions against bookings" },
-      { href: "/requests", label: "Lesson requests", description: "Accept or decline incoming requests" },
-      { href: "/calendar", label: "Calendar", description: "Upcoming scheduled sessions" },
-      { href: "/payments", label: "Payments received", description: "Session payouts and invoices you can reference" },
-      { href: "/seller/listings", label: "Marketplace listings", description: "Sell digital study materials" },
-      { href: "/seller/orders", label: "Marketplace sales", description: "Orders on your listings" },
-      { href: "/teacher/earnings", label: "Earnings", description: "Gross, fee, and net income across sessions and marketplace" },
-      { href: "/teacher/grader", label: "AI grader", description: "Score submissions with Claude + a rubric" },
-      { href: "/grades", label: "Grades given", description: "History of your AI-graded submissions" },
-      { href: "/orgs", label: "Organizations", description: "Manage teams and linked classrooms" },
-      { href: "/analytics", label: "Analytics", description: "Sessions, earnings, rating, and student reach" },
-    );
-  }
-  if (admin) {
-    links.push(
-      { href: "/admin", label: "Admin console", description: "Users, bans, and all support tickets" },
-    );
-  }
-  links.push({
-    href: "/forum",
-    label: "Forum",
-    description: "Community Q&A and discussion",
-  });
-  links.push({
-    href: "/events",
-    label: "Events",
-    description: "Upcoming workshops, meetups and ticketed sessions",
-  });
-  links.push({
-    href: "/assessments",
-    label: "Assessments",
-    description: "Take or author MCQ + short-answer exams",
-  });
-  links.push({
-    href: "/study-materials",
-    label: "Study materials",
-    description: "Peer-shared exams, notes, and answer keys",
-  });
-  links.push({
-    href: "/mailbox",
-    label: "Mailbox",
-    description: "Threaded async messages with participants",
-  });
-  links.push({
-    href: "/referrals",
-    label: "Invite a friend",
-    description: "Share your referral code",
-  });
-  links.push({
-    href: "/settings/sms",
-    label: "SMS notifications",
-    description: "Get texted for time-sensitive updates",
-  });
-  links.push({
-    href: "/settings/google",
-    label: "Google Calendar",
-    description: "Sync your scheduled sessions to Google Calendar",
-  });
-  links.push({
-    href: "/membership",
-    label: "Membership",
-    description: "Upgrade your account for extra features",
-  });
-  links.push({
-    href: "/support",
-    label: "Support & disputes",
-    description: "File a dispute, report an issue, or contact the team",
-  });
-  links.push({
-    href: "/faq",
-    label: "FAQ & contact",
-    description: "Common questions and how to reach us",
-  });
-
-  // Group links by theme so the dashboard reads like a table of contents
-  // rather than a flat grid of everything we ship. The grouping is purely
-  // presentational — the array built above still drives membership.
-  const sections: { title: string; eyebrow: string; hrefs: string[] }[] = [
-    {
-      eyebrow: "Chapter I",
-      title: "Classes & learning",
-      hrefs: [
-        "/teachers",
-        "/favorites",
-        "/bookings",
-        "/teacher/bookings",
-        "/requests",
-        "/calendar",
-        "/attendance",
-        "/notes",
-        "/assessments",
-        "/grades",
-        "/teacher/grader",
-      ],
-    },
-    {
-      eyebrow: "Chapter II",
-      title: "Marketplace & payments",
-      hrefs: [
-        "/marketplace",
-        "/orders",
-        "/seller/listings",
-        "/seller/orders",
-        "/study-materials",
-        "/payments",
-        "/teacher/earnings",
-        "/membership",
-        "/events",
-      ],
-    },
-    {
-      eyebrow: "Chapter III",
-      title: "Community",
-      hrefs: ["/forum", "/mailbox", "/referrals", "/orgs"],
-    },
-    {
-      eyebrow: "Chapter IV",
-      title: "Account & support",
-      hrefs: [
-        "/teacher/profile",
-        "/parent/children",
-        "/student/parents",
-        "/analytics",
-        "/settings/sms",
-        "/settings/google",
-        "/support",
-        "/faq",
-        "/admin",
-      ],
-    },
-  ];
-
-  const byHref = new Map(links.map((l) => [l.href, l]));
-
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
-      <header className="flex items-start justify-between gap-4 border-b border-ink-faded/40 pb-6">
-        <div>
-          <p className="eyebrow">Your account</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
-            Dashboard
-          </h1>
-          <p className="mt-2 text-sm text-ink-soft">
-            {email ?? "..."} · <span className="capitalize">{role ?? ""}</span>
-            {admin && " · admin"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <button
-            onClick={() => {
-              signOut();
-              router.replace("/");
-            }}
-            className="btn-ghost"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
-
-      <div className="mt-10 space-y-12">
-        {sections.map((s) => {
-          const items = s.hrefs
-            .map((h) => byHref.get(h))
-            .filter((l): l is NonNullable<typeof l> => !!l);
-          if (items.length === 0) return null;
-          return (
-            <section key={s.title}>
-              <p className="eyebrow">{s.eyebrow}</p>
-              <h2 className="mt-1 font-display text-2xl text-ink">{s.title}</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href as never}
-                    className="card-interactive group block p-5"
-                  >
-                    <div className="font-display text-base text-ink group-hover:text-seal">
-                      {l.label}
-                    </div>
-                    <div className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                      {l.description}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">
+      Loading...
     </main>
   );
 }

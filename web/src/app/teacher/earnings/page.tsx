@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
+import { formatMoney, formatAmount } from "@/lib/money";
 
 type Totals = { gross: number; fee: number; net: number; count: number };
 type Breakdown = { booking: Totals; marketplace: Totals };
@@ -96,13 +97,7 @@ export default function EarningsPage() {
           <Bucket label="All time" breakdown={data.buckets.allTime} currency={data.currency} />
         </div>
       )}
-
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }
 
@@ -125,11 +120,11 @@ function Bucket({
     <div className="card p-4">
       <div className="eyebrow">{label}</div>
       <div className="mt-2 font-display text-3xl text-ink">
-        {currency} {(total.net / 100).toFixed(2)}
+        {formatMoney(total.net, currency, { trim: true })}
       </div>
       <div className="mt-1 text-xs text-ink-faded">
         {total.count} payment{total.count === 1 ? "" : "s"} · gross{" "}
-        {(total.gross / 100).toFixed(2)} · fee {(total.fee / 100).toFixed(2)}
+        {formatAmount(total.gross, currency, { trim: true })} · fee {formatAmount(total.fee, currency, { trim: true })}
       </div>
       <dl className="mt-4 space-y-1 text-sm">
         <Row label="Sessions" t={breakdown.booking} currency={currency} />
@@ -144,7 +139,7 @@ function Row({ label, t, currency }: { label: string; t: Totals; currency: strin
     <div className="flex items-center justify-between text-ink-soft">
       <dt>{label}</dt>
       <dd>
-        {currency} {(t.net / 100).toFixed(2)}{" "}
+        {formatMoney(t.net, currency, { trim: true })}{" "}
         <span className="text-xs text-ink-faded">({t.count})</span>
       </dd>
     </div>

@@ -15,6 +15,13 @@ type ChatMessage = {
 
 type ClassroomChatResponse = { channelId: string; items: ChatMessage[] };
 
+type Classroom = {
+  classroomId: string;
+  teacherId: string;
+  title: string;
+  chatEnabled?: boolean;
+};
+
 export default function ClassroomChatPage({
   params,
 }: {
@@ -22,6 +29,8 @@ export default function ClassroomChatPage({
 }) {
   const { classroomId } = use(params);
   const router = useRouter();
+  const [sub, setSub] = useState<string | null>(null);
+  const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,13 +44,7 @@ export default function ClassroomChatPage({
       );
       setMessages([...r.items].reverse());
     } catch (err) {
-      // API enforces membership server-side (403 if non-member); surface it.
-      const msg = (err as Error).message;
-      if (msg.includes("403")) {
-        setError("You are not a member of this classroom.");
-      } else {
-        setError(msg);
-      }
+      setError((err as Error).message);
     }
   }, [classroomId]);
 
@@ -52,9 +55,16 @@ export default function ClassroomChatPage({
         router.replace("/login");
         return;
       }
+      setSub((session.getIdToken().payload.sub as string) ?? null);
+      try {
+        const cls = await api<Classroom>(`/classrooms/${classroomId}`);
+        setClassroom(cls);
+      } catch {
+        /* non-fatal; teacher-only moderation fallback */
+      }
       load();
     })();
-  }, [router, load]);
+  }, [router, load, classroomId]);
 
   useEffect(() => {
     if (scrollerRef.current) {
@@ -62,11 +72,15 @@ export default function ClassroomChatPage({
     }
   }, [messages]);
 
+  const chatOn = classroom?.chatEnabled ?? true;
+  const isTeacher = !!classroom && sub !== null && classroom.teacherId === sub;
+
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const body = draft.trim();
     if (!body || sending) return;
     setSending(true);
+    setError(null);
     try {
       const msg = await api<ChatMessage>(
         `/chat/classroom/${encodeURIComponent(classroomId)}`,
@@ -81,44 +95,84 @@ export default function ClassroomChatPage({
     }
   }
 
+  async function deleteMessage(messageId: string) {
+    if (!confirm("Delete this message for everyone?")) return;
+    try {
+      await api(
+        `/chat/classroom/${encodeURIComponent(classroomId)}/${encodeURIComponent(
+          messageId,
+        )}`,
+        { method: "DELETE" },
+      );
+      setMessages((prev) => prev?.filter((m) => m.messageId !== messageId) ?? null);
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
       <p className="eyebrow">Classroom</p>
-      <h1 className="mt-1 font-display text-3xl text-ink">Classroom chat</h1>
-      <p className="mt-1 font-mono text-sm text-ink-soft">Classroom {classroomId}</p>
+      <h1 className="mt-1 font-display text-3xl text-ink">
+        {classroom?.title ?? "Classroom chat"}
+      </h1>
+      <p className="mt-1 text-sm text-ink-soft">
+        {isTeacher
+          ? "You're the teacher — tap Delete on any message to remove it."
+          : "Posts are visible to every member of this classroom."}
+      </p>
+      {!chatOn && (
+        <p className="mt-3 rounded-md border border-ink-faded/40 bg-parchment-dark px-3 py-2 text-sm text-ink-soft">
+          Chat is currently <strong>disabled</strong> by the teacher. You can read
+          history, but new messages can&apos;t be posted.
+        </p>
+      )}
       {error && <p className="mt-2 text-sm text-seal">{error}</p>}
 
       <div className="card mt-6 flex h-[520px] flex-col">
         <div ref={scrollerRef} className="flex-1 overflow-y-auto p-3">
           {messages === null && !error && (
-            <p className="text-sm text-ink-soft">Loading...</p>
+            <p className="text-sm text-ink-soft">Loading…</p>
           )}
           {messages && messages.length === 0 && (
             <p className="text-sm text-ink-soft">No messages yet.</p>
           )}
-          {messages?.map((m) => (
-            <div key={m.messageId} className="mb-2">
-              <div className="text-xs text-ink-faded">
-                <span className="font-mono">{m.senderId}</span> · {new Date(m.createdAt).toLocaleString()}
+          {messages?.map((m) => {
+            const canDelete = isTeacher || m.senderId === sub;
+            return (
+              <div key={m.messageId} className="group mb-3">
+                <div className="flex items-center gap-2 text-xs text-ink-faded">
+                  <span className="font-mono">{m.senderId.slice(0, 8)}…</span>
+                  <span>·</span>
+                  <span>{new Date(m.createdAt).toLocaleString()}</span>
+                  {canDelete && (
+                    <button
+                      onClick={() => deleteMessage(m.messageId)}
+                      className="ml-auto text-seal opacity-0 transition group-hover:opacity-100"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+                <div className="mt-0.5 text-sm text-ink">{m.body}</div>
               </div>
-              <div className="text-sm text-ink">{m.body}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="border-t border-ink-faded/30 p-2">
           <form onSubmit={send} className="flex gap-2">
             <input
               className="input flex-1"
-              placeholder="Type a message..."
+              placeholder={chatOn ? "Type a message…" : "Chat is disabled"}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              disabled={sending || !!error}
+              disabled={sending || !!error || !chatOn}
               maxLength={4000}
             />
             <button
               type="submit"
               className="btn-seal"
-              disabled={sending || !draft.trim() || !!error}
+              disabled={sending || !draft.trim() || !!error || !chatOn}
             >
               Send
             </button>

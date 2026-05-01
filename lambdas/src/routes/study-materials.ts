@@ -24,7 +24,9 @@ const s3 = new S3Client({ region: env.region });
 const listQuery = z.object({
   kind: z.enum(STUDY_MATERIAL_KINDS).optional(),
   subject: z.string().trim().min(1).max(100).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+  // Same scan-Limit caveat as /teachers and /marketplace — DDB's Limit is
+  // pre-filter, so a low value can hide real matches.
+  limit: z.coerce.number().int().min(1).max(200).default(200),
 });
 
 // Public browse, matching the marketplace pattern. Peer-shared materials are

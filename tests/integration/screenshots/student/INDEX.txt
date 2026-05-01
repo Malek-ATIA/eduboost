@@ -1,0 +1,34 @@
+EduBoost student space tour — 2026-04-26T09:05:41.256Z
+account: malek.atia2@gmail.com
+30 screenshots
+
+01-student-landing.png | https://d29jvbfa3ftzxl.cloudfront.net/dashboard | post-login landing
+02-student-student-space-hub.png | https://d29jvbfa3ftzxl.cloudfront.net/student | student-space-hub
+03-student-dashboard-with-sidebar.png | https://d29jvbfa3ftzxl.cloudfront.net/dashboard | dashboard-with-sidebar
+04-student-my-profile.png | https://d29jvbfa3ftzxl.cloudfront.net/profile | my-profile
+05-student-my-classrooms.png | https://d29jvbfa3ftzxl.cloudfront.net/classrooms | my-classrooms
+06-student-find-a-teacher.png | https://d29jvbfa3ftzxl.cloudfront.net/teachers | find-a-teacher
+07-student-my-bookings.png | https://d29jvbfa3ftzxl.cloudfront.net/bookings | my-bookings
+08-student-lesson-requests.png | https://d29jvbfa3ftzxl.cloudfront.net/requests | lesson-requests
+09-student-my-calendar.png | https://d29jvbfa3ftzxl.cloudfront.net/calendar | my-calendar
+10-student-payments-history.png | https://d29jvbfa3ftzxl.cloudfront.net/payments | payments-history
+11-student-my-orders.png | https://d29jvbfa3ftzxl.cloudfront.net/orders | my-orders
+12-student-my-grades.png | https://d29jvbfa3ftzxl.cloudfront.net/grades | my-grades
+13-student-my-attendance.png | https://d29jvbfa3ftzxl.cloudfront.net/attendance | my-attendance
+14-student-session-notes.png | https://d29jvbfa3ftzxl.cloudfront.net/notes | session-notes
+15-student-favorites.png | https://d29jvbfa3ftzxl.cloudfront.net/favorites | favorites
+16-student-my-parents.png | https://d29jvbfa3ftzxl.cloudfront.net/student/parents | my-parents
+17-student-exams-and-quizzes.png | https://d29jvbfa3ftzxl.cloudfront.net/assessments | exams-and-quizzes
+18-student-study-materials.png | https://d29jvbfa3ftzxl.cloudfront.net/study-materials | study-materials
+19-student-premium-membership.png | https://d29jvbfa3ftzxl.cloudfront.net/membership | premium-membership
+20-student-mailbox.png | https://d29jvbfa3ftzxl.cloudfront.net/mailbox | mailbox
+21-student-notifications.png | https://d29jvbfa3ftzxl.cloudfront.net/notifications | notifications
+22-student-forum.png | https://d29jvbfa3ftzxl.cloudfront.net/forum | forum
+23-student-events.png | https://d29jvbfa3ftzxl.cloudfront.net/events | events
+24-student-marketplace.png | https://d29jvbfa3ftzxl.cloudfront.net/marketplace | marketplace
+25-student-invite-a-friend.png | https://d29jvbfa3ftzxl.cloudfront.net/referrals | invite-a-friend
+26-student-support-tickets.png | https://d29jvbfa3ftzxl.cloudfront.net/support | support-tickets
+27-student-file-a-dispute.png | https://d29jvbfa3ftzxl.cloudfront.net/support/new | file-a-dispute
+28-student-sms-reminders.png | https://d29jvbfa3ftzxl.cloudfront.net/settings/sms | sms-reminders
+29-student-google-calendar.png | https://d29jvbfa3ftzxl.cloudfront.net/settings/google | google-calendar
+30-student-analytics-shared-with-tos.png | https://d29jvbfa3ftzxl.cloudfront.net/analytics | analytics-shared-with-tos

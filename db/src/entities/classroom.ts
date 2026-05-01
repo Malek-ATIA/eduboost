@@ -13,6 +13,11 @@ export const ClassroomEntity = new Entity(
       description: { type: "string" },
       maxStudents: { type: "number", default: 1 },
       orgId: { type: "string" },
+      // Teachers can turn classroom group chat off entirely. "Optional
+      // moderation" in the spec is covered by (a) this kill-switch and
+      // (b) per-message deletion the teacher performs from the chat UI.
+      // Default true so existing classrooms keep their chat until opted out.
+      chatEnabled: { type: "boolean", default: true },
       // Teacher-curated external resources (Drive, Docs, Slides, other URLs).
       // MVP substitute for deep Google Workspace integrations: a flat list the
       // teacher maintains by hand, rendered as hyperlinks on the classroom view.

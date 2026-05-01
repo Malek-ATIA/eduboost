@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentSession, currentRole } from "@/lib/cognito";
 import { api } from "@/lib/api";
+import { toMinorUnits } from "@/lib/money";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { VideoPicker } from "@/components/VideoPicker";
 
 type TeacherProfile = {
   bio?: string;
@@ -26,12 +29,13 @@ export default function TeacherProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [form, setForm] = useState<TeacherProfile>({
     subjects: [],
     languages: [],
     yearsExperience: 0,
-    hourlyRateCents: 3000,
-    currency: "EUR",
+    hourlyRateCents: 30000,
+    currency: "TND",
     trialSession: false,
     individualSessions: true,
     groupSessions: false,
@@ -49,6 +53,7 @@ export default function TeacherProfilePage() {
         return;
       }
       const sub = session.getIdToken().payload.sub as string;
+      setUserId(sub);
       try {
         const resp = await api<{ profile: TeacherProfile }>(`/teachers/${sub}`);
         setForm({
@@ -56,8 +61,8 @@ export default function TeacherProfilePage() {
           subjects: resp.profile.subjects ?? [],
           languages: resp.profile.languages ?? [],
           yearsExperience: resp.profile.yearsExperience ?? 0,
-          hourlyRateCents: resp.profile.hourlyRateCents ?? 3000,
-          currency: resp.profile.currency ?? "EUR",
+          hourlyRateCents: resp.profile.hourlyRateCents ?? 30000,
+          currency: resp.profile.currency ?? "TND",
           trialSession: resp.profile.trialSession ?? false,
           individualSessions: resp.profile.individualSessions ?? true,
           groupSessions: resp.profile.groupSessions ?? false,
@@ -148,6 +153,28 @@ export default function TeacherProfilePage() {
         )}
       </section>
 
+      {userId && (
+        <section className="card mt-6 p-6">
+          <div className="font-display text-base text-ink">Profile picture</div>
+          <div className="mt-0.5 text-xs text-ink-faded">Optional. Shown on the directory and your teacher page.</div>
+          <div className="mt-4">
+            <AvatarPicker userId={userId} />
+          </div>
+        </section>
+      )}
+
+      {userId && (
+        <section className="card mt-6 p-6">
+          <div className="font-display text-base text-ink">Intro video</div>
+          <div className="mt-0.5 text-xs text-ink-faded">
+            Record a short video introducing yourself. Students see this on your profile.
+          </div>
+          <div className="mt-4">
+            <VideoPicker userId={userId} />
+          </div>
+        </section>
+      )}
+
       <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <Field label="Bio">
           <textarea
@@ -204,13 +231,14 @@ export default function TeacherProfilePage() {
               onChange={(e) => setForm({ ...form, yearsExperience: Number(e.target.value) })}
             />
           </Field>
-          <Field label="Hourly rate (EUR)">
+          <Field label="Hourly rate (TND)">
             <input
               type="number"
               min={1}
+              step="0.001"
               className="input"
-              value={Math.round(form.hourlyRateCents / 100)}
-              onChange={(e) => setForm({ ...form, hourlyRateCents: Number(e.target.value) * 100 })}
+              value={form.hourlyRateCents / 1000}
+              onChange={(e) => setForm({ ...form, hourlyRateCents: toMinorUnits(Number(e.target.value), "TND") })}
             />
           </Field>
         </div>
@@ -221,6 +249,7 @@ export default function TeacherProfilePage() {
               className="input"
               value={form.city ?? ""}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
+              placeholder="Tunis"
             />
           </Field>
           <Field label="Country (2 letters)">
@@ -229,7 +258,7 @@ export default function TeacherProfilePage() {
               className="input uppercase"
               value={form.country ?? ""}
               onChange={(e) => setForm({ ...form, country: e.target.value.toUpperCase() })}
-              placeholder="IE"
+              placeholder="TN"
             />
           </Field>
         </div>

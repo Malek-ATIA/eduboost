@@ -17,18 +17,32 @@ export default function MyNotesPage() {
   const [items, setItems] = useState<Note[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function load() {
+    try {
+      const r = await api<{ items: Note[] }>(`/notes/mine`);
+      setItems(r.items);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
   useEffect(() => {
     (async () => {
       const s = await currentSession();
       if (!s) return router.replace("/login");
-      try {
-        const r = await api<{ items: Note[] }>(`/notes/mine`);
-        setItems(r.items);
-      } catch (err) {
-        setError((err as Error).message);
-      }
+      await load();
     })();
   }, [router]);
+
+  async function deleteNote(sessionId: string) {
+    if (!confirm("Delete this note? This cannot be undone.")) return;
+    try {
+      await api(`/notes/sessions/${sessionId}`, { method: "DELETE" });
+      await load();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
@@ -48,12 +62,20 @@ export default function MyNotesPage() {
         <ul className="card mt-6 divide-y divide-ink-faded/30">
           {items.map((n) => (
             <li key={n.sessionId} className="p-4">
-              <Link
-                href={`/classroom/${n.sessionId}` as never}
-                className="text-sm font-mono underline"
-              >
-                {n.sessionId}
-              </Link>
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={`/classroom/${n.sessionId}` as never}
+                  className="text-sm font-mono underline"
+                >
+                  {n.sessionId}
+                </Link>
+                <button
+                  onClick={() => deleteNote(n.sessionId)}
+                  className="shrink-0 rounded-md border border-ink-faded/30 px-2.5 py-1 text-xs text-red-500 transition hover:border-red-200 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              </div>
               <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-ink">
                 {n.body || "(empty)"}
               </p>
@@ -66,11 +88,6 @@ export default function MyNotesPage() {
           ))}
         </ul>
       )}
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-soft underline">
-          ← Dashboard
-        </Link>
-      </p>
-    </main>
+</main>
   );
 }

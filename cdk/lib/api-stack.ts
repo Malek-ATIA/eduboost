@@ -214,9 +214,21 @@ export class ApiStack extends cdk.Stack {
 
     const integration = new apigwIntegrations.HttpLambdaIntegration("ApiIntegration", handler);
 
+    // The /{proxy+} catchall covers every authenticated verb EXCEPT OPTIONS.
+    // OPTIONS must fall through to the HttpApi's corsPreflight handler so the
+    // browser's CORS preflight returns 204 with the right ACAO headers
+    // WITHOUT hitting the JWT authorizer (which would 401 the preflight and
+    // block every cross-origin fetch from the web client).
     api.addRoutes({
       path: "/{proxy+}",
-      methods: [apigw.HttpMethod.ANY],
+      methods: [
+        apigw.HttpMethod.GET,
+        apigw.HttpMethod.POST,
+        apigw.HttpMethod.PUT,
+        apigw.HttpMethod.PATCH,
+        apigw.HttpMethod.DELETE,
+        apigw.HttpMethod.HEAD,
+      ],
       integration,
       authorizer,
     });
@@ -235,6 +247,16 @@ export class ApiStack extends cdk.Stack {
 
     api.addRoutes({
       path: "/teachers",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
+    // Public avatar lookup — teacher directory cards render avatars for
+    // anonymous visitors, so the signed-GET-URL endpoint must bypass Cognito.
+    // The route itself only exposes a short-lived (1h) signed S3 URL and
+    // never leaks any other user data.
+    api.addRoutes({
+      path: "/users/{userId}/avatar-url",
       methods: [apigw.HttpMethod.GET],
       integration,
     });
@@ -314,6 +336,22 @@ export class ApiStack extends cdk.Stack {
     });
     api.addRoutes({
       path: "/wall/posts/{postId}",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+
+    // Events: public browse of the upcoming-events feed and single-event
+    // detail. Ticket purchase, create/edit, and organizer-only listings
+    // still flow through /{proxy+} and hit the auth gate in the Hono route
+    // file. These two GETs bypass it so anonymous visitors can discover
+    // events without logging in.
+    api.addRoutes({
+      path: "/events",
+      methods: [apigw.HttpMethod.GET],
+      integration,
+    });
+    api.addRoutes({
+      path: "/events/{eventId}",
       methods: [apigw.HttpMethod.GET],
       integration,
     });
