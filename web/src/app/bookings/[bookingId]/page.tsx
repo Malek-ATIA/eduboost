@@ -105,7 +105,7 @@ export default function BookingDetailPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
         <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
           <ArrowLeft size={16} /> Back to bookings
         </Link>
@@ -118,7 +118,7 @@ export default function BookingDetailPage() {
 
   if (!booking) {
     return (
-      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
         <div className="flex items-center gap-2 text-sm text-ink-soft">
           <Loader2 size={16} className="animate-spin" /> Loading booking...
         </div>
@@ -133,16 +133,19 @@ export default function BookingDetailPage() {
   const created = new Date(booking.createdAt);
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
         <ArrowLeft size={16} /> Back to bookings
       </Link>
 
       <div className="mt-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl tracking-tight text-ink">{TYPE_LABELS[booking.type]}</h1>
-            <p className="mt-1 text-sm text-ink-faded">Booking {booking.bookingId.slice(0, 8)}...</p>
+            <div className="eyebrow">Booking</div>
+            <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{TYPE_LABELS[booking.type]}</h1>
+            <p className="mt-3 text-sm text-ink-soft">
+              #{booking.bookingId.slice(0, 8)} · booked {created.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+            </p>
           </div>
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${st.color}`}>
             <StatusIcon size={14} />
@@ -150,89 +153,104 @@ export default function BookingDetailPage() {
           </span>
         </div>
 
-        <div className="card mt-6 divide-y divide-rule">
-          <div className="flex items-center gap-4 p-4">
-            <Avatar userId={booking.teacherId} size="md" />
-            <div>
-              <div className="flex items-center gap-1.5 text-sm text-ink-faded">
-                <User size={14} /> Teacher
+        <div className="mt-8 gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Left: details */}
+          <div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="card p-5">
+                <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Type</div>
+                <div className="mt-1 font-serif text-xl capitalize text-ink">{booking.type}</div>
               </div>
-              <Link href={`/teachers/${booking.teacherId}` as never} className="text-sm font-medium text-ink underline hover:text-accent">
-                View profile
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 p-4">
-            <div className="flex items-start gap-2">
-              <Calendar size={16} className="mt-0.5 text-ink-faded" />
-              <div>
-                <div className="text-xs text-ink-faded">Booked on</div>
-                <div className="text-sm text-ink">
-                  {created.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
+              <div className="card p-5">
+                <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Amount</div>
+                <div className="mt-1 font-serif text-xl text-ink">
+                  {formatMoneySymbol(booking.amountCents, booking.currency, { trim: true })}
                 </div>
               </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Clock size={16} className="mt-0.5 text-ink-faded" />
-              <div>
-                <div className="text-xs text-ink-faded">Time</div>
-                <div className="text-sm text-ink">
+              <div className="card p-5">
+                <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Date</div>
+                <div className="mt-1 font-serif text-xl text-ink">
+                  {created.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </div>
+              </div>
+              <div className="card p-5">
+                <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Time</div>
+                <div className="mt-1 font-serif text-xl text-ink">
                   {created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <Tag size={16} className="mt-0.5 text-ink-faded" />
-              <div>
-                <div className="text-xs text-ink-faded">Type</div>
-                <div className="text-sm text-ink capitalize">{booking.type}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <CreditCard size={16} className="mt-0.5 text-ink-faded" />
-              <div>
-                <div className="text-xs text-ink-faded">Amount</div>
-                <div className="text-sm font-medium text-ink">
-                  {formatMoneySymbol(booking.amountCents, booking.currency, { trim: true })}
+
+            <div className="card mt-6 p-5">
+              <div className="flex items-center gap-4">
+                <Avatar userId={booking.teacherId} size="md" />
+                <div className="flex-1">
+                  <div className="font-serif text-lg text-ink">Teacher</div>
+                  <Link href={`/teachers/${booking.teacherId}` as never} className="text-sm text-ink-soft underline hover:text-accent">
+                    View profile →
+                  </Link>
                 </div>
               </div>
             </div>
+
+            {booking.classroomId && (
+              <div className="card mt-3 flex items-center justify-between p-5">
+                <div>
+                  <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Classroom</div>
+                  <Link href={`/classrooms/${booking.classroomId}` as never} className="mt-1 block text-sm text-ink underline hover:text-accent">
+                    {booking.classroomId.slice(0, 12)}…
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {canReview && (
+                <>
+                  <Link href={`/reviews/new?bookingId=${booking.bookingId}`} className="btn-primary">
+                    Write a review
+                  </Link>
+                  <Link href={`/quiz/${booking.bookingId}` as never} className="btn-ghost">
+                    Rate teacher
+                  </Link>
+                </>
+              )}
+              <Link href={`/mailbox?to=${booking.teacherId}` as never} className="btn-ghost">
+                Message teacher
+              </Link>
+              {canCancel && (
+                <button
+                  onClick={cancelBooking}
+                  disabled={cancelling}
+                  className="rounded-full border border-rule px-4 py-2 text-sm text-red-600 transition hover:border-red-200 hover:bg-red-50"
+                >
+                  {cancelling ? "Cancelling..." : "Cancel booking"}
+                </button>
+              )}
+            </div>
           </div>
 
-          {booking.classroomId && (
-            <div className="p-4">
-              <div className="text-xs text-ink-faded">Classroom</div>
-              <Link href={`/classrooms/${booking.classroomId}` as never} className="text-sm text-ink underline hover:text-accent">
-                {booking.classroomId.slice(0, 12)}...
-              </Link>
+          {/* Right: summary card */}
+          <aside className="mt-8 lg:sticky lg:top-20 lg:mt-0 lg:self-start">
+            <div className="card p-6">
+              <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Summary</div>
+              <div className="mt-4 space-y-3 text-[13px]">
+                <div className="flex justify-between"><span className="text-ink-faded">Type</span><span className="capitalize text-ink">{booking.type}</span></div>
+                <div className="flex justify-between"><span className="text-ink-faded">Status</span><span className="capitalize text-ink">{booking.status}</span></div>
+                <div className="flex justify-between"><span className="text-ink-faded">Booked</span><span className="text-ink">{created.toLocaleDateString()}</span></div>
+              </div>
+              <div className="mt-4 border-t border-rule pt-4">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[13px] text-ink-soft">Total</span>
+                  <div>
+                    <span className="font-serif text-[28px] tracking-tight text-ink">
+                      {formatMoneySymbol(booking.amountCents, booking.currency, { trim: true })}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          {canReview && (
-            <>
-              <Link href={`/reviews/new?bookingId=${booking.bookingId}`} className="btn-secondary">
-                Write a review
-              </Link>
-              <Link href={`/quiz/${booking.bookingId}` as never} className="btn-secondary">
-                Rate teacher
-              </Link>
-            </>
-          )}
-          <Link href={`/mailbox?to=${booking.teacherId}` as never} className="btn-ghost">
-            Message teacher
-          </Link>
-          {canCancel && (
-            <button
-              onClick={cancelBooking}
-              disabled={cancelling}
-              className="btn-ghost text-red-600 hover:bg-accent/5"
-            >
-              {cancelling ? "Cancelling..." : "Cancel booking"}
-            </button>
-          )}
+          </aside>
         </div>
       </div>
     </main>

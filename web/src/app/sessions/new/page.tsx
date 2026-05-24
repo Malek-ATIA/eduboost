@@ -78,7 +78,7 @@ function NewSessionForm() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📅</span>
           </div>
-          <h1 className="mt-4 font-serif text-2xl tracking-tight text-ink">
+          <h1 className="mt-4 font-serif text-5xl tracking-tight sm:text-6xl">
             Schedule a session
           </h1>
           <p className="mt-2 text-sm text-ink-soft">
@@ -124,7 +124,7 @@ function NewSessionForm() {
       {/* Header */}
       <div className="mt-4">
         <div className="eyebrow">Session</div>
-        <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">
+        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
           Schedule a session
         </h1>
       </div>
@@ -274,7 +274,7 @@ export default function NewSessionPage() {
       fallback={
         <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
           <div className="eyebrow">Session</div>
-          <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">Schedule a session</h1>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Schedule a session</h1>
           <div className="mt-8 flex justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>

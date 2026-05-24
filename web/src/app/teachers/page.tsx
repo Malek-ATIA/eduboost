@@ -379,7 +379,7 @@ export default function TeachersPage() {
       {/* ── Page header ────────────────────────────────────────── */}
       <div className="mb-8">
         <div className="eyebrow">Find a teacher</div>
-        <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink sm:text-4xl">
+        <h1 className="mt-2 font-serif text-5xl tracking-tight sm:text-6xl">
           Browse{" "}
           <em className="not-italic text-accent">
             {loading ? "..." : sorted.length}

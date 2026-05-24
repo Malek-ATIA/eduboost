@@ -51,7 +51,7 @@ function NewPostForm() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href="/forum" className="btn-ghost -ml-3">
         ← Forum
       </Link>
@@ -114,7 +114,7 @@ export default function NewPostPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
           <div className="eyebrow">Forum</div>
           <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New post</h1>
           <p className="mt-4 text-sm text-ink-soft">Loading...</p>

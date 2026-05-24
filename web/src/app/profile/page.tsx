@@ -153,7 +153,7 @@ export default function ProfilePage() {
 
   if (!me)
     return (
-      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">
         {error ?? "Loading..."}
       </main>
     );
@@ -162,63 +162,85 @@ export default function ProfilePage() {
   const vStatus = teacherForm.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
-      <div className="eyebrow">Account</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My profile</h1>
-      <p className="mt-3 text-sm text-ink-soft">
-        {me.email} · <span className="capitalize">{me.role}</span>
-      </p>
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Settings</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+        Account & <span className="italic">preferences</span>
+      </h1>
 
-      {/* ── Profile picture ──────────────────────────────────── */}
-      <section className="card mt-8 p-6">
-        <div className="font-serif text-base text-ink">Profile picture</div>
-        <div className="mt-0.5 text-xs text-ink-faded">
-          Shown on your public profile and in conversations.
-        </div>
-        <div className="mt-4">
-          <AvatarPicker userId={me.userId} />
-        </div>
-      </section>
-
-      {/* ── Intro video (teacher only) ───────────────────────── */}
-      {isTeacher && (
-        <section className="card mt-6 p-6">
-          <div className="font-serif text-base text-ink">Intro video</div>
-          <div className="mt-0.5 text-xs text-ink-faded">
-            A short video introducing yourself. Students see this on your profile page.
+      <div className="mt-8 gap-8 lg:grid lg:grid-cols-[220px_minmax(0,1fr)]">
+        {/* ── Left: tab sidebar ────────────────────────────────── */}
+        <aside className="mb-6 lg:sticky lg:top-20 lg:mb-0 lg:self-start">
+          <div className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1">
+            {[
+              { label: "Profile", active: true },
+              ...(isTeacher ? [{ label: "Teacher profile", active: false }] : []),
+            ].map((t) => (
+              <button
+                key={t.label}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13.5px] font-medium transition ${
+                  t.active
+                    ? "border border-rule bg-bg-soft text-ink"
+                    : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-          <div className="mt-4">
-            <VideoPicker userId={me.userId} />
-          </div>
-        </section>
-      )}
+        </aside>
 
-      {/* ── Display name ─────────────────────────────────────── */}
-      <form onSubmit={onSaveAccount} className="card mt-6 space-y-4 p-6">
-        <label className="block">
-          <span className="label">Display name</span>
-          <input
-            className="input"
-            maxLength={100}
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-          />
-        </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {saved && <p className="text-sm text-ink">Saved.</p>}
-        <button disabled={saving} className="btn-seal">
-          {saving ? "Saving..." : "Save profile"}
-        </button>
-      </form>
+        {/* ── Right: content ───────────────────────────────────── */}
+        <div className="max-w-[720px] space-y-6">
+          {/* ── Profile picture ──────────────────────────────── */}
+          <section className="card p-6">
+            <h3 className="font-serif text-xl text-ink">Profile picture</h3>
+            <p className="mt-1 text-[13px] text-ink-soft">
+              Shown on your public profile and in conversations.
+            </p>
+            <div className="mt-4">
+              <AvatarPicker userId={me.userId} />
+            </div>
+          </section>
 
-      {/* ══════════════════════════════════════════════════════════
-          TEACHER SECTIONS
-          ══════════════════════════════════════════════════════════ */}
+          {/* ── Intro video (teacher only) ────────────────────── */}
+          {isTeacher && (
+            <section className="card p-6">
+              <h3 className="font-serif text-xl text-ink">Intro video</h3>
+              <p className="mt-1 text-[13px] text-ink-soft">
+                A short video introducing yourself. Students see this on your profile page.
+              </p>
+              <div className="mt-4">
+                <VideoPicker userId={me.userId} />
+              </div>
+            </section>
+          )}
+
+          {/* ── Display name ─────────────────────────────────── */}
+          <form onSubmit={onSaveAccount} className="card space-y-4 p-6">
+            <h3 className="font-serif text-xl text-ink">Public profile</h3>
+            <p className="text-[13px] text-ink-soft">{me.email} · <span className="capitalize">{me.role}</span></p>
+            <label className="block">
+              <span className="label">Display name</span>
+              <input
+                className="input"
+                maxLength={100}
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+              />
+            </label>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {saved && <p className="text-sm text-ink">Saved.</p>}
+            <button disabled={saving} className="btn-primary">
+              {saving ? "Saving..." : "Save profile"}
+            </button>
+          </form>
+
       {isTeacher && (
         <>
           {/* ── Verification ───────────────────────────────────── */}
-          <section className="card mt-8 p-5">
+          <section className="card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-serif text-base text-ink">Verification</div>
@@ -378,6 +400,8 @@ export default function ProfilePage() {
           </form>
         </>
       )}
+        </div>
+      </div>
     </main>
   );
 }

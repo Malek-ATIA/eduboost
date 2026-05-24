@@ -72,7 +72,7 @@ export default function BreakoutPage({
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Breakout</div>
-          <h1 className="mt-1 font-serif text-3xl text-ink">Breakout · {label || breakoutId}</h1>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Breakout · {label || breakoutId}</h1>
           <p className="mt-1 text-xs text-ink-faded">
             Parent session:{" "}
             <Link

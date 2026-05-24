@@ -102,7 +102,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             <span>{kInfo.label}</span>
           </div>
 
-          <h1 className="mt-3 font-serif text-3xl tracking-tight text-ink lg:text-4xl">
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             {data.title}
           </h1>
 

@@ -118,7 +118,7 @@ export default function ClassroomChatPage({
   return (
     <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="eyebrow">Classroom</div>
-      <h1 className="mt-1 font-serif text-3xl text-ink">
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         {classroom?.title ?? "Classroom chat"}
       </h1>
       <p className="mt-3 text-sm text-ink-soft">

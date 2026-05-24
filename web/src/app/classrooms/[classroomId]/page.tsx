@@ -214,9 +214,9 @@ export default function ClassroomInfoPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const isTeacher = sub !== null && sub === data.teacherId;
 

@@ -150,7 +150,7 @@ function NewReviewForm() {
       {/* Header */}
       <div className="mt-4">
         <div className="eyebrow">Feedback</div>
-        <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">Leave a review</h1>
+        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Leave a review</h1>
       </div>
 
       {/* Teacher card */}
@@ -267,7 +267,7 @@ export default function NewReviewPage() {
       fallback={
         <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
           <div className="eyebrow">Feedback</div>
-          <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">Leave a review</h1>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Leave a review</h1>
           <div className="mt-8 flex justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>

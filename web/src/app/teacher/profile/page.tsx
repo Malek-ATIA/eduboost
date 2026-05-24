@@ -111,12 +111,12 @@ export default function TeacherProfilePage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (loading) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const vStatus = form.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="eyebrow">Teacher</div>
       <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Teacher profile</h1>
       <p className="mt-3 text-sm text-ink-soft">This is what students and parents see.</p>

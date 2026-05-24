@@ -225,7 +225,7 @@ export default function TeacherDetailPage({ params }: { params: Promise<{ userId
 
               {/* Name + favorite */}
               <div className="flex items-center gap-3">
-                <h1 className="font-serif text-3xl tracking-tight text-ink sm:text-4xl">
+                <h1 className="font-serif text-5xl tracking-tight sm:text-6xl">
                   {user.displayName}
                 </h1>
                 {favorited !== null && viewerSub && viewerSub !== userId && (

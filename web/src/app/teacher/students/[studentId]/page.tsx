@@ -111,7 +111,7 @@ export default function TeacherStudentDetailPage({
         <Avatar userId={user.userId} size="lg" initial={user.displayName} />
         <div>
           <div className="eyebrow">Student</div>
-          <h1 className="mt-1 font-serif text-3xl text-ink">{user.displayName}</h1>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{user.displayName}</h1>
           <p className="mt-0.5 text-sm text-ink-soft">
             {user.email} · <span className="capitalize">{user.role}</span>
           </p>

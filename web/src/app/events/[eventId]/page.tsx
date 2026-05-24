@@ -201,7 +201,7 @@ export default function EventDetailPage({
             )}
           </div>
 
-          <h1 className="mt-3 font-serif text-3xl tracking-tight text-ink lg:text-4xl">
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             {event.title}
           </h1>
 

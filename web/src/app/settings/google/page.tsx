@@ -77,7 +77,7 @@ function GoogleSettingsInner() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="eyebrow">Settings</div>
       <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         Google Calendar
@@ -149,7 +149,7 @@ export default function GoogleSettingsPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
           <div className="eyebrow">Settings</div>
           <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Google Calendar</h1>
           <div className="mt-6 flex justify-center py-12">

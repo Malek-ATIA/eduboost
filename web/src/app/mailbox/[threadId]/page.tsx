@@ -74,17 +74,17 @@ export default function MailboxThreadPage({
   }
 
   if (error && !thread) {
-    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!thread) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!thread) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href="/mailbox" className="btn-ghost -ml-3">
         ← Mailbox
       </Link>
       <div className="eyebrow">Thread</div>
-      <h1 className="mt-1 font-serif text-3xl text-ink">{thread.subject}</h1>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{thread.subject}</h1>
 
       <section className="mt-6 space-y-3">
         {messages?.map((m) => (
