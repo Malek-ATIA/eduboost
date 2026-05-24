@@ -77,7 +77,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
             if (e.target === e.currentTarget) close(state.mode === "confirm" ? false : null);
           }}
         >
-          <div className="w-full max-w-md animate-in zoom-in-95 fade-in duration-150 rounded-xl border border-ink-faded/20 bg-white shadow-xl">
+          <div className="w-full max-w-md animate-in zoom-in-95 fade-in duration-150 rounded-xl border border-rule-soft bg-white shadow-xl">
             <div className="flex items-start gap-3 p-5">
               {state.destructive && (
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
@@ -85,7 +85,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
                 </div>
               )}
               <div className="flex-1">
-                <h3 className="font-display text-lg font-bold text-ink">
+                <h3 className="font-serif text-lg font-bold text-ink">
                   {state.title}
                 </h3>
                 <p className="mt-1 text-sm leading-relaxed text-ink-soft">
@@ -101,7 +101,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
                     <textarea
                       ref={inputRef}
                       rows={3}
-                      className="w-full rounded-lg border border-ink-faded/30 bg-parchment-dark px-3 py-2 text-sm text-ink outline-none transition focus:border-seal/40 focus:ring-1 focus:ring-seal/20"
+                      className="w-full rounded-lg border border-rule bg-bg-soft px-3 py-2 text-sm text-ink outline-none transition focus:border-accent/40 focus:ring-1 focus:ring-accent/12"
                       placeholder={state.inputPlaceholder ?? ""}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
@@ -161,7 +161,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-40 ${
                   state.destructive
                     ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-seal text-white hover:bg-seal-dark"
+                    : "bg-accent text-white hover:bg-accent-deep"
                 }`}
               >
                 {state.confirmLabel ?? "Confirm"}

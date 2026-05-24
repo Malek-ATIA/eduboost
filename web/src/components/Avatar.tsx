@@ -37,7 +37,7 @@ export function Avatar({ userId, size = "md", initial, className = "" }: Props) 
 
   return (
     <div
-      className={`relative overflow-hidden rounded-full border border-ink-faded/30 bg-parchment-dark ${className}`}
+      className={`relative overflow-hidden rounded-full border border-rule bg-bg-soft ${className}`}
       style={{ width: px, height: px }}
     >
       {url ? (
@@ -45,7 +45,7 @@ export function Avatar({ userId, size = "md", initial, className = "" }: Props) 
         <img src={url} alt="" className="h-full w-full object-cover" />
       ) : (
         <div
-          className="flex h-full w-full items-center justify-center font-display text-ink-faded"
+          className="flex h-full w-full items-center justify-center font-serif text-ink-faded"
           style={{ fontSize: Math.round(px * 0.45) }}
         >
           {initial ? initial.slice(0, 1).toUpperCase() : "?"}

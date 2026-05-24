@@ -153,7 +153,7 @@ export default function ProfilePage() {
 
   if (!me)
     return (
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">
+      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">
         {error ?? "Loading..."}
       </main>
     );
@@ -162,16 +162,16 @@ export default function ProfilePage() {
   const vStatus = teacherForm.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Account</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My profile</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Account</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My profile</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         {me.email} · <span className="capitalize">{me.role}</span>
       </p>
 
       {/* ── Profile picture ──────────────────────────────────── */}
       <section className="card mt-8 p-6">
-        <div className="font-display text-base text-ink">Profile picture</div>
+        <div className="font-serif text-base text-ink">Profile picture</div>
         <div className="mt-0.5 text-xs text-ink-faded">
           Shown on your public profile and in conversations.
         </div>
@@ -183,7 +183,7 @@ export default function ProfilePage() {
       {/* ── Intro video (teacher only) ───────────────────────── */}
       {isTeacher && (
         <section className="card mt-6 p-6">
-          <div className="font-display text-base text-ink">Intro video</div>
+          <div className="font-serif text-base text-ink">Intro video</div>
           <div className="mt-0.5 text-xs text-ink-faded">
             A short video introducing yourself. Students see this on your profile page.
           </div>
@@ -205,7 +205,7 @@ export default function ProfilePage() {
             required
           />
         </label>
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         {saved && <p className="text-sm text-ink">Saved.</p>}
         <button disabled={saving} className="btn-seal">
           {saving ? "Saving..." : "Save profile"}
@@ -221,7 +221,7 @@ export default function ProfilePage() {
           <section className="card mt-8 p-5">
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-display text-base text-ink">Verification</div>
+                <div className="font-serif text-base text-ink">Verification</div>
                 <div className="mt-0.5 text-xs text-ink-faded">
                   Verified teachers get a badge and rank higher in search.
                 </div>
@@ -229,12 +229,12 @@ export default function ProfilePage() {
               <span
                 className={`rounded-sm border px-3 py-1 text-xs uppercase tracking-widest ${
                   vStatus === "verified"
-                    ? "border-seal/40 bg-seal/10 text-seal"
+                    ? "border-accent/30 bg-accent/10 text-accent"
                     : vStatus === "pending"
-                      ? "border-ink-faded/50 bg-parchment/40 text-ink-faded"
+                      ? "border-rule bg-bg-soft text-ink-faded"
                       : vStatus === "rejected"
-                        ? "border-seal/40 bg-seal/10 text-seal"
-                        : "border-ink-faded/50 bg-parchment/40 text-ink-soft"
+                        ? "border-accent/30 bg-accent/10 text-accent"
+                        : "border-rule bg-bg-soft text-ink-soft"
                 }`}
               >
                 {vStatus.replace("_", " ")}
@@ -254,7 +254,7 @@ export default function ProfilePage() {
 
           {/* ── Teacher profile form ───────────────────────────── */}
           <form onSubmit={onSaveTeacher} className="card mt-6 space-y-5 p-6">
-            <div className="font-display text-base text-ink">Teacher profile</div>
+            <div className="font-serif text-base text-ink">Teacher profile</div>
             <p className="text-xs text-ink-faded">This is what students and parents see on your public page.</p>
 
             <Field label="Bio">
@@ -345,7 +345,7 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={teacherForm.trialSession}
                   onChange={(e) => setTeacherForm({ ...teacherForm, trialSession: e.target.checked })}
-                  className="accent-seal"
+                  className="accent-[#1f4a3a]"
                 />
                 Offer a free trial session
               </label>
@@ -354,7 +354,7 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={teacherForm.individualSessions}
                   onChange={(e) => setTeacherForm({ ...teacherForm, individualSessions: e.target.checked })}
-                  className="accent-seal"
+                  className="accent-[#1f4a3a]"
                 />
                 Offer 1-on-1 individual sessions
               </label>
@@ -363,13 +363,13 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={teacherForm.groupSessions}
                   onChange={(e) => setTeacherForm({ ...teacherForm, groupSessions: e.target.checked })}
-                  className="accent-seal"
+                  className="accent-[#1f4a3a]"
                 />
                 Offer group sessions
               </label>
             </div>
 
-            {teacherError && <p className="text-sm text-seal">{teacherError}</p>}
+            {teacherError && <p className="text-sm text-red-600">{teacherError}</p>}
             {teacherSaved && <p className="text-sm text-ink">Teacher profile saved.</p>}
 
             <button disabled={teacherSaving} className="btn-seal">

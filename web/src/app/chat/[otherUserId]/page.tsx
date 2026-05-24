@@ -75,11 +75,11 @@ export default function DmChatPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Messages</p>
-      <h1 className="mt-1 font-display text-3xl text-ink">Direct message</h1>
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Messages</div>
+      <h1 className="mt-1 font-serif text-3xl text-ink">Direct message</h1>
       <p className="mt-1 font-mono text-sm text-ink-soft">with {otherUserId}</p>
-      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <div className="card mt-6 flex h-[520px] flex-col">
         <div ref={scrollerRef} className="flex-1 overflow-y-auto p-3">
@@ -98,7 +98,7 @@ export default function DmChatPage({
             </div>
           ))}
         </div>
-        <div className="border-t border-ink-faded/30 p-2">
+        <div className="border-t border-rule p-2">
           <form onSubmit={send} className="flex gap-2">
             <input
               className="input flex-1"

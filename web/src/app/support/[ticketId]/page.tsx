@@ -193,36 +193,36 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const { ticket, messages } = data;
   const closed = ticket.status === "closed" || ticket.status === "resolved";
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <div className="flex items-start justify-between gap-4">
         <div>
           <Link href="/support" className="btn-ghost -ml-3">
             ← All tickets
           </Link>
-          <p className="eyebrow mt-2">Ticket</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">{ticket.subject}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Ticket</div>
+          <h1 className="mt-1 font-serif text-3xl text-ink">{ticket.subject}</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             <span className="font-mono">#{ticket.ticketId}</span> · {ticket.category.replace(/_/g, " ")} · priority {ticket.priority}
           </p>
           {ticket.bookingId && (
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-3 text-sm text-ink-soft">
               Linked booking: <span className="font-mono">{ticket.bookingId}</span>
             </p>
           )}
           {ticket.relatedPaymentId && (
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-3 text-sm text-ink-soft">
               Disputed payment: <span className="font-mono">{ticket.relatedPaymentId}</span>
             </p>
           )}
           {ticket.relatedReviewId && (
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-3 text-sm text-ink-soft">
               Disputed review: <span className="font-mono">{ticket.relatedReviewId}</span>
             </p>
           )}
@@ -232,7 +232,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
               <span
                 className={
                   new Date(ticket.slaDeadline) < new Date()
-                    ? "font-medium text-seal"
+                    ? "font-medium text-red-600"
                     : "text-ink"
                 }
               >
@@ -251,7 +251,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             </p>
           )}
         </div>
-        <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-3 py-1 text-xs uppercase tracking-widest text-ink-soft">
+        <span className="rounded-md border border-rule bg-bg-soft px-3 py-1 text-xs uppercase tracking-widest text-ink-soft">
           {ticket.status.replace(/_/g, " ")}
         </span>
       </div>
@@ -262,7 +262,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
             key={m.messageId}
             className={`card p-3 ${
               m.authorRole === "admin"
-                ? "border-seal/30 bg-seal/10"
+                ? "border-accent/20 bg-accent-pale"
                 : ""
             }`}
           >
@@ -279,7 +279,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
                       type="button"
                       onClick={() => downloadAttachment(a)}
                       disabled={downloadingKey === a.s3Key}
-                      className="text-xs text-seal underline disabled:opacity-50"
+                      className="text-xs text-red-600 underline disabled:opacity-50"
                     >
                       📎{" "}
                       {downloadingKey === a.s3Key ? "Opening..." : a.filename}
@@ -346,8 +346,8 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
       )}
 
       {admin && !closed && (
-        <section className="mt-8 rounded-md border border-seal/30 bg-seal/10 p-4">
-          <h2 className="font-display text-xl text-ink">Admin resolution</h2>
+        <section className="mt-8 rounded-lg border border-accent/20 bg-accent-pale p-4">
+          <h2 className="font-serif text-xl text-ink">Admin resolution</h2>
           <p className="mt-1 text-xs text-ink-soft">
             Resolving closes the ticket, records a system message in the
             thread, and (for refund/review_removed outcomes) executes the

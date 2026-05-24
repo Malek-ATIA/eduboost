@@ -35,9 +35,9 @@ type FamilyCalendar = {
 
 const STATUS_STYLE: Record<Session["status"], { dot: string; text: string; bg: string }> = {
   scheduled: { dot: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
-  live: { dot: "bg-seal", text: "text-seal", bg: "bg-seal/10 border-seal/30" },
-  completed: { dot: "bg-ink-faded", text: "text-ink-faded", bg: "bg-parchment-dark border-ink-faded/30" },
-  cancelled: { dot: "bg-red-400", text: "text-red-500", bg: "bg-red-50 border-red-200" },
+  live: { dot: "bg-accent", text: "text-accent", bg: "bg-accent/10 border-accent/30" },
+  completed: { dot: "bg-ink-faded", text: "text-ink-faded", bg: "bg-bg-soft border-rule" },
+  cancelled: { dot: "bg-red-400", text: "text-red-500", bg: "bg-red-50 border-accent/20" },
   booked: { dot: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
 };
 
@@ -157,56 +157,43 @@ export default function CalendarPage() {
   ).length;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Schedule</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
-            {isParent ? "Family calendar" : "My calendar"}
+          <div className="eyebrow">
+            {MONTHS[current.getMonth()]} {current.getFullYear()}
+          </div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+            {isParent ? "Family calendar" : "Your schedule"}
           </h1>
+          <p className="mt-3 text-base text-ink-soft">
+            All your tutoring sessions across teachers — at a glance.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-md border border-ink-faded/40">
+          <div className="inline-flex rounded-full border border-rule bg-white p-[3px]">
             {(["month", "week", "agenda"] as View[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-xs font-medium capitalize transition ${
+                className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium capitalize transition ${
                   view === v
-                    ? "bg-seal text-white"
-                    : "text-ink-soft hover:bg-parchment-dark"
-                } ${v === "month" ? "rounded-l-md" : v === "agenda" ? "rounded-r-md" : ""}`}
+                    ? "bg-ink text-white"
+                    : "text-ink-soft hover:text-ink"
+                }`}
               >
-                {v}
+                {v === "agenda" ? "day" : v}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div className="mt-6 grid grid-cols-3 gap-3">
-        <div className="card flex flex-col items-center p-4">
-          <span className="font-display text-2xl text-ink">{upcomingCount}</span>
-          <span className="mt-1 text-xs text-ink-soft">Upcoming</span>
-        </div>
-        <div className="card flex flex-col items-center p-4">
-          <span className="font-display text-2xl text-ink">{upcomingToday.length}</span>
-          <span className="mt-1 text-xs text-ink-soft">Today</span>
-        </div>
-        <div className="card flex flex-col items-center p-4">
-          <span className="font-display text-2xl text-ink">
-            {(items ?? []).filter((s) => s.status === "live").length}
-          </span>
-          <span className="mt-1 text-xs text-ink-soft">Live now</span>
-        </div>
-      </div>
-
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       {items === null && !error && (
         <div className="mt-8 flex justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -217,24 +204,24 @@ export default function CalendarPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate(-1)}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-faded/40 text-ink-soft transition hover:bg-parchment-dark"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink-soft transition hover:bg-bg-soft"
               >
                 ‹
               </button>
               <button
                 onClick={() => navigate(1)}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-faded/40 text-ink-soft transition hover:bg-parchment-dark"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink-soft transition hover:bg-bg-soft"
               >
                 ›
               </button>
               <button
                 onClick={goToday}
-                className="rounded-md border border-ink-faded/40 px-3 py-1 text-xs text-ink-soft transition hover:bg-parchment-dark"
+                className="rounded-full border border-rule px-3 py-1 text-xs text-ink-soft transition hover:bg-bg-soft"
               >
                 Today
               </button>
             </div>
-            <h2 className="font-display text-xl text-ink">
+            <h2 className="font-serif text-xl text-ink">
               {view === "week"
                 ? `Week of ${current.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
                 : `${MONTHS[current.getMonth()]} ${current.getFullYear()}`}
@@ -266,7 +253,7 @@ export default function CalendarPage() {
       {/* Today's sessions detail */}
       {upcomingToday.length > 0 && (
         <section className="mt-8">
-          <h2 className="eyebrow">Happening today</h2>
+          <h2 className="eyebrow font-mono">Happening today</h2>
           <div className="mt-3 space-y-2">
             {upcomingToday.map((s) => (
               <SessionCard key={s.sessionId} session={s} />
@@ -323,10 +310,10 @@ function MonthGrid({
   }
 
   return (
-    <div className="mt-4 overflow-hidden rounded-lg border border-ink-faded/30">
-      <div className="grid grid-cols-7 border-b border-ink-faded/30 bg-parchment-dark">
+    <div className="mt-4 overflow-hidden rounded-2xl border border-rule">
+      <div className="grid grid-cols-7 border-b border-rule bg-bg-soft">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="p-2 text-center text-[11px] font-semibold uppercase tracking-widest text-ink-faded">
+          <div key={w} className="p-2 text-center font-mono text-[11px] font-semibold uppercase tracking-widest text-ink-faded">
             {w}
           </div>
         ))}
@@ -339,15 +326,15 @@ function MonthGrid({
           return (
             <div
               key={i}
-              className={`min-h-[80px] border-b border-r border-ink-faded/15 p-1.5 transition ${
-                !cell.inMonth ? "bg-parchment-dark/50" : "bg-parchment"
-              } ${isToday ? "ring-2 ring-inset ring-seal/40" : ""}`}
+              className={`min-h-[80px] border-b border-r border-rule-soft p-1.5 transition ${
+                !cell.inMonth ? "bg-bg-soft/50" : "bg-bg-card"
+              } ${isToday ? "ring-2 ring-inset ring-accent/12" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
                     isToday
-                      ? "bg-seal font-bold text-white"
+                      ? "bg-accent font-bold text-white"
                       : cell.inMonth
                         ? "text-ink"
                         : "text-ink-faded/50"
@@ -356,7 +343,7 @@ function MonthGrid({
                   {cell.day}
                 </span>
                 {hasLive && (
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-seal" />
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
                 )}
               </div>
               <div className="mt-0.5 space-y-0.5">
@@ -413,20 +400,20 @@ function WeekView({
   const hours = Array.from({ length: 14 }, (_, i) => i + 7); // 7am to 8pm
 
   return (
-    <div className="mt-4 overflow-hidden rounded-lg border border-ink-faded/30">
+    <div className="mt-4 overflow-hidden rounded-2xl border border-rule">
       {/* Day headers */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-ink-faded/30 bg-parchment-dark">
+      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-rule bg-bg-soft">
         <div className="p-2" />
         {days.map((d) => {
           const isToday = d.date === today;
           return (
             <div key={d.date} className="p-2 text-center">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-ink-faded">
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-widest text-ink-faded">
                 {d.dow}
               </div>
               <div
                 className={`mx-auto mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm ${
-                  isToday ? "bg-seal font-bold text-white" : "text-ink"
+                  isToday ? "bg-accent font-bold text-white" : "text-ink"
                 }`}
               >
                 {d.dayNum}
@@ -440,9 +427,9 @@ function WeekView({
         {hours.map((hour) => (
           <div
             key={hour}
-            className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-ink-faded/10"
+            className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-rule-soft"
           >
-            <div className="flex items-start justify-end pr-2 pt-1 text-[10px] text-ink-faded">
+            <div className="flex items-start justify-end pr-2 pt-1 font-mono text-[10px] text-ink-faded">
               {String(hour).padStart(2, "0")}:00
             </div>
             {days.map((d) => {
@@ -453,7 +440,7 @@ function WeekView({
               return (
                 <div
                   key={d.date}
-                  className="min-h-[48px] border-l border-ink-faded/10 p-0.5"
+                  className="min-h-[48px] border-l border-rule-soft p-0.5"
                 >
                   {sessions.map((s) => {
                     const st = STATUS_STYLE[s.status];
@@ -489,14 +476,14 @@ function AgendaView({ items, today }: { items: Session[]; today: string }) {
   if (grouped.length === 0) {
     return (
       <div className="mt-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
           <span className="text-2xl text-ink-faded">📅</span>
         </div>
-        <p className="mt-4 font-display text-lg text-ink">No upcoming sessions</p>
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-4 font-serif text-lg text-ink">No upcoming sessions</p>
+        <p className="mt-3 text-sm text-ink-soft">
           Book a session with a teacher to see it here.
         </p>
-        <Link href="/teachers" className="btn-seal mt-4 inline-block">
+        <Link href="/teachers" className="btn-primary mt-4 inline-block">
           Find a teacher
         </Link>
       </div>
@@ -510,7 +497,7 @@ function AgendaView({ items, today }: { items: Session[]; today: string }) {
           <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
             <span
               className={`inline-flex h-7 min-w-[28px] items-center justify-center rounded-full px-1 text-xs ${
-                day.date === today ? "bg-seal text-white" : "bg-parchment-dark text-ink-soft"
+                day.date === today ? "bg-accent text-white" : "bg-bg-soft text-ink-soft"
               }`}
             >
               {new Date(day.date).getDate()}
@@ -539,21 +526,21 @@ function SessionCard({ session: s }: { session: Session }) {
   const isBooked = s.status === "booked";
 
   return (
-    <div className={`rounded-lg border p-4 transition ${st.bg}`}>
+    <div className={`rounded-2xl border p-4 transition ${st.bg}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex flex-col items-center rounded-md bg-white/60 px-3 py-1.5">
-            <span className="text-xs font-semibold uppercase text-ink-faded">
+          <div className="flex flex-col items-center rounded-xl bg-bg-card px-3 py-1.5">
+            <span className="font-mono text-xs font-semibold uppercase text-ink-faded">
               {starts.toLocaleDateString(undefined, { weekday: "short" })}
             </span>
-            <span className="text-lg font-bold text-ink">
+            <span className="font-serif text-lg font-bold text-ink">
               {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${st.dot} ${s.status === "live" ? "animate-pulse" : ""}`} />
-              <span className={`text-xs font-semibold uppercase tracking-widest ${st.text}`}>
+              <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${st.text}`}>
                 {isBooked ? "Booked" : s.status}
               </span>
             </div>
@@ -584,12 +571,12 @@ function SessionCard({ session: s }: { session: Session }) {
           </div>
         </div>
         {joinable && (
-          <Link href={`/classroom/${s.sessionId}` as never} className="btn-seal">
+          <Link href={`/classroom/${s.sessionId}` as never} className="btn-primary">
             {s.status === "live" ? "Join now" : "Join"}
           </Link>
         )}
         {isBooked && (
-          <Link href={"/bookings" as never} className="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+          <Link href={"/bookings" as never} className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
             View
           </Link>
         )}
@@ -632,10 +619,10 @@ function SessionPeek({ session, children }: { session: Session; children: React.
       {children}
       {open && (
         <div className="absolute left-0 top-full z-30 w-52 pt-1">
-        <div className="rounded-lg border border-ink-faded/30 bg-white p-3 shadow-manuscript">
+        <div className="rounded-2xl border border-rule bg-white p-3 shadow-manuscript">
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${st.dot} ${session.status === "live" ? "animate-pulse" : ""}`} />
-            <span className={`text-xs font-semibold uppercase tracking-widest ${st.text}`}>
+            <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${st.text}`}>
               {isBooked ? "Booked" : session.status}
             </span>
           </div>
@@ -645,12 +632,12 @@ function SessionPeek({ session, children }: { session: Session; children: React.
                 Booked on {starts.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
               </div>
               {session.childName && (
-                <div className="mt-0.5 text-xs font-medium text-seal">{session.childName}</div>
+                <div className="mt-0.5 text-xs font-medium text-accent">{session.childName}</div>
               )}
               <div className="mt-0.5 text-xs text-ink-faded">Awaiting teacher to schedule</div>
               <Link
                 href={`/bookings/${session.sessionId}` as never}
-                className="mt-3 flex items-center justify-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
+                className="mt-3 flex items-center justify-center rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
                 onClick={(e) => e.stopPropagation()}
               >
                 View booking
@@ -663,7 +650,7 @@ function SessionPeek({ session, children }: { session: Session; children: React.
                 {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </div>
               {session.childName && (
-                <div className="mt-0.5 text-xs font-medium text-seal">{session.childName}</div>
+                <div className="mt-0.5 text-xs font-medium text-accent">{session.childName}</div>
               )}
               <div className="mt-0.5 text-xs text-ink-faded">{durationMin} min session</div>
               {session.classroomId && (
@@ -674,7 +661,7 @@ function SessionPeek({ session, children }: { session: Session; children: React.
               {joinable && (
                 <Link
                   href={`/classroom/${session.sessionId}` as never}
-                  className="mt-3 flex items-center justify-center rounded-md bg-seal px-3 py-1.5 text-xs font-medium text-white transition hover:bg-seal-dark"
+                  className="mt-3 flex items-center justify-center rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-deep"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {session.status === "live" ? "Join now" : "Join session"}

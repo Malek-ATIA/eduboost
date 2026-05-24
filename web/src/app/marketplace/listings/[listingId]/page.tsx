@@ -63,12 +63,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
       .catch((e) => setError((e as Error).message));
   }, [listingId]);
 
-  if (error) return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
   if (!data) {
     return (
-      <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
         <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       </main>
     );
@@ -83,7 +83,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
     : null;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-faded">
         <Link href="/marketplace" className="hover:text-ink">
@@ -102,7 +102,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             <span>{kInfo.label}</span>
           </div>
 
-          <h1 className="mt-3 font-display text-3xl tracking-tight text-ink lg:text-4xl">
+          <h1 className="mt-3 font-serif text-3xl tracking-tight text-ink lg:text-4xl">
             {data.title}
           </h1>
 
@@ -111,7 +111,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             {data.subjects.map((s) => (
               <span
                 key={s}
-                className="rounded-full border border-ink-faded/40 bg-parchment-dark px-3 py-0.5 text-xs text-ink-soft"
+                className="rounded-full border border-rule bg-bg-soft px-3 py-0.5 text-xs text-ink-soft"
               >
                 {s}
               </span>
@@ -133,7 +133,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
           {/* File / product info */}
           <div className="mt-8">
             <h2 className="eyebrow mb-3">Product details</h2>
-            <div className="card divide-y divide-ink-faded/20">
+            <div className="card divide-y divide-rule">
               <div className="flex items-center justify-between p-3">
                 <span className="text-sm text-ink-soft">Type</span>
                 <span className="text-sm font-medium text-ink capitalize">{data.kind}</span>
@@ -159,7 +159,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
               {data.kind === "physical" && data.inStockCount != null && (
                 <div className="flex items-center justify-between p-3">
                   <span className="text-sm text-ink-soft">Availability</span>
-                  <span className={`text-sm font-medium ${data.inStockCount > 0 ? "text-green-700" : "text-seal"}`}>
+                  <span className={`text-sm font-medium ${data.inStockCount > 0 ? "text-green-700" : "text-red-600"}`}>
                     {data.inStockCount > 0 ? `${data.inStockCount} in stock` : "Out of stock"}
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
           {/* Price card */}
           <div className="card sticky top-24 space-y-4 p-5">
             <div>
-              <div className="font-display text-3xl text-ink">
+              <div className="font-serif text-3xl text-ink">
                 {formatMoney(data.priceCents, data.currency, { trim: true })}
               </div>
               {data.kind === "physical" && data.shippingCostCents != null && data.shippingCostCents > 0 && (
@@ -209,7 +209,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
               {data.kind === "digital" ? "Buy & download" : "Buy now"}
             </Link>
 
-            <div className="border-t border-ink-faded/20 pt-3">
+            <div className="border-t border-rule-soft pt-3">
               <div className="flex items-center gap-2 text-xs text-ink-faded">
                 <span>✓</span>
                 <span>Secure payment via Stripe</span>
@@ -233,12 +233,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             <div className="flex items-center gap-3">
               <Avatar userId={data.sellerId} size="md" initial={seller?.displayName?.charAt(0)} />
               <div>
-                <div className="font-display text-sm text-ink">
+                <div className="font-serif text-sm text-ink">
                   {seller?.displayName || "EduBoost Seller"}
                 </div>
                 <Link
                   href={`/teachers/${data.sellerId}` as never}
-                  className="text-xs text-seal hover:underline"
+                  className="text-xs text-red-600 hover:underline"
                 >
                   View profile →
                 </Link>
@@ -263,15 +263,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
                   <span className="text-sm">{KIND_ICON[l.kind]?.icon ?? "📄"}</span>
                   <span className="text-[10px] uppercase tracking-widest text-ink-faded">{l.kind}</span>
                 </div>
-                <h3 className="mt-2 font-display text-sm text-ink">{l.title}</h3>
+                <h3 className="mt-2 font-serif text-sm text-ink">{l.title}</h3>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {l.subjects.slice(0, 2).map((s) => (
-                    <span key={s} className="rounded-full bg-parchment-dark px-2 py-0.5 text-[10px] text-ink-faded">
+                    <span key={s} className="rounded-full bg-bg-soft px-2 py-0.5 text-[10px] text-ink-faded">
                       {s}
                     </span>
                   ))}
                 </div>
-                <div className="mt-3 font-display text-base text-ink">
+                <div className="mt-3 font-serif text-base text-ink">
                   {formatMoney(l.priceCents, l.currency, { trim: true })}
                 </div>
               </Link>

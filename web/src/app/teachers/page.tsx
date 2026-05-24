@@ -51,6 +51,17 @@ const LANGUAGES = [
   "Turkish",
 ];
 
+const CITIES = [
+  "Tunis",
+  "Sfax",
+  "Sousse",
+  "Monastir",
+  "Bizerte",
+  "Nabeul",
+  "Kairouan",
+  "Gabes",
+];
+
 type Filters = {
   subject: string;
   language: string;
@@ -62,6 +73,7 @@ type Filters = {
   individual: boolean;
   group: boolean;
   sort: string;
+  search: string;
 };
 
 const EMPTY: Filters = {
@@ -75,6 +87,7 @@ const EMPTY: Filters = {
   individual: false,
   group: false,
   sort: "rating",
+  search: "",
 };
 
 function countActive(f: Filters): number {
@@ -88,10 +101,27 @@ function countActive(f: Filters): number {
   if (f.trial) n++;
   if (f.individual) n++;
   if (f.group) n++;
+  if (f.search) n++;
   return n;
 }
 
-type DropdownId = "subject" | "price" | "speaks" | "location" | "more" | null;
+function getActiveChips(f: Filters): { key: string; label: string; clear: () => Filters }[] {
+  const chips: { key: string; label: string; clear: () => Filters }[] = [];
+  if (f.search) chips.push({ key: "search", label: `"${f.search}"`, clear: () => ({ ...f, search: "" }) });
+  if (f.subject) chips.push({ key: "subject", label: f.subject, clear: () => ({ ...f, subject: "" }) });
+  if (f.language) chips.push({ key: "language", label: `Speaks ${f.language}`, clear: () => ({ ...f, language: "" }) });
+  if (f.city) chips.push({ key: "city", label: f.city, clear: () => ({ ...f, city: "" }) });
+  if (f.rateRange[0] !== 0 || f.rateRange[1] !== 200)
+    chips.push({ key: "rate", label: `${f.rateRange[0]}--${f.rateRange[1]} DT/hr`, clear: () => ({ ...f, rateRange: EMPTY.rateRange }) });
+  if (f.ratingRange[0] !== 0 || f.ratingRange[1] !== 5)
+    chips.push({ key: "rating", label: `Rating ${f.ratingRange[0]}--${f.ratingRange[1]}`, clear: () => ({ ...f, ratingRange: EMPTY.ratingRange }) });
+  if (f.experienceRange[0] !== 0 || f.experienceRange[1] !== 30)
+    chips.push({ key: "exp", label: `${f.experienceRange[0]}--${f.experienceRange[1]} yrs exp`, clear: () => ({ ...f, experienceRange: EMPTY.experienceRange }) });
+  if (f.trial) chips.push({ key: "trial", label: "Trial available", clear: () => ({ ...f, trial: false }) });
+  if (f.individual) chips.push({ key: "individual", label: "1-on-1", clear: () => ({ ...f, individual: false }) });
+  if (f.group) chips.push({ key: "group", label: "Group", clear: () => ({ ...f, group: false }) });
+  return chips;
+}
 
 export default function TeachersPage() {
   const [filters, setFilters] = useState<Filters>(EMPTY);
@@ -99,20 +129,9 @@ export default function TeachersPage() {
   const [items, setItems] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openDropdown, setOpenDropdown] = useState<DropdownId>(null);
-  const barRef = useRef<HTMLDivElement>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const activeCount = countActive(debounced);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
@@ -158,68 +177,275 @@ export default function TeachersPage() {
   );
 
   const sorted = useMemo(() => {
-    const copy = [...items];
+    let copy = [...items];
+
+    // Client-side search filter
+    if (filters.search.trim()) {
+      const q = filters.search.trim().toLowerCase();
+      copy = copy.filter(
+        (t) =>
+          t.displayName?.toLowerCase().includes(q) ||
+          t.subjects.some((s) => s.toLowerCase().includes(q)) ||
+          t.city?.toLowerCase().includes(q),
+      );
+    }
+
+    // Client-side language filter
+    if (filters.language) {
+      copy = copy.filter((t) => t.languages.includes(filters.language));
+    }
+
     if (filters.sort === "price-low") copy.sort((a, b) => a.hourlyRateCents - b.hourlyRateCents);
     else if (filters.sort === "price-high") copy.sort((a, b) => b.hourlyRateCents - a.hourlyRateCents);
     else if (filters.sort === "experience") copy.sort((a, b) => b.yearsExperience - a.yearsExperience);
     else copy.sort((a, b) => b.ratingAvg - a.ratingAvg);
     return copy;
-  }, [items, filters.sort]);
+  }, [items, filters.sort, filters.search, filters.language]);
 
-  function toggle(id: DropdownId) {
-    setOpenDropdown((cur) => (cur === id ? null : id));
-  }
+  const activeChips = getActiveChips(filters);
 
-  function filterLabel(id: DropdownId): string | null {
-    switch (id) {
-      case "subject": return filters.subject || null;
-      case "price":
-        return filters.rateRange[0] !== 0 || filters.rateRange[1] !== 200
-          ? `${filters.rateRange[0]}–${filters.rateRange[1]} DT`
-          : null;
-      case "speaks": return filters.language || null;
-      case "location": return filters.city || null;
-      case "more": {
-        const n = [filters.trial, filters.individual, filters.group,
-          filters.ratingRange[0] !== 0 || filters.ratingRange[1] !== 5,
-          filters.experienceRange[0] !== 0 || filters.experienceRange[1] !== 30,
-        ].filter(Boolean).length;
-        return n > 0 ? `${n}` : null;
-      }
-      default: return null;
-    }
-  }
+  const filterSidebar = (
+    <div className="space-y-0">
+      {/* Search */}
+      <FilterGroup title="Search">
+        <input
+          className="input"
+          placeholder="Name, subject, or city..."
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+        />
+      </FilterGroup>
+
+      {/* Subjects */}
+      <FilterGroup title="Subject">
+        <div className="space-y-1.5">
+          {SUBJECTS.map((s) => (
+            <label key={s} className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={filters.subject === s}
+                onChange={() => setFilters({ ...filters, subject: filters.subject === s ? "" : s })}
+                className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
+              />
+              <span className="text-sm text-ink">{s}</span>
+            </label>
+          ))}
+        </div>
+      </FilterGroup>
+
+      {/* Languages */}
+      <FilterGroup title="Language">
+        <div className="space-y-1.5">
+          {LANGUAGES.map((l) => (
+            <label key={l} className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={filters.language === l}
+                onChange={() => setFilters({ ...filters, language: filters.language === l ? "" : l })}
+                className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
+              />
+              <span className="text-sm text-ink">{l}</span>
+            </label>
+          ))}
+        </div>
+      </FilterGroup>
+
+      {/* City */}
+      <FilterGroup title="City">
+        <div className="space-y-1.5">
+          {CITIES.map((c) => (
+            <label key={c} className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={filters.city === c}
+                onChange={() => setFilters({ ...filters, city: filters.city === c ? "" : c })}
+                className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
+              />
+              <span className="text-sm text-ink">{c}</span>
+            </label>
+          ))}
+        </div>
+      </FilterGroup>
+
+      {/* Rate range */}
+      <FilterGroup title="Hourly Rate">
+        <PriceHistogram
+          prices={allPrices}
+          min={0}
+          max={200}
+          range={filters.rateRange}
+        />
+        <RangeSlider
+          min={0}
+          max={200}
+          step={5}
+          value={filters.rateRange}
+          onChange={(v) => setFilters({ ...filters, rateRange: v })}
+          label=""
+          formatValue={(v) => `${v} DT`}
+        />
+        <div className="mt-1 flex items-center justify-between text-xs text-ink-faded">
+          <span>{filters.rateRange[0]} DT</span>
+          <span>{filters.rateRange[1]} DT</span>
+        </div>
+      </FilterGroup>
+
+      {/* Min rating */}
+      <FilterGroup title="Min Rating">
+        <div className="flex flex-wrap gap-1.5">
+          {[3, 3.5, 4, 4.5].map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() =>
+                setFilters({
+                  ...filters,
+                  ratingRange:
+                    filters.ratingRange[0] === r && filters.ratingRange[1] === 5
+                      ? EMPTY.ratingRange
+                      : [r, 5],
+                })
+              }
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                filters.ratingRange[0] === r && filters.ratingRange[1] === 5
+                  ? "bg-accent text-white"
+                  : "bg-bg-soft text-ink-soft hover:bg-accent-pale hover:text-accent-deep"
+              }`}
+            >
+              {r}+ stars
+            </button>
+          ))}
+        </div>
+      </FilterGroup>
+
+      {/* Experience */}
+      <FilterGroup title="Experience">
+        <RangeSlider
+          min={0}
+          max={30}
+          step={1}
+          value={filters.experienceRange}
+          onChange={(v) => setFilters({ ...filters, experienceRange: v })}
+          label=""
+          formatValue={(v) => `${v} yrs`}
+        />
+        <div className="mt-1 flex items-center justify-between text-xs text-ink-faded">
+          <span>{filters.experienceRange[0]} yrs</span>
+          <span>{filters.experienceRange[1]} yrs</span>
+        </div>
+      </FilterGroup>
+
+      {/* Options */}
+      <FilterGroup title="Options" last>
+        <div className="space-y-2">
+          <label className="flex cursor-pointer items-center gap-2.5">
+            <input
+              type="checkbox"
+              checked={filters.trial}
+              onChange={(e) => setFilters({ ...filters, trial: e.target.checked })}
+              className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
+            />
+            <span className="text-sm text-ink">Trial available</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2.5">
+            <input
+              type="checkbox"
+              checked={filters.individual}
+              onChange={(e) => setFilters({ ...filters, individual: e.target.checked })}
+              className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
+            />
+            <span className="text-sm text-ink">Verified teachers</span>
+          </label>
+        </div>
+      </FilterGroup>
+
+      {/* Clear all */}
+      {activeCount > 0 && (
+        <div className="px-1 pt-4">
+          <button
+            type="button"
+            onClick={() => setFilters(EMPTY)}
+            className="btn-ghost w-full text-center text-accent"
+          >
+            Clear all filters ({activeCount})
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-24 pt-12">
-      <h1 className="font-display text-4xl tracking-tight text-ink">Find a teacher</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        Browse verified Tunisian tutors. Use the filters to narrow your search.
-      </p>
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      {/* ── Page header ────────────────────────────────────────── */}
+      <div className="mb-8">
+        <div className="eyebrow">Find a teacher</div>
+        <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink sm:text-4xl">
+          Browse{" "}
+          <em className="not-italic text-accent">
+            {loading ? "..." : sorted.length}
+          </em>{" "}
+          verified teachers.
+        </h1>
+      </div>
 
-      {/* ── Filter bar ──────────────────────────────────────────── */}
-      <div ref={barRef} className="relative mt-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterButton id="subject" label="Subject" active={filterLabel("subject")} open={openDropdown === "subject"} onClick={() => toggle("subject")} />
-          <FilterButton id="price" label="Price" active={filterLabel("price")} open={openDropdown === "price"} onClick={() => toggle("price")} />
-          <FilterButton id="speaks" label="Speaks" active={filterLabel("speaks")} open={openDropdown === "speaks"} onClick={() => toggle("speaks")} />
-          <FilterButton id="location" label="Location" active={filterLabel("location")} open={openDropdown === "location"} onClick={() => toggle("location")} />
-          <FilterButton id="more" label="More filters" active={filterLabel("more")} open={openDropdown === "more"} onClick={() => toggle("more")} />
+      {/* ── Mobile filter toggle ───────────────────────────────── */}
+      <div className="mb-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+          className="btn-secondary w-full"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M2 4h12M4 8h8M6 12h4" />
+          </svg>
+          Filters {activeCount > 0 && `(${activeCount})`}
+        </button>
+        {mobileFiltersOpen && (
+          <div className="mt-3 rounded-2xl border border-rule bg-white p-4">
+            {filterSidebar}
+          </div>
+        )}
+      </div>
 
-          <div className="ml-auto flex items-center gap-3">
-            {activeCount > 0 && (
-              <button
-                type="button"
-                onClick={() => { setFilters(EMPTY); setOpenDropdown(null); }}
-                className="text-xs text-seal hover:underline"
-              >
-                Clear all ({activeCount})
-              </button>
-            )}
+      <div className="flex gap-8">
+        {/* ── Left filter rail (desktop) ────────────────────────── */}
+        <aside className="hidden w-[280px] shrink-0 lg:block">
+          <div className="sticky top-20">
+            {filterSidebar}
+          </div>
+        </aside>
+
+        {/* ── Main results area ─────────────────────────────────── */}
+        <div className="min-w-0 flex-1">
+          {/* Sort + active chips */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            {/* Active filter chips */}
+            <div className="flex flex-wrap gap-2">
+              {activeChips.map((chip) => (
+                <span
+                  key={chip.key}
+                  className="chip chip-accent inline-flex items-center gap-1.5"
+                >
+                  {chip.label}
+                  <button
+                    type="button"
+                    onClick={() => setFilters(chip.clear())}
+                    className="ml-0.5 text-accent/60 transition hover:text-accent-deep"
+                    aria-label={`Remove ${chip.label} filter`}
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M3 3l6 6M9 3l-6 6" />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Sort */}
             <select
               value={filters.sort}
               onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-              className="rounded-md border border-ink-faded/40 bg-white px-3 py-1.5 text-xs text-ink"
+              className="rounded-full border border-rule bg-white px-4 py-2 text-xs font-medium text-ink transition hover:border-rule"
             >
               <option value="rating">Top rated</option>
               <option value="price-low">Price: low to high</option>
@@ -227,485 +453,139 @@ export default function TeachersPage() {
               <option value="experience">Most experienced</option>
             </select>
           </div>
-        </div>
 
-        {/* ── Dropdown panels ──────────────────────────────────── */}
-        {openDropdown === "subject" && (
-          <DropdownPanel>
-            <p className="text-sm font-medium text-ink">Lesson category</p>
-            <p className="mt-0.5 text-xs text-ink-faded">What do you want to learn?</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {SUBJECTS.map((s) => (
-                <PillOption
-                  key={s}
-                  label={s}
-                  selected={filters.subject === s}
-                  onClick={() => {
-                    setFilters({ ...filters, subject: filters.subject === s ? "" : s });
-                  }}
-                />
-              ))}
-            </div>
-          </DropdownPanel>
-        )}
+          {/* Loading / error states */}
+          {error && <p className="mb-4 text-sm text-warn">{error}</p>}
 
-        {openDropdown === "price" && (
-          <DropdownPanel>
-            <p className="text-sm font-medium text-ink">Hourly lesson price</p>
-            <div className="mt-4">
-              <PriceHistogram
-                prices={allPrices}
-                min={0}
-                max={200}
-                range={filters.rateRange}
-              />
-              <RangeSlider
-                min={0}
-                max={200}
-                step={5}
-                value={filters.rateRange}
-                onChange={(v) => setFilters({ ...filters, rateRange: v })}
-                label=""
-                formatValue={(v) => `${v} DT`}
-              />
-            </div>
-            <div className="mt-1 flex items-center justify-between text-xs text-ink-faded">
-              <span>{filters.rateRange[0]} DT</span>
-              <span className="font-medium text-ink">
-                {filters.rateRange[0]} DT – {filters.rateRange[1]} DT
-              </span>
-              <span>{filters.rateRange[1]} DT</span>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                [0, 30],
-                [30, 60],
-                [60, 100],
-                [100, 200],
-              ].map(([lo, hi]) => (
-                <button
-                  key={`${lo}-${hi}`}
-                  type="button"
-                  onClick={() => setFilters({ ...filters, rateRange: [lo, hi] })}
-                  className={`rounded-full border px-3 py-1 text-xs transition ${
-                    filters.rateRange[0] === lo && filters.rateRange[1] === hi
-                      ? "border-ink bg-ink text-parchment"
-                      : "border-ink-faded/40 text-ink-soft hover:border-ink-faded/70"
-                  }`}
+          {/* ── Teacher cards grid ───────────────────────────────── */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {sorted.map((t) => {
+              const isSponsored =
+                t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date();
+              return (
+                <Link
+                  key={t.userId}
+                  href={`/teachers/${t.userId}` as never}
+                  className="card-interactive group overflow-hidden"
                 >
-                  {lo}–{hi} DT
-                </button>
-              ))}
-            </div>
-          </DropdownPanel>
-        )}
+                  <div className="flex gap-4 p-5">
+                    {/* Avatar */}
+                    <div className="relative shrink-0">
+                      <Avatar userId={t.userId} size="xl" initial={t.displayName?.[0]} />
+                      {t.ratingCount > 0 && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+                          {t.ratingAvg.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
 
-        {openDropdown === "speaks" && (
-          <DropdownPanel>
-            <p className="text-sm font-medium text-ink">Teacher speaks</p>
-            <p className="mt-0.5 text-xs text-ink-faded">
-              Find teachers who speak your language
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {LANGUAGES.map((l) => (
-                <PillOption
-                  key={l}
-                  label={l}
-                  selected={filters.language === l}
-                  onClick={() => {
-                    setFilters({ ...filters, language: filters.language === l ? "" : l });
-                  }}
-                />
-              ))}
-            </div>
-          </DropdownPanel>
-        )}
+                    {/* Info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-serif text-lg leading-snug text-ink group-hover:text-accent">
+                            {t.displayName ?? "Teacher"}
+                          </div>
+                          <div className="mt-0.5 text-xs text-ink-faded">
+                            {t.subjects.slice(0, 2).join(" / ")}
+                            {t.city ? ` -- ${t.city}` : ""}
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-faded">
+                            from
+                          </div>
+                          <div className="font-serif text-lg text-ink">
+                            {formatMoney(t.hourlyRateCents, t.currency, { trim: true })}
+                          </div>
+                        </div>
+                      </div>
 
-        {openDropdown === "location" && (
-          <DropdownPanel>
-            <p className="text-sm font-medium text-ink">Teachers from</p>
-            <input
-              className="input mt-3"
-              placeholder="I want my teacher to be from..."
-              value={filters.city}
-              onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-              autoFocus
-            />
-            <p className="mb-2 mt-4 text-xs font-medium text-ink-faded">
-              Popular cities
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {["Tunis", "Sfax", "Sousse", "Monastir", "Bizerte", "Nabeul", "Kairouan", "Gabès"].map(
-                (c) => (
-                  <PillOption
-                    key={c}
-                    label={c}
-                    selected={filters.city === c}
-                    onClick={() =>
-                      setFilters({ ...filters, city: filters.city === c ? "" : c })
-                    }
-                  />
-                ),
-              )}
-            </div>
-          </DropdownPanel>
-        )}
+                      {/* Tags */}
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {isSponsored && (
+                          <span className="chip chip-accent text-[10px] font-semibold uppercase tracking-wider">
+                            Sponsored
+                          </span>
+                        )}
+                        {t.trialSession && !isSponsored && (
+                          <span className="chip chip-accent text-[10px]">Free trial</span>
+                        )}
+                        {t.yearsExperience > 0 && (
+                          <span className="chip text-[10px]">{t.yearsExperience} yrs exp</span>
+                        )}
+                        {t.languages.length > 0 && (
+                          <span className="chip text-[10px]">
+                            {t.languages.slice(0, 2).join(", ")}
+                          </span>
+                        )}
+                      </div>
 
-        {openDropdown === "more" && (
-          <DropdownPanel wide>
-            <p className="text-sm font-medium text-ink">More filters</p>
-            <p className="mt-0.5 text-xs text-ink-faded">
-              Refine by rating, experience, and session type
-            </p>
-            <div className="mt-4 grid gap-6 sm:grid-cols-2">
-              <div>
-                <RangeSlider
-                  min={0}
-                  max={5}
-                  step={0.5}
-                  value={filters.ratingRange}
-                  onChange={(v) => setFilters({ ...filters, ratingRange: v })}
-                  label="Minimum rating"
-                  formatValue={(v) => `★ ${v}`}
-                />
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {[3, 3.5, 4, 4.5].map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() =>
-                        setFilters({ ...filters, ratingRange: [r, 5] })
-                      }
-                      className={`rounded-full border px-2.5 py-1 text-xs transition ${
-                        filters.ratingRange[0] === r && filters.ratingRange[1] === 5
-                          ? "border-ink bg-ink text-parchment"
-                          : "border-ink-faded/40 text-ink-soft hover:border-ink-faded/70"
-                      }`}
-                    >
-                      ★ {r}+
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <RangeSlider
-                  min={0}
-                  max={30}
-                  step={1}
-                  value={filters.experienceRange}
-                  onChange={(v) => setFilters({ ...filters, experienceRange: v })}
-                  label="Experience"
-                  formatValue={(v) => `${v} yrs`}
-                />
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {[
-                    { label: "1+ yrs", range: [1, 30] as [number, number] },
-                    { label: "3+ yrs", range: [3, 30] as [number, number] },
-                    { label: "5+ yrs", range: [5, 30] as [number, number] },
-                    { label: "10+ yrs", range: [10, 30] as [number, number] },
-                  ].map((opt) => (
-                    <button
-                      key={opt.label}
-                      type="button"
-                      onClick={() =>
-                        setFilters({ ...filters, experienceRange: opt.range })
-                      }
-                      className={`rounded-full border px-2.5 py-1 text-xs transition ${
-                        filters.experienceRange[0] === opt.range[0] &&
-                        filters.experienceRange[1] === opt.range[1]
-                          ? "border-ink bg-ink text-parchment"
-                          : "border-ink-faded/40 text-ink-soft hover:border-ink-faded/70"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="mb-2 text-xs font-medium text-ink-faded">Session type</p>
-                <div className="flex flex-wrap gap-2">
-                  <ToggleChip
-                    label="Trial available"
-                    checked={filters.trial}
-                    onChange={(v) => setFilters({ ...filters, trial: v })}
-                  />
-                  <ToggleChip
-                    label="1-on-1 sessions"
-                    checked={filters.individual}
-                    onChange={(v) => setFilters({ ...filters, individual: v })}
-                  />
-                  <ToggleChip
-                    label="Group sessions"
-                    checked={filters.group}
-                    onChange={(v) => setFilters({ ...filters, group: v })}
-                  />
-                </div>
-              </div>
-            </div>
-          </DropdownPanel>
-        )}
-      </div>
+                      {t.bio && (
+                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-ink-soft">
+                          {t.bio}
+                        </p>
+                      )}
 
-      {/* ── Active filter chips ─────────────────────────────────── */}
-      {activeCount > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {filters.subject && (
-            <Chip label={filters.subject} onRemove={() => setFilters({ ...filters, subject: "" })} />
-          )}
-          {filters.language && (
-            <Chip label={`Speaks ${filters.language}`} onRemove={() => setFilters({ ...filters, language: "" })} />
-          )}
-          {filters.city && (
-            <Chip label={filters.city} onRemove={() => setFilters({ ...filters, city: "" })} />
-          )}
-          {(filters.rateRange[0] !== 0 || filters.rateRange[1] !== 200) && (
-            <Chip
-              label={`${filters.rateRange[0]}–${filters.rateRange[1]} DT/hr`}
-              onRemove={() => setFilters({ ...filters, rateRange: EMPTY.rateRange })}
-            />
-          )}
-          {(filters.ratingRange[0] !== 0 || filters.ratingRange[1] !== 5) && (
-            <Chip
-              label={`Rating ${filters.ratingRange[0]}–${filters.ratingRange[1]}`}
-              onRemove={() => setFilters({ ...filters, ratingRange: EMPTY.ratingRange })}
-            />
-          )}
-          {(filters.experienceRange[0] !== 0 || filters.experienceRange[1] !== 30) && (
-            <Chip
-              label={`${filters.experienceRange[0]}–${filters.experienceRange[1]} yrs exp`}
-              onRemove={() => setFilters({ ...filters, experienceRange: EMPTY.experienceRange })}
-            />
-          )}
-          {filters.trial && (
-            <Chip label="Trial" onRemove={() => setFilters({ ...filters, trial: false })} />
-          )}
-          {filters.individual && (
-            <Chip label="1-on-1" onRemove={() => setFilters({ ...filters, individual: false })} />
-          )}
-          {filters.group && (
-            <Chip label="Group" onRemove={() => setFilters({ ...filters, group: false })} />
-          )}
-        </div>
-      )}
-
-      {/* ── Results ─────────────────────────────────────────────── */}
-      <div className="mt-4 text-sm text-ink-soft">
-        {loading
-          ? "Loading teachers..."
-          : `${sorted.length} teacher${sorted.length === 1 ? "" : "s"} found`}
-      </div>
-
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sorted.map((t) => {
-          const isSponsored =
-            t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date();
-          return (
-            <Link
-              key={t.userId}
-              href={`/teachers/${t.userId}` as never}
-              className="card-interactive group overflow-hidden"
-            >
-              <div className="relative flex h-44 items-center justify-center bg-parchment-dark">
-                <Avatar userId={t.userId} size="xl" initial={t.displayName?.[0]} />
-                {t.ratingCount > 0 && (
-                  <span className="absolute left-2 top-2 rounded-sm bg-seal/90 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                    ★ {t.ratingAvg.toFixed(1)}
-                  </span>
-                )}
-                {isSponsored && (
-                  <span className="absolute right-2 top-2 rounded-sm bg-ink/80 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
-                    Sponsored
-                  </span>
-                )}
-                {t.trialSession && !isSponsored && (
-                  <span className="absolute right-2 top-2 rounded-sm bg-seal/80 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                    Trial
-                  </span>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="font-display text-base text-ink group-hover:text-seal">
-                  {t.displayName ?? "Teacher"}
-                </div>
-                <div className="mt-0.5 text-xs text-ink-faded">
-                  {t.subjects.slice(0, 2).join(" · ")}
-                  {t.city ? ` · ${t.city}` : ""}
-                </div>
-                {t.languages.length > 0 && (
-                  <div className="mt-0.5 text-xs text-ink-faded">
-                    Speaks: {t.languages.slice(0, 3).join(", ")}
-                  </div>
-                )}
-                {t.bio && (
-                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-ink-soft">
-                    {t.bio}
-                  </p>
-                )}
-                <div className="mt-3 flex items-center justify-between border-t border-ink-faded/20 pt-3">
-                  <div>
-                    <div className="text-[11px] text-ink-faded">Lessons from</div>
-                    <div className="font-display text-base text-ink">
-                      {formatMoney(t.hourlyRateCents, t.currency, { trim: true })}
+                      {/* Actions */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="btn-seal py-1.5 text-xs">
+                          Book now
+                        </span>
+                        <span className="btn-ghost text-xs text-ink-faded group-hover:text-accent">
+                          View profile
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <span className="rounded-md bg-seal px-3 py-1.5 text-xs font-medium text-white transition group-hover:bg-seal/80">
-                    Book now
-                  </span>
-                </div>
+                </Link>
+              );
+            })}
+            {!loading && sorted.length === 0 && (
+              <div className="col-span-full flex flex-col items-center py-16 text-center">
+                <div className="text-4xl text-ink-mute">No results</div>
+                <p className="mt-2 text-sm text-ink-soft">
+                  No teachers match your filters. Try broadening your search.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFilters(EMPTY)}
+                  className="btn-secondary mt-4"
+                >
+                  Clear all filters
+                </button>
               </div>
-            </Link>
-          );
-        })}
-        {!loading && sorted.length === 0 && (
-          <p className="col-span-full py-12 text-center text-sm text-ink-soft">
-            No teachers match your filters. Try broadening your search.
-          </p>
-        )}
+            )}
+          </div>
+
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-sm text-ink-faded">Loading teachers...</div>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
 }
 
-/* ── UI primitives ──────────────────────────────────────────────────── */
+/* ── Filter group component ───────────────────────────────────────────── */
 
-function FilterButton({
-  label,
-  active,
-  open,
-  onClick,
-}: {
-  id: string;
-  label: string;
-  active: string | null;
-  open: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition ${
-        open
-          ? "border-ink bg-ink text-parchment"
-          : active
-            ? "border-seal/50 bg-seal/5 text-seal"
-            : "border-ink-faded/40 bg-white text-ink hover:border-ink-faded/70"
-      }`}
-    >
-      <span>{label}</span>
-      {active && !open && (
-        <span className="rounded-full bg-seal/15 px-1.5 text-[11px] font-semibold text-seal">
-          {active}
-        </span>
-      )}
-      <svg
-        className={`h-3 w-3 transition ${open ? "rotate-180" : ""}`}
-        viewBox="0 0 12 12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      >
-        <path d="M3 4.5 L6 7.5 L9 4.5" />
-      </svg>
-    </button>
-  );
-}
-
-function DropdownPanel({
+function FilterGroup({
+  title,
   children,
-  wide,
+  last,
 }: {
+  title: string;
   children: React.ReactNode;
-  wide?: boolean;
+  last?: boolean;
 }) {
   return (
-    <div
-      className={`absolute left-0 z-50 mt-2 rounded-xl border border-ink-faded/30 bg-white p-5 shadow-lg ${
-        wide ? "w-full max-w-xl" : "w-80"
-      }`}
-    >
-      {children}
+    <div className={`py-4 ${last ? "" : "border-b border-rule"}`}>
+      <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
+        {title}
+      </div>
+      <div className="mt-3">{children}</div>
     </div>
-  );
-}
-
-function PillOption({
-  label,
-  selected,
-  onClick,
-}: {
-  label: string;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-sm transition ${
-        selected
-          ? "bg-ink text-parchment"
-          : "bg-parchment-dark text-ink-soft hover:bg-ink/10 hover:text-ink"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function ToggleChip({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${
-        checked
-          ? "bg-ink text-parchment"
-          : "bg-parchment-dark text-ink-soft hover:bg-ink/10"
-      }`}
-    >
-      <span
-        className={`inline-block h-3.5 w-3.5 rounded-sm border text-center text-[10px] leading-[13px] ${
-          checked ? "border-parchment bg-parchment text-ink" : "border-ink-faded/60"
-        }`}
-      >
-        {checked ? "✓" : ""}
-      </span>
-      {label}
-    </button>
-  );
-}
-
-function Chip({
-  label,
-  onRemove,
-}: {
-  label: string;
-  onRemove: () => void;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-seal/10 px-3 py-1 text-xs font-medium text-seal">
-      {label}
-      <button
-        type="button"
-        onClick={onRemove}
-        className="ml-0.5 text-seal/60 transition hover:text-seal"
-        aria-label={`Remove ${label} filter`}
-      >
-        ×
-      </button>
-    </span>
   );
 }

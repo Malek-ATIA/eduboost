@@ -44,8 +44,8 @@ const STATUS_CONFIG: Record<
   rejected: {
     icon: XCircle,
     label: "Declined",
-    color: "text-red-600",
-    bg: "bg-red-50 border-red-200",
+    color: "text-accent",
+    bg: "bg-red-50 border-accent/20",
   },
 };
 
@@ -144,7 +144,7 @@ export default function ParentChildrenPage() {
   const rejected = (items ?? []).filter((l) => l.status === "rejected");
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href="/parent" className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
         <ChevronLeft size={16} />
         Parent dashboard
@@ -152,9 +152,9 @@ export default function ParentChildrenPage() {
 
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Family</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My children</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Family</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My children</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             Link your child&apos;s student account to track their progress. They&apos;ll need to
             accept your invitation.
           </p>
@@ -164,7 +164,7 @@ export default function ParentChildrenPage() {
       {/* Add child form */}
       <div className="card mt-6 p-5">
         <div className="flex items-center gap-2 text-sm font-medium text-ink">
-          <UserPlus size={16} className="text-seal" />
+          <UserPlus size={16} className="text-accent" />
           Add a child
         </div>
         <form onSubmit={onInvite} className="mt-3 space-y-3">
@@ -194,18 +194,18 @@ export default function ParentChildrenPage() {
             </label>
           </div>
           {formError && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-2xl border border-accent/20 bg-red-50 p-3 text-sm text-red-700">
               {formError}
             </div>
           )}
-          <button type="submit" disabled={submitting || !childEmail} className="btn-seal">
+          <button type="submit" disabled={submitting || !childEmail} className="btn-primary">
             {submitting ? "Sending invitation..." : "Send link request"}
           </button>
         </form>
       </div>
 
       {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded-2xl border border-accent/20 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -213,18 +213,18 @@ export default function ParentChildrenPage() {
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
       {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-8 card p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <UserPlus size={28} className="text-ink-faded" />
           </div>
-          <p className="mt-4 font-display text-lg text-ink">No children linked yet</p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-4 font-serif text-lg text-ink">No children linked yet</p>
+          <p className="mt-3 text-sm text-ink-soft">
             Use the form above to send a link request to your child&apos;s EduBoost student email.
           </p>
         </div>
@@ -233,7 +233,7 @@ export default function ParentChildrenPage() {
       {/* Pending links */}
       {pending.length > 0 && (
         <section className="mt-8">
-          <h2 className="eyebrow mb-3">Awaiting response ({pending.length})</h2>
+          <h2 className="eyebrow font-mono mb-3">Awaiting response ({pending.length})</h2>
           <ul className="space-y-2">
             {pending.map((link) => (
               <ChildCard
@@ -250,7 +250,7 @@ export default function ParentChildrenPage() {
       {/* Accepted links */}
       {accepted.length > 0 && (
         <section className="mt-8">
-          <h2 className="eyebrow mb-3">Linked children ({accepted.length})</h2>
+          <h2 className="eyebrow font-mono mb-3">Linked children ({accepted.length})</h2>
           <ul className="space-y-2">
             {accepted.map((link) => (
               <ChildCard
@@ -267,7 +267,7 @@ export default function ParentChildrenPage() {
       {/* Rejected links */}
       {rejected.length > 0 && (
         <section className="mt-8">
-          <h2 className="eyebrow mb-3">Declined ({rejected.length})</h2>
+          <h2 className="eyebrow font-mono mb-3">Declined ({rejected.length})</h2>
           <ul className="space-y-2">
             {rejected.map((link) => (
               <ChildCard
@@ -305,32 +305,31 @@ function ChildCard({
 
   return (
     <li className="card overflow-hidden">
-      <div className="flex items-center gap-4 p-4">
-        <Avatar userId={link.childId} size="md" initial={childName.charAt(0)} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-display text-base text-ink">{childName}</span>
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
-            >
-              <StIcon size={10} />
-              {st.label}
-            </span>
-          </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-faded">
-            {link.child?.email && <span>{link.child.email}</span>}
-            <span>
+      <div className="p-4">
+        <div className="flex items-center gap-3">
+          <Avatar userId={link.childId} size="md" initial={childName.charAt(0)} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-serif text-base text-ink">{childName}</span>
+              <span
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
+              >
+                <StIcon size={10} />
+                {st.label}
+              </span>
+            </div>
+            <div className="mt-0.5 text-xs text-ink-faded truncate">
+              {link.child?.email && <span>{link.child.email} · </span>}
               Added{" "}
               {new Date(link.createdAt).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
-                year: "numeric",
               })}
-            </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="mt-3 flex items-center gap-2">
           <select
             value={link.relationship}
             onChange={(e) =>
@@ -348,7 +347,7 @@ function ChildCard({
           </select>
           <button
             onClick={() => onRemove(link.childId, childName)}
-            className="rounded-md border border-ink-faded/30 p-2 text-ink-faded transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            className="rounded-full border border-rule p-2 text-ink-faded transition hover:border-accent/20 hover:bg-accent/5 hover:text-accent"
             title="Remove link"
           >
             <Trash2 size={14} />

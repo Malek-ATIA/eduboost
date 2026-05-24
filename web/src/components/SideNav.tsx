@@ -24,7 +24,7 @@ import {
 
 type NavLink = { href: string; label: string; icon: LucideIcon };
 
-function linksForRole(role: Role | null, admin: boolean): NavLink[] {
+export function linksForRole(role: Role | null, admin: boolean): NavLink[] {
   const links: NavLink[] = [];
 
   if (role === "student") {
@@ -88,7 +88,7 @@ export function SideNav() {
   return (
     <nav
       aria-label="App navigation"
-      className="space-y-0.5 bg-parchment pb-6 text-sm"
+      className="flex flex-col gap-1 bg-bg-soft pb-6 text-sm"
     >
       {links.map((l) => {
         const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
@@ -97,13 +97,13 @@ export function SideNav() {
           <Link
             key={l.href}
             href={l.href as never}
-            className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition ${
+            className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] transition ${
               active
-                ? "bg-parchment-shade font-medium text-ink"
-                : "text-ink-soft hover:bg-parchment-shade hover:text-ink"
+                ? "border border-rule bg-bg-card font-medium text-ink"
+                : "border border-transparent text-ink-soft hover:bg-bg-card hover:text-ink"
             }`}
           >
-            <Icon size={16} className={active ? "text-seal" : ""} />
+            <Icon size={17} className={active ? "text-accent" : "text-ink-faded"} />
             {l.label}
           </Link>
         );

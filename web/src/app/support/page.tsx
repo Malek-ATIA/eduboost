@@ -16,7 +16,7 @@ type Ticket = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  open: "text-seal",
+  open: "text-accent",
   in_review: "text-ink-faded",
   awaiting_user: "text-ink-faded",
   resolved: "text-ink",
@@ -45,14 +45,14 @@ export default function SupportPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Help</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+          <div className="eyebrow">Help</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             Support & disputes
           </h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-ink-soft">
             File a dispute or contact the EduBoost team.
           </p>
         </div>
@@ -64,21 +64,21 @@ export default function SupportPage() {
         </Link>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No tickets yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((t) => (
             <li key={t.ticketId}>
               <Link
                 href={`/support/${t.ticketId}` as never}
-                className="flex items-center justify-between gap-3 p-4 transition hover:bg-parchment-shade"
+                className="flex items-center justify-between gap-3 p-4 transition hover:bg-bg-soft"
               >
                 <div>
-                  <div className="font-display text-base text-ink">{t.subject}</div>
+                  <div className="font-serif text-base text-ink">{t.subject}</div>
                   <div className="mt-0.5 text-xs text-ink-faded">
                     <span className="font-mono">#{t.ticketId}</span> · {t.category.replace(/_/g, " ")} · updated{" "}
                     {new Date(t.updatedAt).toLocaleDateString()}

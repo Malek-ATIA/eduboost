@@ -74,17 +74,17 @@ export default function MailboxThreadPage({
   }
 
   if (error && !thread) {
-    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!thread) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!thread) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href="/mailbox" className="btn-ghost -ml-3">
         ← Mailbox
       </Link>
-      <p className="eyebrow mt-3">Thread</p>
-      <h1 className="mt-1 font-display text-3xl text-ink">{thread.subject}</h1>
+      <div className="eyebrow">Thread</div>
+      <h1 className="mt-1 font-serif text-3xl text-ink">{thread.subject}</h1>
 
       <section className="mt-6 space-y-3">
         {messages?.map((m) => (
@@ -92,8 +92,8 @@ export default function MailboxThreadPage({
             key={m.messageId}
             className={`rounded-md border p-3 text-sm ${
               m.authorId === sub
-                ? "ml-8 border-seal/30 bg-seal/10 text-ink"
-                : "mr-8 border-ink-faded/40 bg-parchment-dark/70 text-ink"
+                ? "ml-8 border-accent/20 bg-accent-pale text-ink"
+                : "mr-8 border-rule bg-bg-soft text-ink"
             }`}
           >
             <div className="text-xs text-ink-faded">
@@ -114,7 +114,7 @@ export default function MailboxThreadPage({
           placeholder="Reply..."
           className="input"
         />
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={sending || !draft.trim()}

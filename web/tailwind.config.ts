@@ -5,42 +5,60 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-nunito)", "system-ui", "sans-serif"],
-        serif: ["var(--font-nunito)", "system-ui", "sans-serif"],
-        display: ["var(--font-nunito)", "system-ui", "sans-serif"],
-        mono: ['"Courier New"', "Courier", "ui-monospace", "monospace"],
+        sans: ["var(--font-geist)", "system-ui", "sans-serif"],
+        serif: ["var(--font-newsreader)", "Georgia", "serif"],
+        display: ["var(--font-newsreader)", "Georgia", "serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
       },
       colors: {
-        // Near-white parchment surface. The page background is pure white;
-        // panels, hover states, and borders carry the residual parchment
-        // identity. `seal` stays the wax-seal accent for CTAs and callouts.
-        parchment: {
+        bg: {
           DEFAULT: "#ffffff",
-          dark: "#ffffff",
-          shade: "#f5f5f5",
-          deep: "#cbb68d",
+          soft: "#f4f4f3",
+          card: "#ffffff",
         },
         ink: {
-          DEFAULT: "#1a1a1a",
-          soft: "#4b4b4b",
-          faded: "#8c8c8c",
-          quill: "#111111",
+          DEFAULT: "#111315",
+          soft: "#4a5057",
+          faded: "#8a8f96",
+          mute: "#c5c7cb",
+        },
+        rule: {
+          DEFAULT: "#e6e6e4",
+          soft: "#efefee",
+        },
+        accent: {
+          DEFAULT: "#1f4a3a",
+          deep: "#163428",
+          soft: "#d8e3dc",
+          pale: "#ecf2ee",
+        },
+        warn: "#b3551d",
+        gold: "#b9853a",
+        legal: "#c2c4c8",
+        parchment: {
+          DEFAULT: "#ffffff",
+          dark: "#f4f4f3",
+          shade: "#f4f4f3",
+          deep: "#d8e3dc",
         },
         seal: {
-          DEFAULT: "#8b3a3a",
-          dark: "#6e2c2c",
-          bright: "#a94a4a",
+          DEFAULT: "#1f4a3a",
+          dark: "#163428",
+          bright: "#2a6950",
         },
       },
       boxShadow: {
-        vellum: "0 1px 2px rgba(75,54,33,0.08), 0 2px 6px rgba(75,54,33,0.06)",
+        vellum: "0 1px 2px rgba(20,18,8,0.06), 0 2px 6px rgba(20,18,8,0.04)",
         manuscript:
-          "0 2px 4px rgba(75,54,33,0.08), 0 10px 24px -6px rgba(75,54,33,0.18)",
-        seal: "0 0 0 1px rgba(139,58,58,0.25), 0 6px 16px -4px rgba(139,58,58,0.35)",
+          "0 8px 30px -16px rgba(20,18,8,0.18)",
+        seal: "0 0 0 1px rgba(31,74,58,0.25), 0 6px 16px -4px rgba(31,74,58,0.25)",
       },
-      backgroundImage: {
-        "sepia-gradient":
-          "linear-gradient(180deg, rgba(75,54,33,0.06) 0%, rgba(75,54,33,0.02) 100%)",
+      borderRadius: {
+        pill: "999px",
+      },
+      maxWidth: {
+        container: "1320px",
+        "container-wide": "1480px",
       },
     },
   },

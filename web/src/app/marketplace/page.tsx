@@ -121,10 +121,13 @@ export default function MarketplacePage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-24 pt-12">
-      <h1 className="font-display text-4xl tracking-tight text-ink">Marketplace</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        Study materials, exam banks, and resources from verified teachers.
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Marketplace</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+        Notes, exams, and <span className="italic">workshop</span> tickets.
+      </h1>
+      <p className="mt-3 max-w-[560px] text-base leading-relaxed text-ink-soft">
+        From verified sellers only. Every listing reviewed before going live.
       </p>
 
       {/* ── Filter bar ──────────────────────────────────────────── */}
@@ -139,7 +142,7 @@ export default function MarketplacePage() {
               <button
                 type="button"
                 onClick={() => { setFilters(EMPTY); setOpenDropdown(null); }}
-                className="text-xs text-seal hover:underline"
+                className="text-xs text-accent hover:underline"
               >
                 Clear all ({activeCount})
               </button>
@@ -147,7 +150,7 @@ export default function MarketplacePage() {
             <select
               value={filters.sort}
               onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-              className="rounded-md border border-ink-faded/40 bg-white px-3 py-1.5 text-xs text-ink"
+              className="rounded-full border border-rule bg-white px-3 py-1.5 text-xs text-ink"
             >
               <option value="newest">Newest</option>
               <option value="price-low">Price: low to high</option>
@@ -237,8 +240,8 @@ export default function MarketplacePage() {
                   onClick={() => setFilters({ ...filters, priceRange: [lo, hi] })}
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     filters.priceRange[0] === lo && filters.priceRange[1] === hi
-                      ? "border-ink bg-ink text-parchment"
-                      : "border-ink-faded/40 text-ink-soft hover:border-ink-faded/70"
+                      ? "border-ink bg-ink text-white"
+                      : "border-rule text-ink-soft hover:border-rule"
                   }`}
                 >
                   {lo}–{hi} DT
@@ -277,42 +280,39 @@ export default function MarketplacePage() {
           : `${filtered.length} listing${filtered.length === 1 ? "" : "s"}`}
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-accent">{error}</p>}
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-[18px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {filtered?.map((l) => (
           <Link
             key={l.listingId}
             href={`/marketplace/listings/${l.listingId}` as never}
-            className="card-interactive group flex flex-col overflow-hidden"
+            className="card-interactive group flex flex-col overflow-hidden p-0"
           >
-            <div className="flex h-28 items-center justify-center bg-parchment-dark text-3xl text-ink-faded/40">
-              {l.kind === "physical" ? "\u{1F4E6}" : "\u{1F4C4}"}
+            <div className="flex h-[140px] items-center justify-center bg-bg-soft">
+              <span className="font-serif text-2xl text-ink-faded/30">
+                {l.subjects[0] ?? "Item"}
+              </span>
             </div>
-            <div className="flex flex-1 flex-col p-4">
-              <div className="font-display text-base text-ink group-hover:text-seal">
+            <div className="flex flex-1 flex-col p-[18px]">
+              <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-ink-faded">
+                {l.subjects[0]?.toUpperCase() ?? "GENERAL"}
+              </div>
+              <div className="mt-2 font-serif text-[17px] leading-[1.2] tracking-tight">
                 {l.title}
               </div>
               {l.description && (
-                <p className="mt-1 line-clamp-2 text-xs text-ink-soft">{l.description}</p>
+                <p className="mt-2 line-clamp-2 text-[13.5px] leading-relaxed text-ink-soft">{l.description}</p>
               )}
-              <div className="mt-2 flex flex-wrap gap-1">
-                {l.subjects.slice(0, 3).map((s) => (
-                  <span
-                    key={s}
-                    className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs text-ink-soft"
-                  >
-                    {s}
+              <div className="mt-auto flex items-baseline justify-between pt-3">
+                <div>
+                  <span className="font-serif text-[22px]">
+                    {formatMoney(l.priceCents, l.currency, { trim: true })}
                   </span>
-                ))}
-              </div>
-              <div className="mt-auto flex items-center justify-between border-t border-ink-faded/20 pt-3 mt-3">
-                <div className="font-display text-base text-ink">
-                  {formatMoney(l.priceCents, l.currency, { trim: true })}
                 </div>
-                <span className="rounded-md bg-seal px-3 py-1.5 text-xs font-medium text-white transition group-hover:bg-seal/80">
-                  Buy Product
-                </span>
+                <div className="text-xs text-ink-faded">
+                  by {l.sellerId.slice(0, 8)}
+                </div>
               </div>
             </div>
           </Link>
@@ -347,15 +347,15 @@ function FilterButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition ${
         open
-          ? "border-ink bg-ink text-parchment"
+          ? "border-ink bg-ink text-white"
           : active
-            ? "border-seal/50 bg-seal/5 text-seal"
-            : "border-ink-faded/40 bg-white text-ink hover:border-ink-faded/70"
+            ? "border-accent/50 bg-accent/5 text-accent"
+            : "border-rule bg-white text-ink hover:border-rule"
       }`}
     >
       <span>{label}</span>
       {active && !open && (
-        <span className="rounded-full bg-seal/15 px-1.5 text-[11px] font-semibold text-seal">
+        <span className="rounded-full bg-accent-pale px-1.5 text-[11px] font-semibold text-accent">
           {active}
         </span>
       )}
@@ -375,7 +375,7 @@ function FilterButton({
 
 function DropdownPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute left-0 z-50 mt-2 w-80 rounded-xl border border-ink-faded/30 bg-white p-5 shadow-lg">
+    <div className="absolute left-0 z-50 mt-2 w-80 rounded-2xl border border-rule bg-white p-5 shadow-lg">
       {children}
     </div>
   );
@@ -396,8 +396,8 @@ function PillOption({
       onClick={onClick}
       className={`rounded-full px-3 py-1.5 text-sm transition ${
         selected
-          ? "bg-ink text-parchment"
-          : "bg-parchment-dark text-ink-soft hover:bg-ink/10 hover:text-ink"
+          ? "bg-ink text-white"
+          : "bg-bg-soft text-ink-soft hover:bg-ink/10 hover:text-ink"
       }`}
     >
       {label}
@@ -413,12 +413,12 @@ function Chip({
   onRemove: () => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-seal/10 px-3 py-1 text-xs font-medium text-seal">
+    <span className="chip-accent inline-flex items-center gap-1">
       {label}
       <button
         type="button"
         onClick={onRemove}
-        className="ml-0.5 text-seal/60 transition hover:text-seal"
+        className="ml-0.5 text-accent/60 transition hover:text-accent"
         aria-label={`Remove ${label} filter`}
       >
         ×

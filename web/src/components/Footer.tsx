@@ -6,75 +6,79 @@ const COLS = [
     title: "Platform",
     links: [
       { href: "/teachers", label: "Find a teacher" },
+      { href: "/classrooms", label: "Classroom" },
       { href: "/marketplace", label: "Marketplace" },
+      { href: "/forum", label: "Community" },
       { href: "/events", label: "Events" },
-      { href: "/forum", label: "Forum" },
     ],
   },
   {
     title: "Learn more",
     links: [
+      { href: "/faq", label: "How it works" },
+      { href: "/faq", label: "Blog" },
       { href: "/faq", label: "FAQ" },
       { href: "/support/new", label: "Contact support" },
-      { href: "/support", label: "Support & disputes" },
-      { href: "/signup", label: "Create an account" },
-      { href: "/login", label: "Log in" },
+      { href: "/", label: "About EduBoost" },
     ],
   },
   {
-    title: "Legal",
+    title: "For teachers",
     links: [
-      { href: "/terms", label: "Terms & conditions" },
-      { href: "/privacy", label: "Privacy policy" },
-      { href: "/code-of-conduct", label: "Code of conduct" },
+      { href: "/signup?role=teacher", label: "Teach on EduBoost" },
+      { href: "/faq", label: "Teacher resources" },
+      { href: "/faq", label: "Earnings guide" },
+      { href: "/terms", label: "Community guidelines" },
     ],
   },
 ];
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-ink-faded/25 bg-white/50">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+    <footer className="mt-24 border-t border-rule bg-bg-soft">
+      <div className="mx-auto max-w-container-wide px-8 pb-7 pt-14">
+        <div className="grid gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_repeat(3,1fr)]">
+          {/* Brand column */}
           <div>
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2.5 hover:no-underline">
               <span
                 aria-hidden
-                className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-seal/40 bg-seal/10 text-base font-bold text-seal"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-ink font-serif text-[22px] font-medium italic text-white"
               >
                 E
               </span>
-              <span className="text-lg font-bold tracking-tight text-ink">
+              <span className="font-serif text-[26px] font-medium tracking-tight text-ink">
                 EduBoost
               </span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Verified Tunisian tutors, online and in-person. Book, learn, and pay on a single platform.
+            </Link>
+            <p className="mt-4 max-w-[340px] text-sm leading-relaxed text-ink-soft">
+              Verified Tunisian tutors, online and in-person. Book trial lessons, learn in our classroom, and pay safely in TND.
             </p>
-            <div className="mt-4 space-y-2 text-xs text-ink-faded">
-              <a href="mailto:support@eduboost.tn" className="flex items-center gap-2 hover:text-seal">
-                <Mail size={14} />
-                support@eduboost.tn
+            <div className="mt-5 flex flex-col gap-2 text-[13px] text-ink-faded">
+              <a href="mailto:hello@eduboost.tn" className="inline-flex items-center gap-2 hover:text-ink">
+                <Mail size={14} /> hello@eduboost.tn
               </a>
-              <a href="https://wa.me/21655555555" className="flex items-center gap-2 hover:text-seal">
-                <MessageCircle size={14} />
-                WhatsApp +216 55 555 555
+              <a href="https://wa.me/21655555555" className="inline-flex items-center gap-2 hover:text-ink">
+                <MessageCircle size={14} /> WhatsApp +216 55 555 555
               </a>
-              <a href="tel:+21670555555" className="flex items-center gap-2 hover:text-seal">
-                <Phone size={14} />
-                +216 70 555 555
+              <a href="tel:+21670555555" className="inline-flex items-center gap-2 hover:text-ink">
+                <Phone size={14} /> +216 70 555 555
               </a>
             </div>
           </div>
+
+          {/* Link columns */}
           {COLS.map((col) => (
             <div key={col.title}>
-              <div className="label">{col.title}</div>
-              <ul className="mt-3 space-y-2">
+              <div className="text-[12.5px] font-medium tracking-wide text-ink">
+                {col.title}
+              </div>
+              <ul className="mt-4 flex flex-col gap-2.5">
                 {col.links.map((l) => (
-                  <li key={l.href}>
+                  <li key={l.label}>
                     <Link
                       href={l.href as never}
-                      className="text-sm text-ink-soft hover:text-seal"
+                      className="text-sm text-ink-soft transition hover:text-ink"
                     >
                       {l.label}
                     </Link>
@@ -84,9 +88,18 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-ink-faded/20 pt-6 text-xs text-ink-faded sm:flex-row sm:items-center">
-          <p>&copy; {new Date().getFullYear()} EduBoost. Made in Tunisia.</p>
-          <p className="italic">&ldquo;Learned teachers, diligent students.&rdquo;</p>
+
+        {/* Bottom bar */}
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6">
+          <div className="text-[12.5px] text-ink-faded">
+            &copy; {new Date().getFullYear()} EduBoost &middot; Made in Tunisia
+          </div>
+          <div className="flex gap-[18px] text-xs text-legal">
+            <span className="cursor-default">Terms of service</span>
+            <span className="cursor-default">Privacy policy</span>
+            <span className="cursor-default">Code of conduct</span>
+            <span className="cursor-default">Cookies</span>
+          </div>
         </div>
       </div>
     </footer>

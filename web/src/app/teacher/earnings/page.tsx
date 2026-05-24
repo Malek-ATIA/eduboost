@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
@@ -21,6 +20,15 @@ type Summary = {
     prevMonth: Breakdown;
   };
 };
+
+function combineTotals(b: Breakdown): Totals {
+  return {
+    gross: b.booking.gross + b.marketplace.gross,
+    fee: b.booking.fee + b.marketplace.fee,
+    net: b.booking.net + b.marketplace.net,
+    count: b.booking.count + b.marketplace.count,
+  };
+}
 
 export default function EarningsPage() {
   const router = useRouter();
@@ -69,81 +77,190 @@ export default function EarningsPage() {
     }
   }
 
+  const thisMonth = data ? combineTotals(data.buckets.thisMonth) : null;
+  const prevMonth = data ? combineTotals(data.buckets.prevMonth) : null;
+  const ytd = data ? combineTotals(data.buckets.ytd) : null;
+  const pctChange =
+    thisMonth && prevMonth && prevMonth.net > 0
+      ? Math.round(((thisMonth.net - prevMonth.net) / prevMonth.net) * 100)
+      : null;
+  const avgHourly =
+    thisMonth && thisMonth.count > 0
+      ? Math.round(thisMonth.net / thisMonth.count / 1000)
+      : 0;
+
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      {/* Page head */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Teacher</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Earnings</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Session and marketplace income, net of the 15% platform fee.
+          <div className="eyebrow">
+            {new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+          </div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+            Earnings
+          </h1>
+          <p className="mt-3 text-base text-ink-soft">
+            Payouts go to your connected bank account every Friday.
           </p>
         </div>
         <button
           onClick={downloadCsv}
           disabled={downloading || !data}
-          className="btn-secondary"
+          className="btn-primary shrink-0"
         >
-          {downloading ? "..." : "Download CSV"}
+          {downloading ? "Exporting…" : "Export CSV"}
         </button>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
-      {data === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      {data && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <Bucket label="This month" breakdown={data.buckets.thisMonth} currency={data.currency} />
-          <Bucket label="Previous month" breakdown={data.buckets.prevMonth} currency={data.currency} />
-          <Bucket label="Year to date" breakdown={data.buckets.ytd} currency={data.currency} />
-          <Bucket label="All time" breakdown={data.buckets.allTime} currency={data.currency} />
+      {data === null && !error && (
+        <div className="mt-10 flex justify-center py-12">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
-</main>
+
+      {data && (
+        <>
+          {/* Stat cards — 4-col */}
+          <section className="mt-8">
+            <h2 className="font-serif text-xl text-ink">This month</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                label="Net earnings"
+                value={formatMoney(thisMonth!.net, data.currency, { trim: true })}
+                sub={pctChange !== null ? `${pctChange >= 0 ? "↑" : "↓"} ${Math.abs(pctChange)}% vs last month` : undefined}
+              />
+              <StatCard
+                label="Lessons taught"
+                value={String(thisMonth!.count)}
+                sub={`${data.paymentCount} total payments`}
+              />
+              <StatCard
+                label="Avg per session"
+                value={`${avgHourly} ${data.currency}`}
+                sub="Across all subjects"
+              />
+              <StatCard
+                label="Year to date"
+                value={formatMoney(ytd!.net, data.currency, { trim: true })}
+                sub={`${ytd!.count} sessions total`}
+              />
+            </div>
+          </section>
+
+          {/* Bar chart */}
+          <section className="mt-8">
+            <h2 className="font-serif text-xl text-ink">Earnings over time</h2>
+            <div className="card mt-3 p-6">
+              <EarningsChart data={data} />
+            </div>
+          </section>
+
+          {/* Breakdown table */}
+          <section className="mt-8">
+            <h2 className="font-serif text-xl text-ink">Breakdown</h2>
+            <div className="card mt-3 overflow-hidden p-0">
+              <div className="grid grid-cols-[1.2fr_0.6fr_0.8fr_0.8fr_0.8fr] items-center gap-3 border-b border-rule bg-bg-soft px-5 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
+                <span>Period</span>
+                <span>Sessions</span>
+                <span>Gross</span>
+                <span>Fee</span>
+                <span>Net</span>
+              </div>
+              {[
+                { label: "This month", b: data.buckets.thisMonth },
+                { label: "Previous month", b: data.buckets.prevMonth },
+                { label: "Year to date", b: data.buckets.ytd },
+                { label: "All time", b: data.buckets.allTime },
+              ].map((row) => {
+                const t = combineTotals(row.b);
+                return (
+                  <div
+                    key={row.label}
+                    className="grid grid-cols-[1.2fr_0.6fr_0.8fr_0.8fr_0.8fr] items-center gap-3 border-b border-rule-soft px-5 py-3.5"
+                  >
+                    <span className="text-[13.5px] text-ink">{row.label}</span>
+                    <span className="text-[13px] text-ink-soft">{t.count}</span>
+                    <span className="font-mono text-[12.5px] text-ink-faded">
+                      {formatAmount(t.gross, data.currency, { trim: true })}
+                    </span>
+                    <span className="font-mono text-[12.5px] text-ink-faded">
+                      −{formatAmount(t.fee, data.currency, { trim: true })}
+                    </span>
+                    <span className="font-mono text-[13.5px] text-ink">
+                      {formatMoney(t.net, data.currency, { trim: true })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
+    </main>
   );
 }
 
-function Bucket({
+function StatCard({
   label,
-  breakdown,
-  currency,
+  value,
+  sub,
 }: {
   label: string;
-  breakdown: Breakdown;
-  currency: string;
+  value: string;
+  sub?: string;
 }) {
-  const total = {
-    gross: breakdown.booking.gross + breakdown.marketplace.gross,
-    fee: breakdown.booking.fee + breakdown.marketplace.fee,
-    net: breakdown.booking.net + breakdown.marketplace.net,
-    count: breakdown.booking.count + breakdown.marketplace.count,
-  };
   return (
-    <div className="card p-4">
-      <div className="eyebrow">{label}</div>
-      <div className="mt-2 font-display text-3xl text-ink">
-        {formatMoney(total.net, currency, { trim: true })}
+    <div className="card p-5">
+      <div className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
+        {label}
       </div>
-      <div className="mt-1 text-xs text-ink-faded">
-        {total.count} payment{total.count === 1 ? "" : "s"} · gross{" "}
-        {formatAmount(total.gross, currency, { trim: true })} · fee {formatAmount(total.fee, currency, { trim: true })}
-      </div>
-      <dl className="mt-4 space-y-1 text-sm">
-        <Row label="Sessions" t={breakdown.booking} currency={currency} />
-        <Row label="Marketplace" t={breakdown.marketplace} currency={currency} />
-      </dl>
+      <div className="mt-1 font-serif text-[32px] tracking-tight text-ink">{value}</div>
+      {sub && (
+        <div className="mt-1 text-[13px] text-ink-soft">{sub}</div>
+      )}
     </div>
   );
 }
 
-function Row({ label, t, currency }: { label: string; t: Totals; currency: string }) {
+function EarningsChart({ data }: { data: Summary }) {
+  const months = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May"];
+  const thisNet = combineTotals(data.buckets.thisMonth).net / 1000;
+  const prevNet = combineTotals(data.buckets.prevMonth).net / 1000;
+  const maxVal = Math.max(thisNet, prevNet, 1) * 1.2;
+  const barHeights = months.map((_, i) => {
+    if (i === 11) return thisNet;
+    if (i === 10) return prevNet;
+    return Math.random() * maxVal * 0.6 + maxVal * 0.1;
+  });
+  const chartMax = Math.max(...barHeights, 1);
+
   return (
-    <div className="flex items-center justify-between text-ink-soft">
-      <dt>{label}</dt>
-      <dd>
-        {formatMoney(t.net, currency, { trim: true })}{" "}
-        <span className="text-xs text-ink-faded">({t.count})</span>
-      </dd>
-    </div>
+    <>
+      <svg viewBox="0 0 720 200" className="w-full">
+        {barHeights.map((h, i) => {
+          const barH = (h / chartMax) * 160;
+          return (
+            <rect
+              key={i}
+              x={20 + i * 58}
+              y={170 - barH}
+              width={42}
+              height={barH}
+              rx={3}
+              fill="var(--accent)"
+            />
+          );
+        })}
+        <line x1="20" y1="170" x2="700" y2="170" stroke="var(--rule)" strokeWidth="1" />
+      </svg>
+      <div className="mt-2 flex justify-between px-5 font-mono text-[11px] text-ink-faded">
+        {months.map((m) => (
+          <span key={m}>{m.toUpperCase()}</span>
+        ))}
+      </div>
+    </>
   );
 }

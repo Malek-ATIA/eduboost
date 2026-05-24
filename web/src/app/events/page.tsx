@@ -99,13 +99,13 @@ export default function EventsListPage() {
   const freeCount = (items ?? []).filter((e) => e.priceCents === 0 && isUpcoming(e.startsAt)).length;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-5xl px-8 pb-24 pt-12">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="eyebrow">Gatherings</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Events</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Gatherings</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Events</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             Workshops, study sessions, and community meetups
           </p>
         </div>
@@ -120,15 +120,15 @@ export default function EventsListPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{upcomingCount}</div>
+            <div className="font-serif text-2xl text-ink">{upcomingCount}</div>
             <div className="text-xs text-ink-faded">Upcoming</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{freeCount}</div>
+            <div className="font-serif text-2xl text-ink">{freeCount}</div>
             <div className="text-xs text-ink-faded">Free events</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{items.length}</div>
+            <div className="font-serif text-2xl text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total events</div>
           </div>
         </div>
@@ -136,15 +136,15 @@ export default function EventsListPage() {
 
       {/* Filters & search */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1 border-b border-ink-faded/20 sm:border-0">
+        <div className="flex gap-1 border-b border-rule-soft sm:border-0">
           {(["upcoming", "past", "all"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setTimeFilter(f)}
               className={`border-b-2 px-4 py-2 text-xs font-medium capitalize transition sm:rounded-md sm:border ${
                 timeFilter === f
-                  ? "border-seal text-seal sm:border-seal sm:bg-seal/10"
-                  : "border-transparent text-ink-faded hover:text-ink sm:border-ink-faded/30"
+                  ? "border-accent text-accent sm:border-accent sm:bg-accent-pale"
+                  : "border-transparent text-ink-faded hover:text-ink sm:border-rule"
               }`}
             >
               {f}
@@ -159,17 +159,17 @@ export default function EventsListPage() {
             placeholder="Search events..."
             className="input w-full sm:w-64"
           />
-          <div className="flex rounded-md border border-ink-faded/30">
+          <div className="flex rounded-md border border-rule">
             <button
               onClick={() => setViewMode("grid")}
-              className={`px-2.5 py-1.5 text-xs transition ${viewMode === "grid" ? "bg-parchment-dark text-ink" : "text-ink-faded"}`}
+              className={`px-2.5 py-1.5 text-xs transition ${viewMode === "grid" ? "bg-bg-soft text-ink" : "text-ink-faded"}`}
               title="Grid view"
             >
               ▦
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`border-l border-ink-faded/30 px-2.5 py-1.5 text-xs transition ${viewMode === "list" ? "bg-parchment-dark text-ink" : "text-ink-faded"}`}
+              className={`border-l border-rule px-2.5 py-1.5 text-xs transition ${viewMode === "list" ? "bg-bg-soft text-ink" : "text-ink-faded"}`}
               title="List view"
             >
               ☰
@@ -179,25 +179,25 @@ export default function EventsListPage() {
       </div>
 
       {/* Error */}
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
       {/* Empty state */}
       {items && filtered.length === 0 && (
         <div className="mt-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📅</span>
           </div>
-          <p className="mt-4 font-display text-lg text-ink">
+          <p className="mt-4 font-serif text-lg text-ink">
             {search ? "No events match your search" : timeFilter === "past" ? "No past events" : "No upcoming events"}
           </p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-ink-soft">
             {search
               ? "Try different keywords"
               : role === "teacher"
@@ -250,10 +250,10 @@ function EventCard({ event: e }: { event: EventRow }) {
       className="card group block overflow-hidden transition hover:shadow-md"
     >
       {/* Color header strip */}
-      <div className={`flex items-center justify-between px-4 py-2.5 ${upcoming ? "bg-seal/10" : "bg-parchment-dark"}`}>
+      <div className={`flex items-center justify-between px-4 py-2.5 ${upcoming ? "bg-accent-pale" : "bg-bg-soft"}`}>
         <div className="flex items-center gap-2">
           <span className="text-lg">📅</span>
-          <span className={`text-xs font-medium ${upcoming ? "text-seal" : "text-ink-faded"}`}>
+          <span className={`text-xs font-medium ${upcoming ? "text-red-600" : "text-ink-faded"}`}>
             {relativeDate(e.startsAt)}
           </span>
         </div>
@@ -262,14 +262,14 @@ function EventCard({ event: e }: { event: EventRow }) {
             Free
           </span>
         ) : (
-          <span className="font-display text-sm text-ink">
+          <span className="font-serif text-sm text-ink">
             {formatMoney(e.priceCents, e.currency, { trim: true })}
           </span>
         )}
       </div>
 
       <div className="p-4">
-        <h3 className="font-display text-base text-ink group-hover:text-seal transition-colors">
+        <h3 className="font-serif text-base text-ink group-hover:text-accent transition-colors">
           {e.title}
         </h3>
 
@@ -295,7 +295,7 @@ function EventCard({ event: e }: { event: EventRow }) {
         </div>
 
         {/* Organizer */}
-        <div className="mt-3 flex items-center gap-2 border-t border-ink-faded/15 pt-3">
+        <div className="mt-3 flex items-center gap-2 border-t border-rule-soft pt-3">
           <Avatar userId={e.organizerId} size="sm" />
           <span className="text-xs text-ink-faded">Organizer</span>
         </div>
@@ -314,18 +314,18 @@ function EventListRow({ event: e }: { event: EventRow }) {
       className="card group flex items-center gap-4 p-4 transition hover:shadow-md"
     >
       {/* Date block */}
-      <div className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg ${upcoming ? "bg-seal/10 text-seal" : "bg-parchment-dark text-ink-faded"}`}>
+      <div className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg ${upcoming ? "bg-accent/10 text-accent" : "bg-bg-soft text-ink-faded"}`}>
         <span className="text-[10px] font-semibold uppercase">
           {new Date(e.startsAt).toLocaleDateString(undefined, { month: "short" })}
         </span>
-        <span className="font-display text-xl leading-none">
+        <span className="font-serif text-xl leading-none">
           {new Date(e.startsAt).getDate()}
         </span>
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate font-display text-base text-ink group-hover:text-seal transition-colors">
+        <h3 className="truncate font-serif text-base text-ink group-hover:text-accent transition-colors">
           {e.title}
         </h3>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-ink-faded">
@@ -351,7 +351,7 @@ function EventListRow({ event: e }: { event: EventRow }) {
             Free
           </span>
         ) : (
-          <span className="font-display text-sm text-ink">
+          <span className="font-serif text-sm text-ink">
             {formatMoney(e.priceCents, e.currency, { trim: true })}
           </span>
         )}

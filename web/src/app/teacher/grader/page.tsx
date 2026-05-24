@@ -66,13 +66,13 @@ export default function GraderPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Teacher</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">AI grader</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Teacher</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">AI grader</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Paste a student submission; the grader returns a score and constructive
         feedback against your rubric. The student is notified.
       </p>
@@ -150,7 +150,7 @@ export default function GraderPage() {
           />
         </label>
 
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
@@ -164,7 +164,7 @@ export default function GraderPage() {
       {result && (
         <section className="card mt-8 p-4">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-xl text-ink">Result</h2>
+            <h2 className="font-serif text-xl text-ink">Result</h2>
             <span className="font-mono text-2xl font-bold text-ink">
               {result.score}/{result.maxScore}
             </span>

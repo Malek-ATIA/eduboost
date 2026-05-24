@@ -69,15 +69,15 @@ export default function TakeAssessmentPage({
   }
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!exam) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   if (result) {
     return (
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-center">
-        <p className="eyebrow">Result</p>
-        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Submitted</h1>
+      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-center">
+        <div className="eyebrow">Result</div>
+        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Submitted</h1>
         <p className="mt-2 text-sm text-ink-soft">
           {exam.title}: auto-graded MCQ score{" "}
           <span className="font-mono text-ink">{result.autoScore}/{result.maxMcqScore}</span>.
@@ -106,11 +106,11 @@ export default function TakeAssessmentPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Assessment</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{exam.title}</h1>
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Assessment</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{exam.title}</h1>
       {exam.description && (
-        <p className="mt-1 text-sm text-ink-soft">{exam.description}</p>
+        <p className="mt-3 text-sm text-ink-soft">{exam.description}</p>
       )}
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
@@ -131,7 +131,7 @@ export default function TakeAssessmentPage({
                       onChange={() =>
                         setAnswers(answers.map((a, idx) => (idx === i ? oi : a)))
                       }
-                      className="accent-seal"
+                      className="accent-[#1f4a3a]"
                     />
                     <span>{o}</span>
                   </label>
@@ -154,7 +154,7 @@ export default function TakeAssessmentPage({
           </div>
         ))}
 
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"

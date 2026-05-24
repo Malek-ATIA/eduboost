@@ -46,13 +46,13 @@ export default function NewClassroomPage() {
   }
 
   if (!ready)
-    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading…</main>;
+    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Classroom</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Create a classroom</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Classroom</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Create a classroom</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         A classroom groups sessions, chat, notes, and enrolled students under one course.
       </p>
 
@@ -105,7 +105,7 @@ export default function NewClassroomPage() {
             placeholder="Weekly revision group for bac students. Taught in French + Arabic."
           />
         </label>
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={submitting} className="btn-seal">
           {submitting ? "Creating…" : "Create classroom"}
         </button>

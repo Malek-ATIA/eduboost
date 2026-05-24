@@ -22,9 +22,9 @@ type StatusFilter = "all" | "pending" | "accepted" | "rejected";
 const STATUS_STYLES: Record<LessonRequest["status"], { label: string; color: string; bg: string; icon: string }> = {
   pending: { label: "Pending", color: "text-amber-600", bg: "bg-amber-50 border-amber-200", icon: "⏳" },
   accepted: { label: "Accepted", color: "text-green-700", bg: "bg-green-50 border-green-200", icon: "✅" },
-  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50 border-red-200", icon: "✗" },
-  expired: { label: "Expired", color: "text-ink-faded", bg: "bg-parchment-dark border-ink-faded/30", icon: "⌛" },
-  cancelled: { label: "Cancelled", color: "text-ink-faded", bg: "bg-parchment-dark border-ink-faded/30", icon: "—" },
+  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50 border-accent/20", icon: "✗" },
+  expired: { label: "Expired", color: "text-ink-faded", bg: "bg-bg-soft border-rule", icon: "⌛" },
+  cancelled: { label: "Cancelled", color: "text-ink-faded", bg: "bg-bg-soft border-rule", icon: "—" },
 };
 
 function timeAgo(dateStr: string): string {
@@ -91,13 +91,13 @@ export default function RequestsPage() {
   const acceptedCount = (items ?? []).filter((r) => r.status === "accepted").length;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Requests</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{title}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Requests</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{title}</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "Lesson requests from students"
               : "Track your lesson requests to teachers"}
@@ -110,12 +110,12 @@ export default function RequestsPage() {
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -123,15 +123,15 @@ export default function RequestsPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{items.length}</div>
+            <div className="font-serif text-2xl text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-amber-600">{pendingCount}</div>
+            <div className="font-serif text-2xl text-amber-600">{pendingCount}</div>
             <div className="text-xs text-ink-faded">Pending</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-green-700">{acceptedCount}</div>
+            <div className="font-serif text-2xl text-green-700">{acceptedCount}</div>
             <div className="text-xs text-ink-faded">Accepted</div>
           </div>
         </div>
@@ -139,14 +139,14 @@ export default function RequestsPage() {
 
       {/* Filter tabs */}
       {items && items.length > 0 && (
-        <div className="mt-6 flex gap-1 border-b border-ink-faded/20">
+        <div className="mt-6 flex gap-1 border-b border-rule-soft">
           {(["all", "pending", "accepted", "rejected"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setStatusFilter(f)}
               className={`border-b-2 px-4 py-2 text-xs font-medium capitalize transition ${
                 statusFilter === f
-                  ? "border-seal text-seal"
+                  ? "border-accent text-accent"
                   : "border-transparent text-ink-faded hover:text-ink"
               }`}
             >
@@ -164,13 +164,13 @@ export default function RequestsPage() {
       {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📬</span>
           </div>
-          <p className="mt-4 font-display text-lg text-ink">
+          <p className="mt-4 font-serif text-lg text-ink">
             {isTeacher ? "No lesson requests yet" : "No requests sent"}
           </p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "Students will send requests from your profile page."
               : "Request a custom lesson from any teacher's profile."}
@@ -201,7 +201,7 @@ export default function RequestsPage() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate font-display text-base text-ink group-hover:text-seal transition-colors">
+                      <h3 className="truncate font-serif text-base text-ink group-hover:text-accent transition-colors">
                         {r.subject}
                       </h3>
                       <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}>
@@ -224,7 +224,7 @@ export default function RequestsPage() {
                       <button
                         onClick={(e) => { e.preventDefault(); cancelRequest(r.requestId); }}
                         disabled={cancellingId === r.requestId}
-                        className="rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-red-500 transition hover:border-red-200 hover:bg-red-50"
+                        className="rounded-lg border border-rule px-3 py-1.5 text-xs text-red-500 transition hover:border-accent/20 hover:bg-accent/5"
                       >
                         {cancellingId === r.requestId ? "..." : "Cancel"}
                       </button>

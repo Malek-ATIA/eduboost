@@ -84,14 +84,14 @@ export default function ReferralsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Referrals</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Invite a friend</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Referrals</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Invite a friend</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Share your code to invite students, parents, or teachers to EduBoost.
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {mine && (
         <section className="card mt-8 p-4">
@@ -120,7 +120,7 @@ export default function ReferralsPage() {
 
       {mine && !mine.referredByCode && (
         <section className="card mt-6 p-4">
-          <h2 className="font-display text-base text-ink">Got invited?</h2>
+          <h2 className="font-serif text-base text-ink">Got invited?</h2>
           <p className="mt-1 text-xs text-ink-faded">
             Enter the code a friend shared with you. (One-time; can't change later.)
           </p>
@@ -140,7 +140,7 @@ export default function ReferralsPage() {
               Claim
             </button>
           </form>
-          {claimError && <p className="mt-2 text-sm text-seal">{claimError}</p>}
+          {claimError && <p className="mt-2 text-sm text-red-600">{claimError}</p>}
           {claimSuccess && <p className="mt-2 text-sm text-ink">{claimSuccess}</p>}
         </section>
       )}
@@ -152,17 +152,17 @@ export default function ReferralsPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-xl text-ink">People you&apos;ve invited</h2>
+        <h2 className="font-serif text-xl text-ink">People you&apos;ve invited</h2>
         {list === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
         {list && list.length === 0 && (
           <p className="mt-4 text-sm text-ink-soft">No one has claimed your code yet.</p>
         )}
         {list && list.length > 0 && (
-          <ul className="card mt-4 divide-y divide-ink-faded/30">
+          <ul className="card mt-4 divide-y divide-rule">
             {list.map((r) => (
               <li key={r.referredId} className="flex items-center justify-between p-3">
                 <div>
-                  <div className="font-display text-base text-ink">
+                  <div className="font-serif text-base text-ink">
                     {r.referred?.displayName ?? "(unknown)"}
                   </div>
                   <div className="text-xs text-ink-faded">

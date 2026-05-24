@@ -27,10 +27,10 @@ type AuthorInfo = {
 };
 
 const KIND_META: Record<string, { icon: string; label: string; color: string }> = {
-  exam: { icon: "📝", label: "Practice Exam", color: "bg-red-50 text-red-700 border-red-200" },
+  exam: { icon: "📝", label: "Practice Exam", color: "bg-red-50 text-red-700 border-accent/20" },
   notes: { icon: "📒", label: "Study Notes", color: "bg-green-50 text-green-700 border-green-200" },
   answers: { icon: "✅", label: "Answer Key", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  other: { icon: "📎", label: "Resource", color: "bg-parchment-dark text-ink-soft border-ink-faded/30" },
+  other: { icon: "📎", label: "Resource", color: "bg-bg-soft text-ink-soft border-rule" },
 };
 
 export default function MaterialDetailPage({
@@ -102,13 +102,13 @@ export default function MaterialDetailPage({
   }
 
   if (error && !item) {
-    return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
   if (!item) {
     return (
-      <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
         <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       </main>
     );
@@ -122,7 +122,7 @@ export default function MaterialDetailPage({
     : null;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-faded">
         <Link href="/study-materials" className="hover:text-ink">
@@ -142,13 +142,13 @@ export default function MaterialDetailPage({
               <span>{km.label}</span>
             </span>
             {item.premium && (
-              <span className="rounded-md border border-seal/40 bg-seal/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-seal">
+              <span className="rounded-lg border border-accent/30 bg-accent-pale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
                 Premium
               </span>
             )}
           </div>
 
-          <h1 className="mt-3 font-display text-3xl tracking-tight text-ink lg:text-4xl">
+          <h1 className="mt-3 font-serif text-3xl tracking-tight text-ink lg:text-4xl">
             {item.title}
           </h1>
 
@@ -180,7 +180,7 @@ export default function MaterialDetailPage({
           {item.fileS3Key && (
             <div className="mt-8">
               <h2 className="eyebrow mb-3">File information</h2>
-              <div className="card divide-y divide-ink-faded/20">
+              <div className="card divide-y divide-rule">
                 {item.fileMimeType && (
                   <div className="flex items-center justify-between p-3">
                     <span className="text-sm text-ink-soft">Format</span>
@@ -195,7 +195,7 @@ export default function MaterialDetailPage({
                 )}
                 <div className="flex items-center justify-between p-3">
                   <span className="text-sm text-ink-soft">Access</span>
-                  <span className={`text-sm font-medium ${item.premium ? "text-seal" : "text-green-700"}`}>
+                  <span className={`text-sm font-medium ${item.premium ? "text-red-600" : "text-green-700"}`}>
                     {item.premium ? "Premium only" : "Free"}
                   </span>
                 </div>
@@ -208,7 +208,7 @@ export default function MaterialDetailPage({
         <div className="space-y-4">
           {/* Download card */}
           <div className="card sticky top-24 space-y-4 p-5">
-            <div className="flex items-center gap-3 rounded-md bg-parchment-dark p-3">
+            <div className="flex items-center gap-3 rounded-lg bg-bg-soft p-3">
               <span className="text-3xl">{km.icon}</span>
               <div>
                 <div className="text-sm font-medium text-ink">{km.label}</div>
@@ -217,7 +217,7 @@ export default function MaterialDetailPage({
             </div>
 
             {item.premium && !premiumGate && (
-              <div className="flex items-center gap-2 rounded-md bg-seal/10 p-2.5 text-xs text-seal">
+              <div className="flex items-center gap-2 rounded-md bg-accent-pale p-2.5 text-xs text-accent">
                 <span>⭐</span>
                 <span>Premium content — subscription required to download</span>
               </div>
@@ -237,10 +237,10 @@ export default function MaterialDetailPage({
                     : "Download for free"}
             </button>
 
-            {error && <p className="text-sm text-seal">{error}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
             {premiumGate && (
-              <div className="rounded-md border border-seal/30 bg-seal/5 p-3 text-sm">
-                <p className="font-medium text-seal">Premium subscription required</p>
+              <div className="rounded-lg border border-accent/20 bg-accent/5 p-3 text-sm">
+                <p className="font-medium text-accent">Premium subscription required</p>
                 <p className="mt-1 text-xs text-ink-soft">
                   Subscribe to access exclusive study materials, get priority support, and more.
                 </p>
@@ -250,7 +250,7 @@ export default function MaterialDetailPage({
               </div>
             )}
 
-            <div className="border-t border-ink-faded/20 pt-3">
+            <div className="border-t border-rule-soft pt-3">
               <div className="flex items-center gap-2 text-xs text-ink-faded">
                 <span>✓</span>
                 <span>Peer-verified content</span>
@@ -269,7 +269,7 @@ export default function MaterialDetailPage({
               <button
                 onClick={deleteMaterial}
                 disabled={deleting}
-                className="w-full rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+                className="w-full rounded-lg border border-accent/20 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
               >
                 {deleting ? "Deleting..." : "Delete material"}
               </button>
@@ -282,7 +282,7 @@ export default function MaterialDetailPage({
             <div className="flex items-center gap-3">
               <Avatar userId={item.authorId} size="md" initial={author?.displayName?.charAt(0)} />
               <div>
-                <div className="font-display text-sm text-ink">
+                <div className="font-serif text-sm text-ink">
                   {author?.displayName || "EduBoost User"}
                 </div>
                 <div className="text-xs text-ink-faded">
@@ -311,12 +311,12 @@ export default function MaterialDetailPage({
                     <span className="text-sm">{mk.icon}</span>
                     <span className="text-[10px] uppercase tracking-widest text-ink-faded">{mk.label}</span>
                     {m.premium && (
-                      <span className="ml-auto rounded border border-seal/40 bg-seal/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-seal">
+                      <span className="ml-auto rounded border border-accent/30 bg-accent-pale px-1.5 py-0.5 text-[9px] font-semibold uppercase text-accent">
                         Premium
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-2 font-display text-sm text-ink">{m.title}</h3>
+                  <h3 className="mt-2 font-serif text-sm text-ink">{m.title}</h3>
                   <div className="mt-1 text-xs text-ink-faded">
                     {m.subject} · {new Date(m.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                   </div>

@@ -39,9 +39,9 @@ type Booking = {
 const STATUS_CONFIG: Record<Booking["status"], { label: string; color: string; icon: typeof CheckCircle2 }> = {
   pending: { label: "Pending", color: "text-amber-600 bg-amber-50 border-amber-200", icon: Clock },
   confirmed: { label: "Confirmed", color: "text-emerald-700 bg-emerald-50 border-emerald-200", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "text-red-600 bg-red-50 border-red-200", icon: XCircle },
-  refunded: { label: "Refunded", color: "text-ink-faded bg-parchment-dark border-ink-faded/30", icon: RefreshCw },
-  completed: { label: "Completed", color: "text-seal bg-seal/10 border-seal/30", icon: CheckCircle2 },
+  cancelled: { label: "Cancelled", color: "text-red-600 bg-red-50 border-accent/20", icon: XCircle },
+  refunded: { label: "Refunded", color: "text-ink-faded bg-bg-soft border-rule", icon: RefreshCw },
+  completed: { label: "Completed", color: "text-accent bg-accent-pale border-accent/20", icon: CheckCircle2 },
 };
 
 const TYPE_LABELS: Record<Booking["type"], string> = {
@@ -105,11 +105,11 @@ export default function BookingDetailPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
         <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
           <ArrowLeft size={16} /> Back to bookings
         </Link>
-        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-6 rounded-lg border border-accent/20 bg-red-50 p-4 text-sm text-red-700">
           <AlertCircle size={16} className="mb-1 inline" /> {error}
         </div>
       </main>
@@ -118,7 +118,7 @@ export default function BookingDetailPage() {
 
   if (!booking) {
     return (
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
         <div className="flex items-center gap-2 text-sm text-ink-soft">
           <Loader2 size={16} className="animate-spin" /> Loading booking...
         </div>
@@ -133,7 +133,7 @@ export default function BookingDetailPage() {
   const created = new Date(booking.createdAt);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
         <ArrowLeft size={16} /> Back to bookings
       </Link>
@@ -141,7 +141,7 @@ export default function BookingDetailPage() {
       <div className="mt-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-display text-2xl tracking-tight text-ink">{TYPE_LABELS[booking.type]}</h1>
+            <h1 className="font-serif text-2xl tracking-tight text-ink">{TYPE_LABELS[booking.type]}</h1>
             <p className="mt-1 text-sm text-ink-faded">Booking {booking.bookingId.slice(0, 8)}...</p>
           </div>
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${st.color}`}>
@@ -150,14 +150,14 @@ export default function BookingDetailPage() {
           </span>
         </div>
 
-        <div className="card mt-6 divide-y divide-ink-faded/20">
+        <div className="card mt-6 divide-y divide-rule">
           <div className="flex items-center gap-4 p-4">
             <Avatar userId={booking.teacherId} size="md" />
             <div>
               <div className="flex items-center gap-1.5 text-sm text-ink-faded">
                 <User size={14} /> Teacher
               </div>
-              <Link href={`/teachers/${booking.teacherId}` as never} className="text-sm font-medium text-ink underline hover:text-seal">
+              <Link href={`/teachers/${booking.teacherId}` as never} className="text-sm font-medium text-ink underline hover:text-accent">
                 View profile
               </Link>
             </div>
@@ -203,7 +203,7 @@ export default function BookingDetailPage() {
           {booking.classroomId && (
             <div className="p-4">
               <div className="text-xs text-ink-faded">Classroom</div>
-              <Link href={`/classrooms/${booking.classroomId}` as never} className="text-sm text-ink underline hover:text-seal">
+              <Link href={`/classrooms/${booking.classroomId}` as never} className="text-sm text-ink underline hover:text-accent">
                 {booking.classroomId.slice(0, 12)}...
               </Link>
             </div>
@@ -228,7 +228,7 @@ export default function BookingDetailPage() {
             <button
               onClick={cancelBooking}
               disabled={cancelling}
-              className="btn-ghost text-red-600 hover:bg-red-50"
+              className="btn-ghost text-red-600 hover:bg-accent/5"
             >
               {cancelling ? "Cancelling..." : "Cancel booking"}
             </button>

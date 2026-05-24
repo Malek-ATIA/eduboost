@@ -59,17 +59,27 @@ export default function AdminTicketsPage() {
     };
   }, [ready, queryString, overdueOnly]);
 
-  if (!ready) return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) {
+    return (
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+        <div className="flex justify-center py-12">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Support tickets</h1>
+          <div className="eyebrow">Admin</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+            Support tickets
+          </h1>
         </div>
         <Link href="/admin" className="btn-ghost">
-          ← Admin hub
+          ← Back to admin
         </Link>
       </div>
 
@@ -95,40 +105,54 @@ export default function AdminTicketsPage() {
             type="checkbox"
             checked={overdueOnly}
             onChange={(e) => setOverdueOnly(e.target.checked)}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           SLA-overdue only
         </label>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && <p className="mt-6 text-sm text-ink-soft">No tickets.</p>}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
-          {items.map((t) => (
-            <li key={t.ticketId}>
-              <Link
-                href={`/support/${t.ticketId}` as never}
-                className="flex items-center justify-between gap-3 p-4 transition hover:bg-parchment-shade"
+        <div className="card mt-6 overflow-hidden p-0">
+          {items.map((t, i) => (
+            <Link
+              key={t.ticketId}
+              href={`/support/${t.ticketId}` as never}
+              className="flex items-center gap-3.5 px-5 py-3.5 transition hover:bg-bg-soft"
+              style={i > 0 ? { borderTop: "1px solid var(--rule-soft)" } : undefined}
+            >
+              <span className="shrink-0 font-mono text-[11.5px] text-ink-faded">
+                #{t.ticketId.slice(0, 8)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13.5px] text-ink">{t.subject}</div>
+                {t.slaDeadline && new Date(t.slaDeadline) < new Date() && (
+                  <div className="text-xs font-medium text-red-600">SLA overdue</div>
+                )}
+              </div>
+              <span className="text-[12.5px] text-ink-soft">{t.userId.slice(0, 10)}…</span>
+              <span
+                className="chip text-xs"
+                style={{
+                  background:
+                    t.priority === "high"
+                      ? "#fae9e7"
+                      : t.priority === "medium"
+                        ? "#fff5d4"
+                        : "var(--bg-soft)",
+                  color: t.priority === "high" ? "#7a201a" : "var(--ink)",
+                }}
               >
-                <div>
-                  <div className="font-display text-base text-ink">{t.subject}</div>
-                  <div className="mt-0.5 text-xs text-ink-faded">
-                    <span className="font-mono">#{t.ticketId}</span> · {t.category.replace(/_/g, " ")} · priority {t.priority} · updated{" "}
-                    {new Date(t.updatedAt).toLocaleString()}
-                  </div>
-                  {t.slaDeadline && new Date(t.slaDeadline) < new Date() && (
-                    <div className="mt-0.5 text-xs font-medium text-seal">
-                      SLA overdue (deadline {new Date(t.slaDeadline).toLocaleString()})
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs uppercase tracking-widest text-ink-soft">{t.status.replace(/_/g, " ")}</span>
-              </Link>
-            </li>
+                {t.priority}
+              </span>
+              <span className="font-mono text-xs text-ink-faded">
+                {new Date(t.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </span>
+            </Link>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );

@@ -65,17 +65,17 @@ function NewRequestForm() {
     }
   }
 
-  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!teacher) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (!teacher) return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-md px-8 pb-24 pt-12">
       <Link href={`/teachers/${teacherId}` as never} className="btn-ghost -ml-3">
         ← Back to {teacher.user.displayName}
       </Link>
-      <p className="eyebrow mt-4">Lesson request</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Request a lesson</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+      <div className="eyebrow">Lesson request</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Request a lesson</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Send a note to {teacher.user.displayName}. They&apos;ll accept or decline before you book.
       </p>
 
@@ -125,7 +125,7 @@ function NewRequestForm() {
           />
         </label>
 
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
@@ -143,9 +143,9 @@ export default function NewRequestPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-md px-6 pb-24 pt-16">
-          <p className="eyebrow">Lesson request</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Request a lesson</h1>
+        <main className="mx-auto max-w-md px-8 pb-24 pt-12">
+          <div className="eyebrow">Lesson request</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Request a lesson</h1>
           <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }

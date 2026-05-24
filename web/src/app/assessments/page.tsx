@@ -43,11 +43,11 @@ export default function AssessmentsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Study</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Assessments</h1>
+          <div className="eyebrow">Study</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Assessments</h1>
         </div>
         {role === "teacher" && (
           <Link
@@ -59,25 +59,25 @@ export default function AssessmentsPage() {
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {role === "teacher" && (
         <section className="mt-8">
-          <h2 className="font-display text-xl text-ink">My exams</h2>
+          <h2 className="font-serif text-xl text-ink">My exams</h2>
           {mine === null ? (
             <p className="mt-3 text-sm text-ink-soft">Loading...</p>
           ) : mine.length === 0 ? (
             <p className="mt-3 text-sm text-ink-soft">No exams yet.</p>
           ) : (
-            <ul className="card mt-3 divide-y divide-ink-faded/30">
+            <ul className="card mt-3 divide-y divide-rule">
               {mine.map((e) => (
                 <li key={e.examId}>
                   <Link
                     href={`/assessments/${e.examId}/results` as never}
-                    className="flex items-center justify-between p-3 text-sm transition hover:bg-parchment-shade"
+                    className="flex items-center justify-between p-3 text-sm transition hover:bg-bg-soft"
                   >
                     <div>
-                      <div className="font-display text-base text-ink">{e.title}</div>
+                      <div className="font-serif text-base text-ink">{e.title}</div>
                       <div className="mt-0.5 text-xs text-ink-faded">
                         {e.questionCount} questions · status {e.status}
                       </div>
@@ -92,7 +92,7 @@ export default function AssessmentsPage() {
       )}
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Published exams</h2>
+        <h2 className="font-serif text-xl text-ink">Published exams</h2>
         {published === null && !error && (
           <p className="mt-3 text-sm text-ink-soft">Loading...</p>
         )}
@@ -100,15 +100,15 @@ export default function AssessmentsPage() {
           <p className="mt-3 text-sm text-ink-soft">No exams available.</p>
         )}
         {published && published.length > 0 && (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {published.map((e) => (
               <li key={e.examId}>
                 <Link
                   href={`/assessments/${e.examId}` as never}
-                  className="flex items-center justify-between p-3 text-sm transition hover:bg-parchment-shade"
+                  className="flex items-center justify-between p-3 text-sm transition hover:bg-bg-soft"
                 >
                   <div>
-                    <div className="font-display text-base text-ink">{e.title}</div>
+                    <div className="font-serif text-base text-ink">{e.title}</div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {e.questionCount} questions · by teacher{" "}
                       <span className="font-mono">{e.teacherId.slice(0, 8)}</span>

@@ -37,9 +37,9 @@ function BookSuccessInner() {
   const paid = paymentIntentStatus === "succeeded" || booking?.status === "confirmed";
 
   return (
-    <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-center">
-      <p className="eyebrow">Checkout</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+    <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-center">
+      <div className="eyebrow">Checkout</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         {paid ? "Booking confirmed" : "Processing..."}
       </h1>
       <p className="mt-2 text-ink-soft">
@@ -70,9 +70,9 @@ export default function BookSuccessPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-center">
-          <p className="eyebrow">Checkout</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+        <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-center">
+          <div className="eyebrow">Checkout</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             Processing...
           </h1>
         </main>

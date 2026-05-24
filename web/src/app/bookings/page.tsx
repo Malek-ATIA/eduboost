@@ -23,7 +23,7 @@ const STATUS_COLORS: Record<Booking["status"], string> = {
   confirmed: "text-ink",
   cancelled: "text-ink-faded",
   refunded: "text-ink-faded",
-  completed: "text-seal",
+  completed: "text-accent",
 };
 
 export default function BookingsPage() {
@@ -85,10 +85,10 @@ export default function BookingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Schedule</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My bookings</h1>
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Schedule</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My bookings</h1>
+      {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-4 text-sm text-ink-soft">
@@ -96,75 +96,79 @@ export default function BookingsPage() {
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((b) => {
             const canReview = b.status === "confirmed" || b.status === "completed";
             const canCancel = b.status === "pending" || b.status === "confirmed";
             return (
-              <li key={b.bookingId} className="flex items-center justify-between p-4">
-                <div>
-                  <div className="font-display text-base text-ink capitalize">{b.type} session</div>
-                  <div className="text-sm text-ink-soft">
-                    {new Date(b.createdAt).toLocaleString()} ·{" "}
-                    <Link className="underline" href={`/teachers/${b.teacherId}` as never}>
-                      teacher
-                    </Link>
+              <li key={b.bookingId} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-serif text-base text-ink capitalize">{b.type} session</div>
+                    <div className="text-sm text-ink-soft">
+                      {new Date(b.createdAt).toLocaleString()} ·{" "}
+                      <Link className="underline" href={`/teachers/${b.teacherId}` as never}>
+                        teacher
+                      </Link>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 text-right">
-                  <div>
-                    <div className="font-display text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
+                  <div className="text-right shrink-0">
+                    <div className="font-serif text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
                     <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>{b.status}</div>
                   </div>
-                  {canReview && (
-                    <>
-                      <Link
-                        href={`/reviews/new?bookingId=${b.bookingId}`}
-                        className="btn-secondary"
-                      >
-                        Review
-                      </Link>
-                      <Link
-                        href={`/quiz/${b.bookingId}` as never}
-                        className="btn-secondary"
-                      >
-                        Rate teacher
-                      </Link>
-                      <button
-                        onClick={async () => {
-                          const notes = await showPrompt({
-                            title: "Request review session",
-                            message: "Request a review session with the teacher. Add a note (optional).",
-                            inputLabel: "Note",
-                            inputPlaceholder: "Any details for the teacher...",
-                          });
-                          if (notes === null) return;
-                          try {
-                            await api(`/review-sessions`, {
-                              method: "POST",
-                              body: JSON.stringify({ bookingId: b.bookingId, notes: notes || undefined }),
-                            });
-                            toast("Review session requested.", "success");
-                          } catch (err) {
-                            toast((err as Error).message, "error");
-                          }
-                        }}
-                        className="btn-secondary"
-                      >
-                        Review session
-                      </button>
-                    </>
-                  )}
-                  {canCancel && (
-                    <button
-                      onClick={() => cancelBooking(b.bookingId)}
-                      disabled={cancellingId === b.bookingId}
-                      className="btn-secondary text-seal"
-                    >
-                      {cancellingId === b.bookingId ? "..." : "Cancel"}
-                    </button>
-                  )}
                 </div>
+                {(canReview || canCancel) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {canReview && (
+                      <>
+                        <Link
+                          href={`/reviews/new?bookingId=${b.bookingId}`}
+                          className="btn-secondary text-xs"
+                        >
+                          Review
+                        </Link>
+                        <Link
+                          href={`/quiz/${b.bookingId}` as never}
+                          className="btn-secondary text-xs"
+                        >
+                          Rate teacher
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            const notes = await showPrompt({
+                              title: "Request review session",
+                              message: "Request a review session with the teacher. Add a note (optional).",
+                              inputLabel: "Note",
+                              inputPlaceholder: "Any details for the teacher...",
+                            });
+                            if (notes === null) return;
+                            try {
+                              await api(`/review-sessions`, {
+                                method: "POST",
+                                body: JSON.stringify({ bookingId: b.bookingId, notes: notes || undefined }),
+                              });
+                              toast("Review session requested.", "success");
+                            } catch (err) {
+                              toast((err as Error).message, "error");
+                            }
+                          }}
+                          className="btn-secondary text-xs"
+                        >
+                          Review session
+                        </button>
+                      </>
+                    )}
+                    {canCancel && (
+                      <button
+                        onClick={() => cancelBooking(b.bookingId)}
+                        disabled={cancellingId === b.bookingId}
+                        className="btn-secondary text-xs text-accent"
+                      >
+                        {cancellingId === b.bookingId ? "..." : "Cancel"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}

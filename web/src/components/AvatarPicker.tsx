@@ -79,7 +79,7 @@ export function AvatarPicker({ userId, onChange }: Props) {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-ink-faded/40 bg-parchment-dark">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-rule bg-bg-soft">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -88,7 +88,7 @@ export function AvatarPicker({ userId, onChange }: Props) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center font-display text-2xl text-ink-faded">
+          <div className="flex h-full w-full items-center justify-center font-serif text-2xl text-ink-faded">
             ?
           </div>
         )}
@@ -100,12 +100,12 @@ export function AvatarPicker({ userId, onChange }: Props) {
           accept={ALLOWED.join(",")}
           onChange={onFile}
           disabled={uploading}
-          className="block text-sm text-ink-soft file:mr-3 file:rounded-md file:border file:border-ink-faded/40 file:bg-white/70 file:px-3 file:py-1.5 file:text-sm file:text-ink hover:file:bg-parchment-dark"
+          className="block text-sm text-ink-soft file:mr-3 file:rounded-md file:border file:border-rule file:bg-bg-card file:px-3 file:py-1.5 file:text-sm file:text-ink hover:file:bg-bg-soft"
         />
         <p className="mt-1 text-xs text-ink-faded">
           {uploading ? "Uploading…" : "JPEG, PNG, or WEBP. Under 5 MB. Optional."}
         </p>
-        {error && <p className="mt-1 text-xs text-seal">{error}</p>}
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       </div>
     </div>
   );

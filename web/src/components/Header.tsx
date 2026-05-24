@@ -12,13 +12,21 @@ import {
   ShoppingBag,
   Menu,
   X,
+  User,
+  Package,
+  Settings,
+  Gift,
+  LogOut,
+  BookOpen,
 } from "lucide-react";
+import { linksForRole } from "./SideNav";
 
 const NAV_ALL = [
   { href: "/teachers", label: "Find a teacher", hideFor: ["teacher"] as string[], icon: Search },
-  { href: "/classrooms", label: "Classrooms", hideFor: ["teacher"] as string[], icon: Monitor },
+  { href: "/classrooms", label: "Classroom", hideFor: ["teacher"] as string[], icon: Monitor },
   { href: "/forum", label: "Community", hideFor: [] as string[], icon: Users },
   { href: "/marketplace", label: "Marketplace", hideFor: [] as string[], icon: ShoppingBag },
+  { href: "/faq", label: "Blog", hideFor: [] as string[], icon: BookOpen },
 ];
 
 export function Header() {
@@ -54,39 +62,43 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-faded/25 bg-parchment/85 backdrop-blur supports-[backdrop-filter]:bg-parchment/70">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 md:px-6">
-        <Link href="/" className="flex items-center gap-2 hover:no-underline">
+    <header className="sticky top-0 z-40 border-b border-rule-soft bg-white/92 backdrop-blur-[10px]">
+      <div className="mx-auto flex h-16 max-w-container-wide items-center gap-7 px-8">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2.5 hover:no-underline">
           <span
             aria-hidden
-            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-seal/40 bg-seal/10 text-lg font-bold text-seal"
+            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink font-serif text-lg font-medium italic text-white"
           >
             E
           </span>
-          <span className="text-xl font-bold tracking-tight text-ink">
+          <span className="font-serif text-[22px] font-medium tracking-tight text-ink">
             EduBoost
           </span>
         </Link>
 
-        <nav className="ml-6 hidden items-center gap-1 md:flex">
+        {/* Nav links */}
+        <nav className="ml-4 hidden items-center gap-5 md:flex">
           {NAV_ALL.filter((l) => !role || !l.hideFor.includes(role)).map((l) => {
             const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
-            const Icon = l.icon;
             return (
               <Link
                 key={l.href}
                 href={l.href as never}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition hover:bg-parchment-dark ${
-                  active ? "text-ink font-medium" : "text-ink-soft"
+                className={`relative whitespace-nowrap px-0 py-2 text-sm transition ${
+                  active ? "text-ink font-medium" : "text-ink-soft hover:text-ink"
                 }`}
               >
-                <Icon size={16} />
                 {l.label}
+                {active && (
+                  <span className="absolute inset-x-0 -bottom-[14px] h-0.5 bg-accent" />
+                )}
               </Link>
             );
           })}
         </nav>
 
+        {/* Right actions */}
         <div className="ml-auto flex items-center gap-2">
           {signedIn === null ? null : signedIn ? (
             <>
@@ -102,12 +114,9 @@ export function Header() {
           ) : (
             <>
               <Link
-                href="/signup?role=teacher"
-                className="hidden text-sm text-ink-soft transition hover:text-ink lg:inline-flex"
+                href="/login"
+                className="btn-ghost hidden text-sm sm:inline-flex"
               >
-                Become a teacher
-              </Link>
-              <Link href="/login" className="btn-ghost hidden sm:inline-flex">
                 Log in
               </Link>
               <Link href="/signup" className="btn-seal">
@@ -120,52 +129,90 @@ export function Header() {
             aria-label="Open menu"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink-faded/40 text-ink-soft transition hover:bg-parchment-dark md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-rule text-ink-soft transition hover:bg-bg-soft md:hidden"
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile menu */}
       {mobileOpen && (
-        <nav className="border-t border-ink-faded/20 bg-parchment/95 md:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col px-4 py-3 md:px-6">
+        <nav className="border-t border-rule-soft bg-white/95 md:hidden">
+          <div className="mx-auto flex max-w-container-wide flex-col px-8 py-3 max-h-[calc(100vh-60px)] overflow-y-auto">
+            <div className="eyebrow px-2 pb-1">Navigate</div>
             {NAV_ALL.filter((l) => !role || !l.hideFor.includes(role)).map((l) => {
+              const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
               const Icon = l.icon;
               return (
                 <Link
                   key={l.href}
                   href={l.href as never}
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-parchment-dark"
+                  className={`inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm transition ${
+                    active ? "bg-bg-soft font-medium text-ink" : "text-ink-soft"
+                  }`}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} className={active ? "text-accent" : ""} />
                   {l.label}
                 </Link>
               );
             })}
+
+            {signedIn && role && (
+              <>
+                <div className="my-2 border-t border-rule" />
+                <div className="eyebrow px-2 pb-1">
+                  {role === "student" ? "My space" : role === "teacher" ? "Teacher tools" : role === "parent" ? "Family" : "Dashboard"}
+                </div>
+                {linksForRole(role, admin).map((l) => {
+                  const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+                  const Icon = l.icon;
+                  return (
+                    <Link
+                      key={l.href}
+                      href={l.href as never}
+                      onClick={() => setMobileOpen(false)}
+                      className={`inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm transition ${
+                        active ? "bg-bg-soft font-medium text-ink" : "text-ink-soft"
+                      }`}
+                    >
+                      <Icon size={16} className={active ? "text-accent" : ""} />
+                      {l.label}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
+
             {signedIn && (
               <>
-                <div className="my-1 border-t border-ink-faded/20" />
+                <div className="my-2 border-t border-rule" />
+                <div className="eyebrow px-2 pb-1">Account</div>
                 {[
-                  { href: "/profile", label: "Profile" },
-                  { href: "/orders", label: "My orders" },
-                  { href: "/settings/sms", label: "Settings" },
-                  { href: "/referrals", label: "Invite a friend" },
-                ].map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href as never}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-md px-2 py-2 text-sm text-ink-soft hover:bg-parchment-dark"
-                  >
-                    {l.label}
-                  </Link>
-                ))}
+                  { href: "/profile", label: "Profile", icon: User },
+                  { href: "/orders", label: "My orders", icon: Package },
+                  { href: "/settings/sms", label: "Settings", icon: Settings },
+                  { href: "/referrals", label: "Invite a friend", icon: Gift },
+                ].map((l) => {
+                  const Icon = l.icon;
+                  return (
+                    <Link
+                      key={l.href}
+                      href={l.href as never}
+                      onClick={() => setMobileOpen(false)}
+                      className="inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm text-ink-soft"
+                    >
+                      <Icon size={16} />
+                      {l.label}
+                    </Link>
+                  );
+                })}
                 <button
                   onClick={() => { setMobileOpen(false); onSignOut(); }}
-                  className="rounded-md px-2 py-2 text-left text-sm text-ink-soft hover:bg-parchment-dark"
+                  className="inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-left text-sm text-ink-soft"
                 >
+                  <LogOut size={16} />
                   Log out
                 </button>
               </>

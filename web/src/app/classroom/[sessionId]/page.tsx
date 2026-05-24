@@ -232,7 +232,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white/80" />
-          <p className="mt-6 font-display text-xl text-white/90">Joining session...</p>
+          <p className="mt-6 font-serif text-xl text-white/90">Joining session...</p>
           <p className="mt-2 text-sm text-white/50">Connecting to classroom</p>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
             <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
-          <h2 className="mt-4 font-display text-xl text-white">Unable to join</h2>
+          <h2 className="mt-4 font-serif text-xl text-white">Unable to join</h2>
           <p className="mt-2 max-w-sm text-sm text-white/60">{error}</p>
           <Link href="/classrooms" className="mt-6 inline-block rounded-lg bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/20">
             Back to classrooms
@@ -259,29 +259,29 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#1a1a2e] text-white">
       {/* ── Top bar ─────────────────────────────────────────────── */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-5">
-        <div className="flex items-center gap-3">
-          <Link href="/classrooms" className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
+      <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-3 sm:h-14 sm:px-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/classrooms" className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            EduBoost
+            <span className="hidden sm:inline">EduBoost</span>
           </Link>
-          <div className="h-5 w-px bg-white/20" />
-          <span className="text-sm font-medium text-white/90">Live Session</span>
+          <div className="hidden h-5 w-px bg-white/20 sm:block" />
+          <span className="hidden text-sm font-medium text-white/90 sm:inline">Live Session</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {recording && (
-            <div className="flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1">
+            <div className="flex items-center gap-1.5 rounded-full bg-red-500/20 px-2 py-1 sm:gap-2 sm:px-3">
               <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="text-xs font-medium text-red-400">REC</span>
+              <span className="text-[10px] font-medium text-red-400 sm:text-xs">REC</span>
             </div>
           )}
-          <div className="rounded-lg bg-white/10 px-3 py-1 font-mono text-sm text-white/70">
+          <div className="rounded-lg bg-white/10 px-2 py-1 font-mono text-xs text-white/70 sm:px-3 sm:text-sm">
             {mins}:{secs}
           </div>
           {participantCount > 0 && (
-            <div className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1 text-sm text-white/70">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className="flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-xs text-white/70 sm:gap-1.5 sm:px-3 sm:text-sm">
+              <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               {participantCount}
             </div>
           )}
@@ -291,15 +291,15 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       {/* ── Main content ────────────────────────────────────────── */}
       <div className="relative flex flex-1 overflow-hidden">
         {/* Video area */}
-        <div className={`flex flex-1 flex-col items-center justify-center p-4 transition-all duration-300 ${activePanel ? "mr-[380px]" : ""}`}>
-          <div className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-[#0f0f23] shadow-2xl shadow-black/50">
+        <div className={`flex flex-1 flex-col items-center justify-center p-2 transition-all duration-300 sm:p-4 ${activePanel ? "hidden sm:flex sm:mr-[380px]" : ""}`}>
+          <div className="relative w-full max-w-5xl overflow-hidden rounded-xl bg-[#0f0f23] shadow-2xl shadow-black/50 sm:rounded-2xl">
             <div className="aspect-video">
               <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
             </div>
             {status === "joined" && (
-              <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+              <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-sm sm:bottom-4 sm:left-4 sm:gap-2 sm:px-3 sm:py-1.5">
                 <div className="h-2 w-2 rounded-full bg-emerald-400" />
-                <span className="text-xs font-medium text-white/90">You</span>
+                <span className="text-[10px] font-medium text-white/90 sm:text-xs">You</span>
               </div>
             )}
           </div>
@@ -307,7 +307,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
 
         {/* ── Slide-out panel ──────────────────────────────────── */}
         {activePanel && (
-          <div className="absolute inset-y-0 right-0 flex w-[380px] flex-col border-l border-white/10 bg-[#16162a]">
+          <div className="absolute inset-0 flex flex-col border-l border-white/10 bg-[#16162a] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[380px]">
             {/* Panel header */}
             <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
               <h3 className="text-sm font-semibold capitalize text-white/90">
@@ -476,7 +476,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
                                 </Link>
                               )}
                               {isTeacher && (
-                                <button onClick={() => endBreakout(b.breakoutId)} className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/30">
+                                <button onClick={() => endBreakout(b.breakoutId)} className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-accent/50/30">
                                   End
                                 </button>
                               )}
@@ -494,7 +494,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
       </div>
 
       {/* ── Bottom toolbar ──────────────────────────────────────── */}
-      <div className="flex h-20 shrink-0 items-center justify-center gap-3 border-t border-white/10 bg-[#12122a] px-6">
+      <div className="flex h-16 shrink-0 items-center justify-center gap-1.5 border-t border-white/10 bg-[#12122a] px-2 sm:h-20 sm:gap-3 sm:px-6">
         {/* Mic toggle */}
         <ToolbarButton
           active={micOn}
@@ -519,7 +519,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           danger={!camOn}
         />
 
-        <div className="mx-1 h-8 w-px bg-white/15" />
+        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
 
         {/* Whiteboard */}
         {classroomId && (
@@ -541,7 +541,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           />
         )}
 
-        <div className="mx-1 h-8 w-px bg-white/15" />
+        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
 
         {/* Chat */}
         <ToolbarButton
@@ -569,20 +569,22 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
           icon={<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />}
         />
 
-        {/* Breakout rooms */}
-        <ToolbarButton
-          active={activePanel === "breakouts"}
-          onClick={() => togglePanel("breakouts")}
-          label="Breakouts"
-          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />}
-        />
+        {/* Breakout rooms — hide on very small screens */}
+        <span className="hidden sm:inline-flex">
+          <ToolbarButton
+            active={activePanel === "breakouts"}
+            onClick={() => togglePanel("breakouts")}
+            label="Breakouts"
+            icon={<path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />}
+          />
+        </span>
 
-        <div className="mx-1 h-8 w-px bg-white/15" />
+        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
 
         {/* Leave */}
         <button
           onClick={() => { sessionRef.current?.audioVideo.stop(); window.location.href = "/classrooms"; }}
-          className="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/25 transition hover:bg-red-600"
+          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-red-500/25 transition hover:bg-red-600 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm"
         >
           Leave
         </button>
@@ -612,16 +614,16 @@ function ToolbarButton({
     <div className="group relative flex flex-col items-center">
       <button
         onClick={onClick}
-        className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition sm:h-11 sm:w-11 sm:rounded-xl ${
           danger
-            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+            ? "bg-red-500/20 text-red-400 hover:bg-accent/50/30"
             : active
               ? "bg-indigo-500/20 text-indigo-400"
               : "bg-white/10 text-white/70 hover:bg-white/15 hover:text-white"
         }`}
         aria-label={label}
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
           {icon}
         </svg>
         {badge !== undefined && badge > 0 && (
@@ -630,7 +632,7 @@ function ToolbarButton({
           </span>
         )}
       </button>
-      <span className="mt-1 text-[10px] text-white/40 opacity-0 transition group-hover:opacity-100">{label}</span>
+      <span className="mt-1 hidden text-[10px] text-white/40 opacity-0 transition group-hover:opacity-100 sm:block">{label}</span>
     </div>
   );
 }

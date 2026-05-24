@@ -214,9 +214,9 @@ export default function ClassroomInfoPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const isTeacher = sub !== null && sub === data.teacherId;
 
@@ -227,12 +227,12 @@ export default function ClassroomInfoPage({
   ) ?? [];
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="eyebrow">Classroom</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{data.title}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Classroom</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{data.title}</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             {data.subject} · status {data.status} ·{" "}
             <span className="font-mono text-xs">{data.classroomId}</span>
           </p>
@@ -251,7 +251,7 @@ export default function ClassroomInfoPage({
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-xl text-ink">Classroom features</h2>
+        <h2 className="font-serif text-xl text-ink">Classroom features</h2>
         <p className="mt-1 text-xs text-ink-faded">
           Everything this course supports — chat, whiteboard, breakouts, notes, and recordings.
         </p>
@@ -310,7 +310,7 @@ export default function ClassroomInfoPage({
       {isTeacher && (
         <section className="card mt-8 flex items-center justify-between p-4">
           <div>
-            <div className="font-display text-base text-ink">Group chat</div>
+            <div className="font-serif text-base text-ink">Group chat</div>
             <div className="text-xs text-ink-faded">
               {chatOn
                 ? "Members can post messages. You can delete any message."
@@ -329,7 +329,7 @@ export default function ClassroomInfoPage({
 
       <section className="mt-10">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl text-ink">Members</h2>
+          <h2 className="font-serif text-xl text-ink">Members</h2>
           {typeof data.maxStudents === "number" && members && (
             <span className="text-xs text-ink-faded">
               {members.filter((m) => m.role === "student").length} / {data.maxStudents} students
@@ -342,14 +342,14 @@ export default function ClassroomInfoPage({
           <p className="mt-3 text-sm text-ink-soft">No members yet.</p>
         )}
         {members && members.length > 0 && (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {members.map((m) => (
               <li
                 key={m.userId}
                 className="flex items-center justify-between gap-3 p-3 text-sm"
               >
                 <div>
-                  <div className="font-display text-base text-ink">
+                  <div className="font-serif text-base text-ink">
                     {m.displayName ?? m.email ?? m.userId}
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -361,7 +361,7 @@ export default function ClassroomInfoPage({
                 {isTeacher && m.role !== "teacher" && (
                   <button
                     onClick={() => removeMember(m.userId)}
-                    className="btn-ghost text-seal"
+                    className="btn-ghost text-red-600"
                   >
                     Remove
                   </button>
@@ -369,7 +369,7 @@ export default function ClassroomInfoPage({
                 {!isTeacher && m.userId === sub && m.role !== "teacher" && (
                   <button
                     onClick={() => removeMember(m.userId)}
-                    className="btn-ghost text-seal"
+                    className="btn-ghost text-red-600"
                   >
                     Leave
                   </button>
@@ -411,16 +411,16 @@ export default function ClassroomInfoPage({
             </button>
           </form>
         )}
-        {memberError && <p className="mt-2 text-sm text-seal">{memberError}</p>}
+        {memberError && <p className="mt-2 text-sm text-red-600">{memberError}</p>}
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Resources</h2>
+        <h2 className="font-serif text-xl text-ink">Resources</h2>
         <p className="mt-1 text-xs text-ink-faded">
           Links to external materials the teacher has shared for this classroom.
         </p>
 
-        {error && <p className="mt-2 text-sm text-seal">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
         {!isTeacher && resources.length === 0 && (
           <p className="mt-4 text-sm text-ink-soft">No resources shared yet.</p>
@@ -438,7 +438,7 @@ export default function ClassroomInfoPage({
                 >
                   {r.label}
                 </a>
-                <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs text-ink-soft">
+                <span className="rounded-md border border-rule bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">
                   {KIND_LABELS[r.kind]}
                 </span>
               </li>
@@ -475,7 +475,7 @@ export default function ClassroomInfoPage({
                 </select>
                 <button
                   onClick={() => removeRow(i)}
-                  className="btn-ghost text-seal"
+                  className="btn-ghost text-red-600"
                 >
                   Remove
                 </button>
@@ -502,7 +502,7 @@ export default function ClassroomInfoPage({
       </section>
 
       <section id="recordings" className="mt-10">
-        <h2 className="font-display text-xl text-ink">Sessions & recordings</h2>
+        <h2 className="font-serif text-xl text-ink">Sessions & recordings</h2>
         {sessions === null && (
           <p className="mt-3 text-sm text-ink-soft">Loading sessions…</p>
         )}
@@ -523,14 +523,14 @@ export default function ClassroomInfoPage({
           </p>
         )}
         {sessions && sessions.length > 0 && (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {sessions.map((s) => (
               <li
                 key={s.sessionId}
                 className="flex items-center justify-between gap-3 p-3 text-sm"
               >
                 <div>
-                  <div className="font-display text-sm text-ink">
+                  <div className="font-serif text-sm text-ink">
                     {new Date(s.startsAt).toLocaleString()}
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -593,7 +593,7 @@ function FeatureTile({
       href={href}
       className={`card-interactive group block p-4 ${muted ? "opacity-60" : ""}`}
     >
-      <div className="font-display text-base text-ink group-hover:text-seal">{label}</div>
+      <div className="font-serif text-base text-ink group-hover:text-accent">{label}</div>
       <div className="mt-1 text-xs leading-relaxed text-ink-soft">{description}</div>
     </Link>
   );

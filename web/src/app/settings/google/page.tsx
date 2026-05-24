@@ -77,38 +77,40 @@ function GoogleSettingsInner() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Settings</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Google Calendar</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Settings</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+        Google Calendar
+      </h1>
+      <p className="mt-3 text-base text-ink-soft">
         Connect your Google account so scheduled EduBoost sessions automatically
         appear in your calendar.
       </p>
 
       {status === "connected" && (
-        <div className="mt-4 rounded-md border border-seal/30 bg-seal/10 p-3 text-sm text-ink">
+        <div className="mt-4 rounded-lg border border-accent/20 bg-accent-pale p-3 text-sm text-ink">
           Google connected.
         </div>
       )}
       {status === "denied" && (
-        <div className="mt-4 rounded-md border border-ink-faded/40 bg-parchment-shade p-3 text-sm text-ink">
+        <div className="mt-4 rounded-lg border border-rule bg-bg-soft p-3 text-sm text-ink">
           Google declined the request{reason ? ` (${reason})` : ""}.
         </div>
       )}
       {status === "error" && (
-        <div className="mt-4 rounded-md border border-seal/30 bg-seal/10 p-3 text-sm text-seal">
+        <div className="mt-4 rounded-lg border border-accent/20 bg-accent-pale p-3 text-sm text-accent">
           Something went wrong{reason ? ` (${reason})` : ""}. Try again.
         </div>
       )}
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {info === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
       {info && (
         <section className="card mt-6 p-4">
           {info.connected ? (
             <>
-              <div className="font-display text-base text-ink">Connected</div>
+              <div className="font-serif text-base text-ink">Connected</div>
               <div className="mt-1 text-xs text-ink-faded">
                 {info.googleEmail ?? "(unknown email)"} · calendar {info.calendarId} ·
                 since {new Date(info.connectedAt).toLocaleDateString()}
@@ -123,7 +125,7 @@ function GoogleSettingsInner() {
             </>
           ) : (
             <>
-              <div className="font-display text-base text-ink">Not connected</div>
+              <div className="font-serif text-base text-ink">Not connected</div>
               <p className="mt-1 text-xs text-ink-faded">
                 We ask for permission to create and update events on your primary Google
                 Calendar — nothing else.
@@ -147,10 +149,12 @@ export default function GoogleSettingsPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-          <p className="eyebrow">Settings</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Google Calendar</h1>
-          <p className="mt-4 text-sm text-ink-soft">Loading...</p>
+        <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+          <div className="eyebrow">Settings</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Google Calendar</h1>
+          <div className="mt-6 flex justify-center py-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
+          </div>
         </main>
       }
     >

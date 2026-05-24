@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<
     icon: XCircle,
     label: "Declined",
     color: "text-red-600",
-    bg: "bg-red-50 border-red-200",
+    bg: "bg-red-50 border-accent/20",
   },
 };
 
@@ -95,18 +95,18 @@ export default function StudentParentsPage() {
   const rejected = (items ?? []).filter((l) => l.status === "rejected");
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Family</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Family</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         My parents / guardians
       </h1>
-      <p className="mt-1 text-sm text-ink-soft">
+      <p className="mt-3 text-sm text-ink-soft">
         Parents and guardians who have linked their account to yours. Linked parents can view your
         learning progress, session history, and grades.
       </p>
 
       {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded-lg border border-accent/20 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -114,7 +114,7 @@ export default function StudentParentsPage() {
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -143,7 +143,7 @@ export default function StudentParentsPage() {
                         initial={parentName.charAt(0)}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="font-display text-base text-ink">{parentName}</div>
+                        <div className="font-serif text-base text-ink">{parentName}</div>
                         <div className="mt-0.5 text-xs text-ink-faded">
                           {link.parent?.email ?? link.parentId} · wants to link as your{" "}
                           <span className="capitalize font-medium text-ink-soft">
@@ -160,7 +160,7 @@ export default function StudentParentsPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-3 rounded-md bg-parchment-dark/50 p-3">
+                    <div className="mt-3 flex items-center gap-3 rounded-lg bg-bg-soft p-3">
                       <ShieldCheck size={16} className="shrink-0 text-ink-faded" />
                       <p className="text-xs text-ink-soft">
                         Accepting will let this person view your session history, grades, and
@@ -180,7 +180,7 @@ export default function StudentParentsPage() {
                       <button
                         onClick={() => respond(link.parentId, "reject", parentName)}
                         disabled={busyId === link.parentId}
-                        className="rounded-md border border-ink-faded/30 px-4 py-2 text-sm font-medium text-ink-soft transition hover:border-red-200 hover:text-red-600"
+                        className="rounded-lg border border-rule px-4 py-2 text-sm font-medium text-ink-soft transition hover:border-accent/20 hover:text-accent"
                       >
                         Decline
                       </button>
@@ -212,7 +212,7 @@ export default function StudentParentsPage() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-display text-base text-ink">
+                        <span className="truncate font-serif text-base text-ink">
                           {parentName}
                         </span>
                         <span
@@ -258,7 +258,7 @@ export default function StudentParentsPage() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-display text-base text-ink">
+                        <span className="truncate font-serif text-base text-ink">
                           {parentName}
                         </span>
                         <span
@@ -283,11 +283,11 @@ export default function StudentParentsPage() {
       {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-12 card p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <Users size={28} className="text-ink-faded" />
           </div>
-          <p className="mt-4 font-display text-lg text-ink">No parent links yet</p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-4 font-serif text-lg text-ink">No parent links yet</p>
+          <p className="mt-3 text-sm text-ink-soft">
             When a parent or guardian sends you a link request, it will appear here for you to
             accept or decline.
           </p>

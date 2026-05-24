@@ -90,15 +90,15 @@ export default function GradesPage() {
   const lowestScore = filtered.length > 0 ? Math.min(...filtered.map(scorePercent)) : 0;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="eyebrow">Grades</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+          <div className="eyebrow">Grades</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             {isTeacher ? "Grades you've given" : "My grades"}
           </h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "AI-assisted grading results for your students"
               : "Track your progress across subjects"}
@@ -111,12 +111,12 @@ export default function GradesPage() {
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -124,19 +124,19 @@ export default function GradesPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{filtered.length}</div>
+            <div className="font-serif text-2xl text-ink">{filtered.length}</div>
             <div className="text-xs text-ink-faded">Total grades</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-display text-2xl ${scoreColor(avgScore)}`}>{avgScore}%</div>
+            <div className={`font-serif text-2xl ${scoreColor(avgScore)}`}>{avgScore}%</div>
             <div className="text-xs text-ink-faded">Average</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-display text-2xl ${scoreColor(highestScore)}`}>{highestScore}%</div>
+            <div className={`font-serif text-2xl ${scoreColor(highestScore)}`}>{highestScore}%</div>
             <div className="text-xs text-ink-faded">Highest</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-display text-2xl ${scoreColor(lowestScore)}`}>{lowestScore}%</div>
+            <div className={`font-serif text-2xl ${scoreColor(lowestScore)}`}>{lowestScore}%</div>
             <div className="text-xs text-ink-faded">Lowest</div>
           </div>
         </div>
@@ -159,14 +159,14 @@ export default function GradesPage() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-ink-faded/30 p-0.5">
+          <div className="flex items-center gap-1 rounded-md border border-rule p-0.5">
             {(["date", "score", "subject"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setSortBy(s)}
                 className={`rounded px-3 py-1 text-xs font-medium capitalize transition ${
                   sortBy === s
-                    ? "bg-parchment-dark text-ink"
+                    ? "bg-bg-soft text-ink"
                     : "text-ink-faded hover:text-ink"
                 }`}
               >
@@ -180,11 +180,11 @@ export default function GradesPage() {
       {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📊</span>
           </div>
-          <p className="mt-4 font-display text-lg text-ink">No grades yet</p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-4 font-serif text-lg text-ink">No grades yet</p>
+          <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "Use the AI grader to evaluate student work."
               : "Your grades will appear here after your teacher evaluates your work."}
@@ -207,7 +207,7 @@ export default function GradesPage() {
               <li key={g.gradeId} className="card overflow-hidden">
                 <button
                   onClick={() => setExpandedId(expanded ? null : g.gradeId)}
-                  className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-parchment-dark"
+                  className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-bg-soft"
                 >
                   {/* Score circle */}
                   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
@@ -233,13 +233,13 @@ export default function GradesPage() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-base text-ink">{g.subject}</span>
+                      <span className="font-serif text-base text-ink">{g.subject}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         pct >= 80
                           ? "bg-green-50 text-green-700"
                           : pct >= 60
                             ? "bg-amber-50 text-amber-600"
-                            : "bg-red-50 text-red-600"
+                            : "bg-accent/10 text-accent"
                       }`}>
                         {scoreLabel(pct)}
                       </span>
@@ -271,7 +271,7 @@ export default function GradesPage() {
 
                 {/* Expanded feedback */}
                 {expanded && (
-                  <div className="border-t border-ink-faded/20 bg-parchment-dark p-4">
+                  <div className="border-t border-rule-soft bg-bg-soft p-4">
                     <h4 className="eyebrow mb-2">AI Feedback</h4>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">
                       {g.feedback}

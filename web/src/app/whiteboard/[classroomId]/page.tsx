@@ -201,13 +201,13 @@ export default function WhiteboardPage({
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 pb-24 pt-16">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-5xl px-8 pb-24 pt-12">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="eyebrow">Board</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">Whiteboard</h1>
-          <p className="mt-1 text-xs text-ink-faded">
-            Classroom <span className="font-mono">{classroomId}</span> · changes
+          <div className="eyebrow">Board</div>
+          <h1 className="mt-1 font-serif text-3xl text-ink">Whiteboard</h1>
+          <p className="mt-1 text-xs text-ink-faded truncate">
+            Classroom <span className="font-mono">{classroomId.slice(0, 12)}…</span> · changes
             sync every {POLL_MS / 1000}s.
           </p>
         </div>
@@ -215,13 +215,13 @@ export default function WhiteboardPage({
           onClick={clearBoard}
           disabled={clearing || !isTeacher}
           title={!isTeacher ? "Only the classroom teacher can clear the board" : undefined}
-          className="btn-secondary text-seal"
+          className="btn-secondary text-red-600 shrink-0 self-start"
         >
-          {clearing ? "Clearing..." : "Clear board (teacher)"}
+          {clearing ? "Clearing..." : "Clear board"}
         </button>
       </div>
 
-      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <div className="card mt-4 flex flex-wrap items-center gap-3 px-3 py-2">
         <div className="flex items-center gap-1">
@@ -231,7 +231,7 @@ export default function WhiteboardPage({
               key={c}
               onClick={() => setColor(c)}
               className={`h-6 w-6 rounded border-2 ${
-                c === color ? "border-seal" : "border-transparent"
+                c === color ? "border-accent" : "border-transparent"
               }`}
               style={{ backgroundColor: c }}
               aria-label={`color ${c}`}
@@ -246,7 +246,7 @@ export default function WhiteboardPage({
             max={40}
             value={width}
             onChange={(e) => setWidth(Number(e.target.value))}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           <span className="w-6 text-xs text-ink">{width}</span>
         </div>

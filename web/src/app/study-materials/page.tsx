@@ -34,11 +34,11 @@ export default function StudyMaterialsPage() {
   }, [kind, subject]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Library</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Study materials portal</h1>
+          <div className="eyebrow">Library</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Study materials portal</h1>
         </div>
         <Link
           href="/study-materials/new"
@@ -47,7 +47,7 @@ export default function StudyMaterialsPage() {
           Share material
         </Link>
       </div>
-      <p className="mt-1 text-sm text-ink-soft">
+      <p className="mt-3 text-sm text-ink-soft">
         Free peer-shared exams, notes, and answer keys.
       </p>
 
@@ -78,25 +78,25 @@ export default function StudyMaterialsPage() {
         </label>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No matching materials.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((m) => (
             <li key={m.materialId}>
               <Link
                 href={`/study-materials/${m.materialId}` as never}
-                className="block p-4 transition hover:bg-parchment-shade"
+                className="block p-4 transition hover:bg-bg-soft"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-base text-ink">{m.title}</span>
+                      <span className="font-serif text-base text-ink">{m.title}</span>
                       {m.premium && (
-                        <span className="rounded-sm border border-seal/40 bg-seal/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-seal">
+                        <span className="rounded-md border border-accent/30 bg-accent-pale px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent">
                           Premium
                         </span>
                       )}
@@ -105,7 +105,7 @@ export default function StudyMaterialsPage() {
                       {m.kind} · {m.subject} · {new Date(m.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
+                  <span className="rounded-md border border-rule bg-bg-soft px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
                     {m.kind}
                   </span>
                 </div>

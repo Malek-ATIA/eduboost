@@ -48,13 +48,13 @@ export default function MyNotesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Notebook</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My session notes</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Notebook</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My session notes</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Personal notes you wrote during classroom sessions.
       </p>
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">
@@ -62,7 +62,7 @@ export default function MyNotesPage() {
         </p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((n) => (
             <li key={n.sessionId} className="p-4">
               <div className="flex items-start justify-between gap-2">
@@ -74,7 +74,7 @@ export default function MyNotesPage() {
                 </Link>
                 <button
                   onClick={() => deleteNote(n.sessionId)}
-                  className="shrink-0 rounded-md border border-ink-faded/30 px-2.5 py-1 text-xs text-red-500 transition hover:border-red-200 hover:bg-red-50"
+                  className="shrink-0 rounded-md border border-rule px-2.5 py-1 text-xs text-red-500 transition hover:border-accent/20 hover:bg-accent/5"
                 >
                   Delete
                 </button>

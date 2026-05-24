@@ -90,13 +90,13 @@ export default function NewEventPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Events</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Host an event</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Events</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Host an event</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Workshops, group classes, online meetups — anything ticketed.
       </p>
 
@@ -192,7 +192,7 @@ export default function NewEventPage() {
             className="input"
           />
         </label>
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}

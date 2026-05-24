@@ -95,13 +95,13 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const isOwner = viewerSub !== null && viewerSub === data.post.teacherId;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href={`/teachers/${data.post.teacherId}` as never} className="btn-ghost -ml-3">
         ← {data.post.authorName ?? "Teacher"}
       </Link>
@@ -110,7 +110,7 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
         <div className="flex items-center justify-between text-xs text-ink-faded">
           <span>{data.post.authorName} · {new Date(data.post.createdAt).toLocaleString()}</span>
           {isOwner && (
-            <button onClick={deletePost} className="btn-ghost text-seal">
+            <button onClick={deletePost} className="btn-ghost text-red-600">
               Delete
             </button>
           )}
@@ -149,7 +149,7 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
                   {canDelete && (
                     <button
                       onClick={() => deleteComment(cm.commentId)}
-                      className="btn-ghost text-seal"
+                      className="btn-ghost text-red-600"
                     >
                       Delete
                     </button>

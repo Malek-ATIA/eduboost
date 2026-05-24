@@ -53,7 +53,7 @@ export function RangeSlider({
       <div className="range-slider relative h-6">
         <div className="absolute top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-ink-faded/20" />
         <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-seal/60"
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent/60"
           style={{ left: `${loPercent}%`, width: `${hiPercent - loPercent}%` }}
         />
         <input

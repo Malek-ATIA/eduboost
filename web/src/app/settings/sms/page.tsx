@@ -99,15 +99,17 @@ export default function SmsSettingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Settings</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">SMS notifications</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Settings</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+        SMS notifications
+      </h1>
+      <p className="mt-3 text-base text-ink-soft">
         Get texted for time-sensitive updates: session reminders, confirmed
         bookings, payment issues, support replies.
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {info && <p className="mt-4 text-sm text-ink">{info}</p>}
       {prefs === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
 
@@ -174,7 +176,7 @@ export default function SmsSettingsPage() {
             <div className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-display text-base text-ink">SMS notifications</div>
+                  <div className="font-serif text-base text-ink">SMS notifications</div>
                   <div className="mt-0.5 text-xs text-ink-faded">
                     Currently {prefs.smsOptIn ? "enabled" : "disabled"}.
                   </div>

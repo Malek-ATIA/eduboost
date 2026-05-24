@@ -125,16 +125,16 @@ export default function NewSellerListingPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href="/seller/listings" className="btn-ghost -ml-3">
         ← My listings
       </Link>
-      <p className="eyebrow mt-4">Seller</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New listing</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+      <div className="eyebrow">Seller</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New listing</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Upload a PDF, slides, or any digital study material. Max 100 MB.
       </p>
 
@@ -261,7 +261,7 @@ export default function NewSellerListingPage() {
         )}
 
         {progress && <p className="text-sm text-ink-soft">{progress}</p>}
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"

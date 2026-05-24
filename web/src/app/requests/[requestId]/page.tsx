@@ -62,27 +62,27 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
     }
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!req) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (!req) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const isTeacher = viewerSub === req.teacherId;
   const isStudent = viewerSub === req.studentId;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href="/requests" className="btn-ghost -ml-3">
         ← All requests
       </Link>
 
       <div className="mt-4 flex items-start justify-between gap-4">
         <div>
-          <p className="eyebrow">Request</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">{req.subject}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Request</div>
+          <h1 className="mt-1 font-serif text-3xl text-ink">{req.subject}</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             Sent {new Date(req.createdAt).toLocaleString()}
           </p>
         </div>
-        <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-3 py-1 text-xs uppercase tracking-widest text-ink-soft">
+        <span className="rounded-md border border-rule bg-bg-soft px-3 py-1 text-xs uppercase tracking-widest text-ink-soft">
           {req.status}
         </span>
       </div>
@@ -100,7 +100,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
       )}
 
       {req.respondedAt && req.responseMessage && (
-        <div className="mt-6 rounded-md border border-seal/30 bg-seal/10 p-3">
+        <div className="mt-6 rounded-lg border border-accent/20 bg-accent-pale p-3">
           <p className="text-xs uppercase tracking-widest text-ink-soft">
             Teacher response · {new Date(req.respondedAt).toLocaleString()}
           </p>
@@ -110,7 +110,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
 
       {req.status === "pending" && isTeacher && (
         <div className="card mt-8 space-y-3 p-4">
-          <h2 className="font-display text-xl text-ink">Respond</h2>
+          <h2 className="font-serif text-xl text-ink">Respond</h2>
           <textarea
             rows={4}
             maxLength={2000}
@@ -142,14 +142,14 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
         <button
           onClick={() => act("cancel")}
           disabled={submitting}
-          className="btn-ghost mt-8 -ml-3 text-seal"
+          className="btn-ghost mt-8 -ml-3 text-red-600"
         >
           Cancel this request
         </button>
       )}
 
       {req.status === "accepted" && isStudent && (
-        <div className="mt-8 rounded-md border border-seal/30 bg-seal/10 p-4">
+        <div className="mt-8 rounded-lg border border-accent/20 bg-accent-pale p-4">
           <p className="text-sm text-ink">Your request was accepted. You can book a session now.</p>
           <Link
             href={`/book/${req.teacherId}?type=single`}

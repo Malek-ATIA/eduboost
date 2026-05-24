@@ -61,8 +61,8 @@ const STATUS_CONFIG: Record<
   rejected: {
     icon: XCircle,
     label: "Declined",
-    color: "text-red-600",
-    bg: "bg-red-50 border-red-200",
+    color: "text-accent",
+    bg: "bg-red-50 border-accent/20",
   },
 };
 
@@ -104,9 +104,9 @@ export default function ParentSpacePage() {
 
   if (!ready) {
     return (
-      <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-4xl px-8 pb-24 pt-12">
         <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       </main>
     );
@@ -117,54 +117,65 @@ export default function ParentSpacePage() {
   const pending = children.filter((c) => c.status === "pending");
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl tracking-tight text-ink">
-            {greeting}, {displayName}
+          <div className="eyebrow">Family view</div>
+          <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
+            How <span className="italic">{accepted[0]?.child?.displayName?.split(" ")[0] ?? displayName}</span> is doing.
           </h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Manage your children&apos;s learning journey from one place.
+          <p className="mt-3 text-base text-ink-soft">
+            Attendance, grades, and what&apos;s coming up — all in one place.
           </p>
         </div>
-        <Link href="/parent/children" className="btn-seal shrink-0 inline-flex items-center gap-2">
+        <Link href="/parent/children" className="btn-primary shrink-0 inline-flex items-center gap-2">
           <Users size={16} />
           Manage children
         </Link>
       </div>
 
       {/* Stats cards */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link href="/parent/children" className="card-interactive p-4 text-center">
-          <div className="font-display text-2xl text-ink">{children.length}</div>
-          <div className="text-xs text-ink-faded">Children linked</div>
-        </Link>
-        <Link href="/analytics" className="card-interactive p-4 text-center">
-          <div className="font-display text-2xl text-green-700">
-            {summary ? summary.sessionsAttended : "..."}
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="card p-5">
+          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
+            Sessions attended
           </div>
-          <div className="text-xs text-ink-faded">Sessions attended</div>
-        </Link>
-        <Link href="/mailbox" className="card-interactive p-4 text-center">
-          <div className="font-display text-2xl text-ink">
-            {unreadCount > 0 ? unreadCount : "0"}
+          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
+            {summary ? summary.sessionsAttended : "—"}
           </div>
-          <div className="text-xs text-ink-faded">Unread messages</div>
-        </Link>
-        <Link href="/payments" className="card-interactive p-4 text-center">
-          <div className="font-display text-2xl text-ink">
+        </div>
+        <div className="card p-5">
+          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
+            Children linked
+          </div>
+          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
+            {children.length}
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
+            Unread messages
+          </div>
+          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
+            {unreadCount}
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
+            Total spent
+          </div>
+          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
             {summary
               ? formatMoney(summary.totalSpentCents, summary.currency, { trim: true })
-              : "..."}
+              : "—"}
           </div>
-          <div className="text-xs text-ink-faded">Total spent</div>
-        </Link>
+        </div>
       </div>
 
       {/* Pending requests alert */}
       {pending.length > 0 && (
-        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center gap-2">
             <AlertCircle size={18} className="text-amber-600" />
             <span className="text-sm font-medium text-amber-800">
@@ -180,10 +191,10 @@ export default function ParentSpacePage() {
       {/* Children overview */}
       <section className="mt-8">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg text-ink">My children</h2>
+          <h2 className="font-serif text-lg text-ink">My children</h2>
           <Link
             href="/parent/children"
-            className="inline-flex items-center gap-1 text-xs text-seal hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
           >
             Manage <ChevronRight size={12} />
           </Link>
@@ -204,11 +215,11 @@ export default function ParentSpacePage() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-display text-base text-ink">
+                        <span className="truncate font-serif text-base text-ink">
                           {c.child?.displayName ?? c.child?.email ?? "Child"}
                         </span>
                         <span
-                          className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
+                          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
                         >
                           <StIcon size={10} />
                           {st.label}
@@ -222,7 +233,7 @@ export default function ParentSpacePage() {
                     {c.status === "accepted" && (
                       <Link
                         href="/analytics"
-                        className="shrink-0 rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-ink-soft transition hover:bg-parchment-dark hover:text-ink"
+                        className="shrink-0 rounded-full border border-rule px-3 py-1.5 text-xs text-ink-soft transition hover:bg-bg-soft hover:text-ink"
                       >
                         View progress
                       </Link>
@@ -234,14 +245,14 @@ export default function ParentSpacePage() {
           </ul>
         ) : (
           <div className="card mt-3 p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
               <Users size={28} className="text-ink-faded" />
             </div>
-            <p className="mt-4 font-display text-lg text-ink">No children linked yet</p>
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-4 font-serif text-lg text-ink">No children linked yet</p>
+            <p className="mt-3 text-sm text-ink-soft">
               Link your child&apos;s EduBoost student account to track their learning progress.
             </p>
-            <Link href="/parent/children" className="btn-seal mt-4 inline-block">
+            <Link href="/parent/children" className="btn-primary mt-4 inline-block">
               Add a child
             </Link>
           </div>
@@ -250,69 +261,69 @@ export default function ParentSpacePage() {
 
       {/* Quick actions */}
       <section className="mt-8">
-        <h2 className="font-display text-lg text-ink">Quick actions</h2>
+        <h2 className="font-serif text-lg text-ink">Quick actions</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/teachers" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <Search size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <Search size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 Find a teacher
               </div>
               <div className="text-xs text-ink-soft">Browse verified tutors</div>
             </div>
           </Link>
           <Link href="/calendar" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <CalendarDays size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <CalendarDays size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 View calendar
               </div>
               <div className="text-xs text-ink-soft">Upcoming sessions & events</div>
             </div>
           </Link>
           <Link href="/analytics" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <GraduationCap size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <GraduationCap size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 Family analytics
               </div>
               <div className="text-xs text-ink-soft">Grades, attendance & spending</div>
             </div>
           </Link>
           <Link href="/payments" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <CreditCard size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <CreditCard size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 Payments
               </div>
               <div className="text-xs text-ink-soft">View transaction history</div>
             </div>
           </Link>
           <Link href="/favorites" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <Heart size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <Heart size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 Saved teachers
               </div>
               <div className="text-xs text-ink-soft">Bookmarked teachers</div>
             </div>
           </Link>
           <Link href="/marketplace" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-parchment-dark">
-              <ShoppingBag size={18} className="text-ink-faded group-hover:text-seal" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
+              <ShoppingBag size={18} className="text-ink-faded group-hover:text-accent" />
             </div>
             <div>
-              <div className="font-display text-sm text-ink group-hover:text-seal">
+              <div className="font-serif text-sm text-ink group-hover:text-accent">
                 Marketplace
               </div>
               <div className="text-xs text-ink-soft">Study materials & exam banks</div>

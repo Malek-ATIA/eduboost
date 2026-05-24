@@ -84,25 +84,25 @@ export default function TeacherStudentDetailPage({
   }, [router, studentId]);
 
   if (!ready)
-    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading…</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
 
   if (error)
     return (
-      <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
         <Link href={"/teacher/students" as never} className="btn-ghost -ml-3">
           ← All students
         </Link>
-        <p className="mt-6 text-sm text-seal">{error}</p>
+        <p className="mt-6 text-sm text-red-600">{error}</p>
       </main>
     );
 
   if (!data)
-    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading…</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
 
   const { user, bookings, classrooms, grades, gradeSummary, payments, paymentsNetTotalCents, paymentsCurrency } = data;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href={"/teacher/students" as never} className="btn-ghost -ml-3">
         ← All students
       </Link>
@@ -110,8 +110,8 @@ export default function TeacherStudentDetailPage({
       <div className="mt-4 flex items-center gap-4">
         <Avatar userId={user.userId} size="lg" initial={user.displayName} />
         <div>
-          <p className="eyebrow">Student</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">{user.displayName}</h1>
+          <div className="eyebrow">Student</div>
+          <h1 className="mt-1 font-serif text-3xl text-ink">{user.displayName}</h1>
           <p className="mt-0.5 text-sm text-ink-soft">
             {user.email} · <span className="capitalize">{user.role}</span>
           </p>
@@ -140,7 +140,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Classrooms we share</h2>
+        <h2 className="font-serif text-xl text-ink">Classrooms we share</h2>
         {classrooms.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">Not enrolled in any of your classrooms.</p>
         ) : (
@@ -148,7 +148,7 @@ export default function TeacherStudentDetailPage({
             {classrooms.map((c) => (
               <li key={c.classroomId} className="card flex items-center justify-between p-3 text-sm">
                 <div>
-                  <div className="font-display text-base text-ink">{c.title}</div>
+                  <div className="font-serif text-base text-ink">{c.title}</div>
                   <div className="text-xs text-ink-faded">
                     {c.subject} · status {c.status}
                     {c.joinedAt ? ` · joined ${new Date(c.joinedAt).toLocaleDateString()}` : ""}
@@ -164,22 +164,22 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Bookings</h2>
+        <h2 className="font-serif text-xl text-ink">Bookings</h2>
         {bookings.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">No bookings with you yet.</p>
         ) : (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {bookings.map((b) => (
               <li key={b.bookingId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-display text-sm capitalize text-ink">
+                  <div className="font-serif text-sm capitalize text-ink">
                     {b.type} · <span className="text-ink-soft">{b.status}</span>
                   </div>
                   <div className="text-xs text-ink-faded">
                     {new Date(b.createdAt).toLocaleString()} · <span className="font-mono">{b.bookingId}</span>
                   </div>
                 </div>
-                <span className="font-display text-sm text-ink">
+                <span className="font-serif text-sm text-ink">
                   {formatMoney(b.amountCents, b.currency)}
                 </span>
               </li>
@@ -189,7 +189,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Grades I&apos;ve given</h2>
+        <h2 className="font-serif text-xl text-ink">Grades I&apos;ve given</h2>
         {grades.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">
             No AI-graded submissions yet.{" "}
@@ -198,16 +198,16 @@ export default function TeacherStudentDetailPage({
             </Link>
           </p>
         ) : (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {grades.map((g) => (
               <li key={g.gradeId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-display text-sm text-ink">{g.subject}</div>
+                  <div className="font-serif text-sm text-ink">{g.subject}</div>
                   <div className="text-xs text-ink-faded">
                     {new Date(g.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-                <span className="font-display text-sm text-ink">
+                <span className="font-serif text-sm text-ink">
                   {g.score} / {g.maxScore}
                 </span>
               </li>
@@ -217,15 +217,15 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Payments from this student</h2>
+        <h2 className="font-serif text-xl text-ink">Payments from this student</h2>
         {payments.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">No payments yet.</p>
         ) : (
-          <ul className="card mt-3 divide-y divide-ink-faded/30">
+          <ul className="card mt-3 divide-y divide-rule">
             {payments.map((p) => (
               <li key={p.paymentId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-display text-sm text-ink">
+                  <div className="font-serif text-sm text-ink">
                     {formatMoney(p.amountCents - (p.platformFeeCents ?? 0), p.currency)} net
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -237,8 +237,8 @@ export default function TeacherStudentDetailPage({
                 <span
                   className={`rounded-sm border px-2 py-0.5 text-xs uppercase tracking-widest ${
                     p.status === "succeeded"
-                      ? "border-seal/30 bg-seal/10 text-seal"
-                      : "border-ink-faded/40 bg-parchment-dark text-ink-soft"
+                      ? "border-accent/20 bg-accent/10 text-accent"
+                      : "border-rule bg-bg-soft text-ink-soft"
                   }`}
                 >
                   {p.status}
@@ -256,7 +256,7 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
   return (
     <div>
       <div className="text-xs uppercase tracking-widest text-ink-faded">{label}</div>
-      <div className="mt-1 font-display text-2xl text-ink">{value}</div>
+      <div className="mt-1 font-serif text-2xl text-ink">{value}</div>
       {note && <div className="mt-0.5 text-xs text-ink-faded">{note}</div>}
     </div>
   );

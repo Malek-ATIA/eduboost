@@ -77,7 +77,7 @@ export function AvatarDropdown({ userId, role, displayName, isAdmin, onSignOut }
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
-        className="flex items-center gap-1.5 rounded-full transition hover:ring-2 hover:ring-seal/30 focus-visible:ring-2 focus-visible:ring-seal"
+        className="flex items-center gap-1.5 rounded-full transition hover:ring-2 hover:ring-accent/30 focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Avatar userId={userId} size="sm" initial={displayName?.[0]} />
       </button>
@@ -85,7 +85,7 @@ export function AvatarDropdown({ userId, role, displayName, isAdmin, onSignOut }
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-lg border border-ink-faded/25 bg-white shadow-lg"
+          className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-lg border border-rule bg-white shadow-lg"
         >
           {items.map((item, i) => {
             if (item.type === "divider") {
@@ -99,7 +99,7 @@ export function AvatarDropdown({ userId, role, displayName, isAdmin, onSignOut }
                   href={item.href as never}
                   role="menuitem"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink-soft transition hover:bg-parchment-shade hover:text-ink"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink-soft transition hover:bg-bg-soft hover:text-ink"
                 >
                   <Icon size={16} />
                   {item.label}
@@ -115,7 +115,7 @@ export function AvatarDropdown({ userId, role, displayName, isAdmin, onSignOut }
                   setOpen(false);
                   item.onClick();
                 }}
-                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-ink-soft transition hover:bg-parchment-shade hover:text-ink"
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-ink-soft transition hover:bg-bg-soft hover:text-ink"
               >
                 <Icon size={16} />
                 {item.label}

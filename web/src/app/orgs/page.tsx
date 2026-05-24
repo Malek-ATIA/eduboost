@@ -33,11 +33,11 @@ export default function OrgsListPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Teams</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Organizations</h1>
+          <div className="eyebrow">Teams</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Organizations</h1>
         </div>
         <Link
           href="/orgs/new"
@@ -47,22 +47,22 @@ export default function OrgsListPage() {
         </Link>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">You aren&apos;t part of any organization yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((o) => (
             <li key={o.orgId}>
               <Link
                 href={`/orgs/${o.orgId}` as never}
-                className="block p-4 transition hover:bg-parchment-shade"
+                className="block p-4 transition hover:bg-bg-soft"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-display text-base text-ink">{o.name}</div>
+                    <div className="font-serif text-base text-ink">{o.name}</div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {o.kind} · {o.country ?? "—"} · your role: {o.myRole}
                     </div>

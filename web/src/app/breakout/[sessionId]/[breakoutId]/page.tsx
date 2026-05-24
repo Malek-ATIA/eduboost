@@ -68,11 +68,11 @@ export default function BreakoutPage({
   }, [sessionId, breakoutId]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Breakout</p>
-          <h1 className="mt-1 font-display text-3xl text-ink">Breakout · {label || breakoutId}</h1>
+          <div className="eyebrow">Breakout</div>
+          <h1 className="mt-1 font-serif text-3xl text-ink">Breakout · {label || breakoutId}</h1>
           <p className="mt-1 text-xs text-ink-faded">
             Parent session:{" "}
             <Link
@@ -85,7 +85,7 @@ export default function BreakoutPage({
         </div>
       </div>
       <p className="mt-2 text-sm text-ink-soft">Status: {status}</p>
-      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <div className="mt-6 aspect-video w-full overflow-hidden rounded-md bg-ink/90">
         <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />

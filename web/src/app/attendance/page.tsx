@@ -16,7 +16,7 @@ type AttendanceRecord = {
 const STATUS_COLORS: Record<AttendanceRecord["status"], string> = {
   present: "text-ink",
   late: "text-ink-faded",
-  absent: "text-seal",
+  absent: "text-red-600",
   excused: "text-ink-soft",
 };
 
@@ -39,22 +39,22 @@ export default function AttendancePage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Attendance</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My attendance</h1>
-      <p className="mt-1 text-sm text-ink-soft">Your attendance record across all sessions.</p>
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Attendance</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My attendance</h1>
+      <p className="mt-3 text-sm text-ink-soft">Your attendance record across all sessions.</p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No attendance records yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((r) => (
             <li key={`${r.sessionId}-${r.userId}`} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-display text-base text-ink">
+                <div className="font-serif text-base text-ink">
                   Session{" "}
                   <Link
                     href={`/classroom/${r.sessionId}` as never}

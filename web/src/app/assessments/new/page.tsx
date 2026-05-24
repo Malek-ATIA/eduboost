@@ -86,13 +86,13 @@ export default function NewAssessmentPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Study</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New assessment</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Study</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New assessment</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         MCQ questions auto-grade; short-answer responses are visible to you for manual review.
       </p>
 
@@ -122,7 +122,7 @@ export default function NewAssessmentPage() {
 
         <div className="space-y-4">
           {questions.map((q, i) => (
-            <div key={i} className="rounded-md border border-ink-faded/40 bg-parchment/40 p-4">
+            <div key={i} className="rounded-lg border border-rule bg-bg-soft p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="eyebrow">
                   Q{i + 1} · {q.kind === "mcq" ? "Multiple choice" : "Short answer"}
@@ -131,7 +131,7 @@ export default function NewAssessmentPage() {
                   <button
                     type="button"
                     onClick={() => removeQuestion(i)}
-                    className="btn-ghost text-seal"
+                    className="btn-ghost text-red-600"
                   >
                     Remove
                   </button>
@@ -156,7 +156,7 @@ export default function NewAssessmentPage() {
                         checked={q.correctIndex === oi}
                         onChange={() => updateQuestion(i, { correctIndex: oi })}
                         aria-label={`Correct option ${oi + 1}`}
-                        className="accent-seal"
+                        className="accent-[#1f4a3a]"
                       />
                       <input
                         required
@@ -170,7 +170,7 @@ export default function NewAssessmentPage() {
                         <button
                           type="button"
                           onClick={() => removeOption(i, oi)}
-                          className="text-xs text-seal"
+                          className="text-xs text-red-600"
                         >
                           ✕
                         </button>
@@ -209,7 +209,7 @@ export default function NewAssessmentPage() {
           </button>
         </div>
 
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"

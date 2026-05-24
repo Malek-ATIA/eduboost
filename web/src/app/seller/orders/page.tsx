@@ -38,7 +38,7 @@ const STATUS_COLORS: Record<Order["status"], string> = {
   pending: "text-ink-faded",
   paid: "text-ink",
   refunded: "text-ink-faded",
-  cancelled: "text-seal",
+  cancelled: "text-red-600",
 };
 
 export default function SellerOrdersPage() {
@@ -93,17 +93,17 @@ export default function SellerOrdersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Seller</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Marketplace orders</h1>
-      <p className="mt-1 text-sm text-ink-soft">Sales on your listings.</p>
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Seller</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Marketplace orders</h1>
+      <p className="mt-3 text-sm text-ink-soft">Sales on your listings.</p>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No sales yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((o) => {
             const needsShip =
               o.status === "paid" &&
@@ -113,7 +113,7 @@ export default function SellerOrdersPage() {
               <li key={o.orderId} className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-display text-base text-ink">
+                    <div className="font-serif text-base text-ink">
                       <Link href={`/marketplace/listings/${o.listingId}` as never} className="font-mono underline">
                         {o.listingId}
                       </Link>
@@ -127,14 +127,14 @@ export default function SellerOrdersPage() {
                   <div className="flex items-center gap-2">
                     <span className={`text-xs uppercase tracking-widest ${STATUS_COLORS[o.status]}`}>{o.status}</span>
                     {o.kind === "physical" && o.shippingStatus && (
-                      <span className="rounded-sm border border-ink-faded/50 bg-parchment/40 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-ink-soft">
+                      <span className="rounded-md border border-rule bg-bg-soft px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-ink-soft">
                         {o.shippingStatus.replace(/_/g, " ")}
                       </span>
                     )}
                   </div>
                 </div>
                 {o.kind === "physical" && o.shippingAddress && (
-                  <div className="rounded-md border border-ink-faded/30 bg-parchment/40 p-3 text-xs text-ink">
+                  <div className="rounded-lg border border-rule bg-bg-soft p-3 text-xs text-ink">
                     <div className="eyebrow mb-1">Ship to</div>
                     <div>{o.shippingAddress.name}</div>
                     <div>{o.shippingAddress.line1}</div>
@@ -166,7 +166,7 @@ export default function SellerOrdersPage() {
                   </button>
                 )}
                 {shipOrderId === o.orderId && (
-                  <form onSubmit={ship} className="space-y-2 border-t border-ink-faded/30 pt-3">
+                  <form onSubmit={ship} className="space-y-2 border-t border-rule pt-3">
                     <label className="block">
                       <span className="label">Carrier</span>
                       <input

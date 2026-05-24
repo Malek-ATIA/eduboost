@@ -24,7 +24,7 @@ const STATUS_COLORS: Record<Booking["status"], string> = {
   confirmed: "text-ink",
   cancelled: "text-ink-faded",
   refunded: "text-ink-faded",
-  completed: "text-seal",
+  completed: "text-accent",
 };
 
 export default function TeacherBookingsPage() {
@@ -78,55 +78,55 @@ export default function TeacherBookingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Teacher</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Bookings (as teacher)</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Teacher</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Bookings</h1>
+      <p className="mt-3 text-base text-ink-soft">
         Schedule a session against confirmed bookings.
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No bookings yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((b) => {
             const canSchedule = b.status === "confirmed";
             return (
-              <li key={b.bookingId} className="flex items-center justify-between p-4">
-                <div>
-                  <div className="font-display text-base text-ink capitalize">{b.type} session</div>
-                  <div className="text-xs text-ink-faded">
-                    <span className="font-mono">#{b.bookingId}</span> · booked {new Date(b.createdAt).toLocaleDateString()}
+              <li key={b.bookingId} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-serif text-base text-ink capitalize">{b.type} session</div>
+                    <div className="text-xs text-ink-faded truncate">
+                      #{b.bookingId.slice(0, 8)}… · booked {new Date(b.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 text-right">
-                  <div>
-                    <div className="font-display text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
-                    <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>
+                  <div className="text-right shrink-0">
+                    <div className="font-serif text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
+                    <div className={`font-mono text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>
                       {b.status}
                     </div>
                   </div>
-                  {canSchedule && (
-                    <>
-                      <Link
-                        href={`/sessions/new?bookingId=${b.bookingId}`}
-                        className="btn-seal"
-                      >
-                        Schedule
-                      </Link>
-                      <button
-                        onClick={() => cancelBooking(b.bookingId)}
-                        disabled={cancellingId === b.bookingId}
-                        className="rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-red-500 transition hover:border-red-200 hover:bg-red-50"
-                      >
-                        {cancellingId === b.bookingId ? "..." : "Cancel"}
-                      </button>
-                    </>
-                  )}
                 </div>
+                {canSchedule && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/sessions/new?bookingId=${b.bookingId}`}
+                      className="btn-primary text-xs"
+                    >
+                      Schedule
+                    </Link>
+                    <button
+                      onClick={() => cancelBooking(b.bookingId)}
+                      disabled={cancellingId === b.bookingId}
+                      className="rounded-full border border-rule px-3 py-1.5 text-xs text-red-500 transition hover:border-accent/20 hover:bg-accent/5"
+                    >
+                      {cancellingId === b.bookingId ? "..." : "Cancel"}
+                    </button>
+                  </div>
+                )}
               </li>
             );
           })}

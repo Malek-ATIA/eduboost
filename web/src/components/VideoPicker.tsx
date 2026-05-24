@@ -89,12 +89,12 @@ export function VideoPicker({ userId, onChange }: Props) {
         <video
           src={previewUrl}
           controls
-          className="w-full max-w-md rounded-lg border border-ink-faded/30"
+          className="w-full max-w-md rounded-lg border border-rule"
           preload="metadata"
         />
       )}
       {!previewUrl && !uploading && (
-        <div className="flex h-44 max-w-md items-center justify-center rounded-lg border-2 border-dashed border-ink-faded/30 bg-parchment-dark text-sm text-ink-faded">
+        <div className="flex h-44 max-w-md items-center justify-center rounded-lg border-2 border-dashed border-rule bg-bg-soft text-sm text-ink-faded">
           No intro video yet
         </div>
       )}
@@ -102,7 +102,7 @@ export function VideoPicker({ userId, onChange }: Props) {
         <div className="max-w-md space-y-1">
           <div className="h-2 overflow-hidden rounded-full bg-ink-faded/20">
             <div
-              className="h-full rounded-full bg-seal transition-all"
+              className="h-full rounded-full bg-accent transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -116,12 +116,12 @@ export function VideoPicker({ userId, onChange }: Props) {
           accept={ALLOWED.join(",")}
           onChange={onFile}
           disabled={uploading}
-          className="block text-sm text-ink-soft file:mr-3 file:rounded-md file:border file:border-ink-faded/40 file:bg-white/70 file:px-3 file:py-1.5 file:text-sm file:text-ink hover:file:bg-parchment-dark"
+          className="block text-sm text-ink-soft file:mr-3 file:rounded-md file:border file:border-rule file:bg-bg-card file:px-3 file:py-1.5 file:text-sm file:text-ink hover:file:bg-bg-soft"
         />
         <p className="mt-1 text-xs text-ink-faded">
           MP4, WebM, or MOV. Under 100 MB. Introduce yourself to students.
         </p>
-        {error && <p className="mt-1 text-xs text-seal">{error}</p>}
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       </div>
     </div>
   );

@@ -84,24 +84,24 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href="/admin/users" className="btn-ghost -ml-3">
         ← All users
       </Link>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {!user && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
 
       {user && (
         <>
           <div className="mt-4 flex items-start justify-between gap-4">
             <div>
-              <p className="eyebrow">User</p>
-              <h1 className="mt-1 font-display text-3xl text-ink">{user.displayName}</h1>
-              <p className="mt-1 text-sm text-ink-soft">
+              <div className="eyebrow">User</div>
+              <h1 className="mt-1 font-serif text-3xl text-ink">{user.displayName}</h1>
+              <p className="mt-3 text-sm text-ink-soft">
                 {user.email} · {user.role} · joined{" "}
                 {new Date(user.createdAt).toLocaleDateString()}
               </p>
@@ -110,8 +110,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
             <span
               className={`rounded-sm border px-3 py-1 text-xs uppercase tracking-widest ${
                 user.bannedAt
-                  ? "border-seal/40 bg-seal/10 text-seal"
-                  : "border-ink-faded/50 bg-parchment/40 text-ink-soft"
+                  ? "border-accent/30 bg-accent/10 text-accent"
+                  : "border-rule bg-bg-soft text-ink-soft"
               }`}
             >
               {user.bannedAt ? "Banned" : "Active"}
@@ -119,8 +119,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
           </div>
 
           {user.bannedAt ? (
-            <div className="mt-8 rounded-md border border-seal/30 bg-seal/10 p-4">
-              <h2 className="font-display text-xl text-ink">Account suspended</h2>
+            <div className="mt-8 rounded-lg border border-accent/20 bg-accent-pale p-4">
+              <h2 className="font-serif text-xl text-ink">Account suspended</h2>
               <p className="mt-2 text-sm text-ink">
                 <strong>Since:</strong> {new Date(user.bannedAt).toLocaleString()}
               </p>

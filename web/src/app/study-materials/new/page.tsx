@@ -74,12 +74,12 @@ export default function NewMaterialPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Library</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Share study material</h1>
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Library</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Share study material</h1>
       <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <label className="block">
           <span className="label">Title</span>
@@ -134,7 +134,7 @@ export default function NewMaterialPage() {
             type="checkbox"
             checked={premium}
             onChange={(e) => setPremium(e.target.checked)}
-            className="mt-0.5 accent-seal"
+            className="mt-0.5 accent-[#1f4a3a]"
           />
           <span>
             <strong className="text-ink">Premium</strong> — only students with
@@ -152,7 +152,7 @@ export default function NewMaterialPage() {
           />
         </label>
         {progress && <p className="text-sm text-ink-soft">{progress}</p>}
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}

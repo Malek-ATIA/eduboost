@@ -78,13 +78,13 @@ export default function FavoritesPage() {
   const orgCount = (items ?? []).filter((f) => f.kind === "organization").length;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Bookmarks</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My favorites</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Bookmarks</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My favorites</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             {items && items.length > 0
               ? `${items.length} saved item${items.length !== 1 ? "s" : ""}`
               : "Save teachers and organizations for quick access"}
@@ -95,12 +95,12 @@ export default function FavoritesPage() {
         </Link>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {/* Loading */}
       {items === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -108,15 +108,15 @@ export default function FavoritesPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{items.length}</div>
+            <div className="font-serif text-2xl text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total saved</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{teacherCount}</div>
+            <div className="font-serif text-2xl text-ink">{teacherCount}</div>
             <div className="text-xs text-ink-faded">Teachers</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{orgCount}</div>
+            <div className="font-serif text-2xl text-ink">{orgCount}</div>
             <div className="text-xs text-ink-faded">Organizations</div>
           </div>
         </div>
@@ -124,14 +124,14 @@ export default function FavoritesPage() {
 
       {/* Filter tabs */}
       {items && items.length > 0 && (
-        <div className="mt-6 flex gap-1 border-b border-ink-faded/20">
+        <div className="mt-6 flex gap-1 border-b border-rule-soft">
           {(["all", "teacher", "organization"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilterKind(f)}
               className={`border-b-2 px-4 py-2 text-xs font-medium capitalize transition ${
                 filterKind === f
-                  ? "border-seal text-seal"
+                  ? "border-accent text-accent"
                   : "border-transparent text-ink-faded hover:text-ink"
               }`}
             >
@@ -144,11 +144,11 @@ export default function FavoritesPage() {
       {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">❤️</span>
           </div>
-          <p className="mt-4 font-display text-lg text-ink">No favorites yet</p>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-4 font-serif text-lg text-ink">No favorites yet</p>
+          <p className="mt-3 text-sm text-ink-soft">
             Bookmark a teacher from their profile to save them for later.
           </p>
           <Link href="/teachers" className="btn-seal mt-4 inline-block">
@@ -165,7 +165,7 @@ export default function FavoritesPage() {
               return (
                 <li key={f.favoriteId} className="card flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-parchment-dark text-ink-faded">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-soft text-ink-faded">
                       ?
                     </div>
                     <div>
@@ -178,7 +178,7 @@ export default function FavoritesPage() {
                   <button
                     onClick={() => remove(f.favoriteId)}
                     disabled={removingId === f.favoriteId}
-                    className="rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-ink-faded transition hover:border-red-200 hover:text-red-600"
+                    className="rounded-lg border border-rule px-3 py-1.5 text-xs text-ink-faded transition hover:border-accent/20 hover:text-accent"
                   >
                     Remove
                   </button>
@@ -204,11 +204,11 @@ export default function FavoritesPage() {
                             ? `/teachers/${t.id}`
                             : (`/orgs/${t.id}` as never)
                         }
-                        className="font-display text-base text-ink hover:text-seal transition"
+                        className="font-serif text-base text-ink hover:text-accent transition"
                       >
                         {t.displayName}
                       </Link>
-                      <span className="rounded-full border border-ink-faded/30 bg-parchment-dark px-2 py-0.5 text-[10px] uppercase tracking-widest text-ink-faded">
+                      <span className="rounded-full border border-rule bg-bg-soft px-2 py-0.5 text-[10px] uppercase tracking-widest text-ink-faded">
                         {f.kind}
                       </span>
                     </div>
@@ -245,7 +245,7 @@ export default function FavoritesPage() {
                     {isTeacher && (
                       <Link
                         href={`/teachers/${t.id}`}
-                        className="rounded-md border border-seal/40 bg-seal/10 px-3 py-1.5 text-xs font-medium text-seal transition hover:bg-seal/20"
+                        className="rounded-lg border border-accent/30 bg-accent-pale px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
                       >
                         Book
                       </Link>
@@ -253,7 +253,7 @@ export default function FavoritesPage() {
                     <button
                       onClick={() => remove(f.favoriteId)}
                       disabled={removingId === f.favoriteId}
-                      className="rounded-md border border-ink-faded/30 px-3 py-1.5 text-xs text-ink-faded transition hover:border-red-200 hover:text-red-600"
+                      className="rounded-lg border border-rule px-3 py-1.5 text-xs text-ink-faded transition hover:border-accent/20 hover:text-accent"
                     >
                       {removingId === f.favoriteId ? "..." : "Remove"}
                     </button>

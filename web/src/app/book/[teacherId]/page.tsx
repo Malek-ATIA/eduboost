@@ -65,16 +65,16 @@ export default function BookPage({ params }: { params: Promise<{ teacherId: stri
     })();
   }, [teacherId, type, router]);
 
-  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (error) return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-red-600">{error}</main>;
   if (!teacher || !clientSecret)
-    return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Preparing checkout...</main>;
+    return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-ink-soft">Preparing checkout...</main>;
 
   const isDemo = clientSecret.startsWith("demo_");
 
   return (
-    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
-      <p className="eyebrow">Checkout</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+    <main className="mx-auto max-w-md px-8 pb-24 pt-12">
+      <div className="eyebrow">Checkout</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         Book with {teacher.user.displayName}
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
@@ -196,7 +196,7 @@ function CheckoutForm({ bookingId }: { bookingId: string }) {
   return (
     <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
       <PaymentElement />
-      {error && <p className="text-sm text-seal">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
         disabled={!stripe || submitting}

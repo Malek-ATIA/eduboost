@@ -61,9 +61,9 @@ export default function TeacherQuizPage({
 
   if (done) {
     return (
-      <main className="mx-auto max-w-xl px-6 pb-24 pt-16 text-center">
-        <p className="eyebrow">Feedback</p>
-        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Thanks for the feedback!</h1>
+      <main className="mx-auto max-w-xl px-8 pb-24 pt-12 text-center">
+        <div className="eyebrow">Feedback</div>
+        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Thanks for the feedback!</h1>
         <p className="mt-2 text-sm text-ink-soft">
           Your rating helps future students choose the right teacher.
         </p>
@@ -78,15 +78,15 @@ export default function TeacherQuizPage({
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Feedback</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Rate this session</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Feedback</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Rate this session</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         Booking <span className="font-mono">{bookingId}</span>. Your ratings are
         anonymised and aggregated across sessions.
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <form onSubmit={onSubmit} className="card mt-6 space-y-5 p-6">
         {DIMENSIONS.map((d) => (
@@ -103,7 +103,7 @@ export default function TeacherQuizPage({
               onChange={(e) =>
                 setScores({ ...scores, [d.key]: Number(e.target.value) })
               }
-              className="w-full accent-seal"
+              className="w-full accent-[#1f4a3a]"
             />
           </label>
         ))}
@@ -113,7 +113,7 @@ export default function TeacherQuizPage({
             type="checkbox"
             checked={wouldRecommend}
             onChange={(e) => setWouldRecommend(e.target.checked)}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           I would recommend this teacher to a friend.
         </label>

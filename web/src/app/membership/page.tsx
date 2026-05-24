@@ -109,11 +109,11 @@ function MembershipInner() {
   const activePlan = sub && (sub.status === "active" || sub.status === "trialing") ? sub.planId : null;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       {/* Header */}
       <div className="text-center">
-        <p className="eyebrow">Account</p>
-        <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Membership</h1>
+        <div className="eyebrow">Account</div>
+        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Membership</h1>
         <p className="mt-2 text-sm text-ink-soft">
           Upgrade your account for premium features, exclusive content, and priority support.
         </p>
@@ -123,29 +123,29 @@ function MembershipInner() {
       {checkoutStatus === "success" && (
         <div className="mx-auto mt-6 max-w-xl rounded-md border border-green-200 bg-green-50 p-4 text-center">
           <span className="text-lg">🎉</span>
-          <p className="mt-1 font-display text-base text-green-800">Welcome to Premium!</p>
+          <p className="mt-1 font-serif text-base text-green-800">Welcome to Premium!</p>
           <p className="mt-0.5 text-sm text-green-700">
             Your subscription will activate within a minute. Enjoy your new features!
           </p>
         </div>
       )}
       {checkoutStatus === "cancelled" && (
-        <div className="mx-auto mt-6 max-w-xl rounded-md border border-ink-faded/30 bg-parchment-dark p-4 text-center">
+        <div className="mx-auto mt-6 max-w-xl rounded-lg border border-rule bg-bg-soft p-4 text-center">
           <p className="text-sm text-ink-soft">Checkout cancelled. No charge was made.</p>
         </div>
       )}
-      {error && <p className="mt-4 text-center text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
 
       {/* Current subscription banner */}
       {sub && (sub.status === "active" || sub.status === "trialing") && (
         <div className="mx-auto mt-8 max-w-xl">
           <div className="card overflow-hidden">
-            <div className="bg-seal/10 px-5 py-3">
+            <div className="bg-accent-pale px-5 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{PLAN_ICONS[sub.planId] ?? "⭐"}</span>
                   <div>
-                    <h2 className="font-display text-lg text-ink">
+                    <h2 className="font-serif text-lg text-ink">
                       {sub.planId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                     </h2>
                     <p className="text-xs text-ink-soft">
@@ -153,12 +153,12 @@ function MembershipInner() {
                     </p>
                   </div>
                 </div>
-                <span className="rounded-md border border-seal/40 bg-seal/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-seal">
+                <span className="rounded-lg border border-accent/30 bg-accent-pale px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
                   {sub.status}
                 </span>
               </div>
             </div>
-            <div className="divide-y divide-ink-faded/20 px-5">
+            <div className="divide-y divide-rule px-5">
               {sub.currentPeriodEnd && (
                 <div className="flex items-center justify-between py-3">
                   <span className="text-sm text-ink-soft">
@@ -181,11 +181,11 @@ function MembershipInner() {
               </div>
             </div>
             {!sub.cancelAtPeriodEnd && (
-              <div className="border-t border-ink-faded/20 px-5 py-3">
+              <div className="border-t border-rule-soft px-5 py-3">
                 <button
                   onClick={cancel}
                   disabled={busy}
-                  className="text-sm text-ink-faded hover:text-seal transition"
+                  className="text-sm text-ink-faded hover:text-accent transition"
                 >
                   Cancel subscription
                 </button>
@@ -198,7 +198,7 @@ function MembershipInner() {
       {/* Loading */}
       {plans === null && !error && (
         <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
@@ -209,7 +209,7 @@ function MembershipInner() {
       )}
 
       {/* Plan cards */}
-      <div className="mx-auto mt-8 grid max-w-3xl gap-6 sm:grid-cols-2">
+      <div className="mx-auto mt-8 grid max-w-container-wide gap-6 sm:grid-cols-2">
         {visiblePlans.map((p) => {
           const isActive = activePlan === p.id;
           const icon = PLAN_ICONS[p.id] ?? "⭐";
@@ -217,11 +217,11 @@ function MembershipInner() {
             <div
               key={p.id}
               className={`card relative overflow-hidden transition ${
-                isActive ? "ring-2 ring-seal" : ""
+                isActive ? "ring-2 ring-accent" : ""
               }`}
             >
               {isActive && (
-                <div className="absolute right-0 top-0 rounded-bl-lg bg-seal px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-parchment">
+                <div className="absolute right-0 top-0 rounded-bl-lg bg-accent px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white">
                   Current
                 </div>
               )}
@@ -230,7 +230,7 @@ function MembershipInner() {
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{icon}</span>
                   <div>
-                    <h3 className="font-display text-xl text-ink">{p.label}</h3>
+                    <h3 className="font-serif text-xl text-ink">{p.label}</h3>
                     <p className="text-xs text-ink-faded capitalize">{p.audience} plan</p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ function MembershipInner() {
                 <p className="mt-3 text-sm text-ink-soft">{p.description}</p>
 
                 <div className="mt-5">
-                  <span className="font-display text-4xl text-ink">
+                  <span className="font-serif text-4xl text-ink">
                     {formatMoney(p.priceMonthlyCents, p.currency, { trim: true })}
                   </span>
                   <span className="text-sm text-ink-soft">/month</span>
@@ -253,7 +253,7 @@ function MembershipInner() {
                 </button>
               </div>
 
-              <div className="border-t border-ink-faded/20 bg-parchment-dark p-6">
+              <div className="border-t border-rule-soft bg-bg-soft p-6">
                 <h4 className="eyebrow mb-3">What's included</h4>
                 <ul className="space-y-2.5">
                   {p.features.map((f) => (
@@ -289,20 +289,20 @@ function MembershipInner() {
         <h2 className="eyebrow mb-4 text-center">Common questions</h2>
         <div className="space-y-3">
           <div className="card p-4">
-            <h4 className="font-display text-sm text-ink">Can I cancel anytime?</h4>
-            <p className="mt-1 text-sm text-ink-soft">
+            <h4 className="font-serif text-sm text-ink">Can I cancel anytime?</h4>
+            <p className="mt-3 text-sm text-ink-soft">
               Yes! Cancel at any time and your subscription will remain active until the end of your billing period.
             </p>
           </div>
           <div className="card p-4">
-            <h4 className="font-display text-sm text-ink">What payment methods are accepted?</h4>
-            <p className="mt-1 text-sm text-ink-soft">
+            <h4 className="font-serif text-sm text-ink">What payment methods are accepted?</h4>
+            <p className="mt-3 text-sm text-ink-soft">
               We accept all major credit and debit cards through Stripe, including Visa, Mastercard, and Amex.
             </p>
           </div>
           <div className="card p-4">
-            <h4 className="font-display text-sm text-ink">Can I switch plans later?</h4>
-            <p className="mt-1 text-sm text-ink-soft">
+            <h4 className="font-serif text-sm text-ink">Can I switch plans later?</h4>
+            <p className="mt-3 text-sm text-ink-soft">
               You can upgrade or change your plan at any time. Contact support for plan changes.
             </p>
           </div>
@@ -316,13 +316,13 @@ export default function MembershipPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
           <div className="text-center">
-            <p className="eyebrow">Account</p>
-            <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Membership</h1>
+            <div className="eyebrow">Account</div>
+            <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Membership</h1>
           </div>
           <div className="mt-8 flex justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>
         </main>
       }

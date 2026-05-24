@@ -116,23 +116,23 @@ export default function ClassroomChatPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Classroom</p>
-      <h1 className="mt-1 font-display text-3xl text-ink">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Classroom</div>
+      <h1 className="mt-1 font-serif text-3xl text-ink">
         {classroom?.title ?? "Classroom chat"}
       </h1>
-      <p className="mt-1 text-sm text-ink-soft">
+      <p className="mt-3 text-sm text-ink-soft">
         {isTeacher
           ? "You're the teacher — tap Delete on any message to remove it."
           : "Posts are visible to every member of this classroom."}
       </p>
       {!chatOn && (
-        <p className="mt-3 rounded-md border border-ink-faded/40 bg-parchment-dark px-3 py-2 text-sm text-ink-soft">
+        <p className="mt-3 rounded-lg border border-rule bg-bg-soft px-3 py-2 text-sm text-ink-soft">
           Chat is currently <strong>disabled</strong> by the teacher. You can read
           history, but new messages can&apos;t be posted.
         </p>
       )}
-      {error && <p className="mt-2 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <div className="card mt-6 flex h-[520px] flex-col">
         <div ref={scrollerRef} className="flex-1 overflow-y-auto p-3">
@@ -153,7 +153,7 @@ export default function ClassroomChatPage({
                   {canDelete && (
                     <button
                       onClick={() => deleteMessage(m.messageId)}
-                      className="ml-auto text-seal opacity-0 transition group-hover:opacity-100"
+                      className="ml-auto text-red-600 opacity-0 transition group-hover:opacity-100"
                     >
                       Delete
                     </button>
@@ -164,7 +164,7 @@ export default function ClassroomChatPage({
             );
           })}
         </div>
-        <div className="border-t border-ink-faded/30 p-2">
+        <div className="border-t border-rule p-2">
           <form onSubmit={send} className="flex gap-2">
             <input
               className="input flex-1"

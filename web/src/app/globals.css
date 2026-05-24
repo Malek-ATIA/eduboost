@@ -4,94 +4,99 @@
 
 :root {
   color-scheme: light only;
+  --bg: #ffffff;
+  --bg-soft: #f4f4f3;
+  --bg-card: #ffffff;
+  --ink: #111315;
+  --ink-soft: #4a5057;
+  --ink-faded: #8a8f96;
+  --ink-mute: #c5c7cb;
+  --rule: #e6e6e4;
+  --rule-soft: #efefee;
+  --accent: #1f4a3a;
+  --accent-deep: #163428;
+  --accent-soft: #d8e3dc;
+  --accent-pale: #ecf2ee;
+  --warn: #b3551d;
+  --gold: #b9853a;
+  --legal: #c2c4c8;
+  --hit: 0.18s cubic-bezier(.2,.6,.2,1);
+
   --parchment: #ffffff;
-  --parchment-dark: #ffffff;
-  --ink: #1a1a1a;
-  --ink-soft: #4b4b4b;
-  --ink-faded: #8c8c8c;
-  --seal: #8b3a3a;
+  --parchment-dark: #f4f4f3;
+  --seal: #1f4a3a;
 }
 
 @layer base {
   html {
-    font-feature-settings: "liga", "kern";
+    font-feature-settings: "ss01", "cv11";
   }
   body {
-    /* Pure-white page background. The noise texture is gone — on a fully
-       white surface it's the only thing making the layout feel yellowed.
-       Cards and panels carry the residual parchment identity via
-       `bg-parchment-dark` / `bg-white/70`. If paper texture returns later,
-       set alpha ≤0.02 so it hints without tinting. */
     color: var(--ink);
-    background-color: var(--parchment);
+    background-color: var(--bg);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  h1,
-  h2,
-  h3,
-  h4 {
-    letter-spacing: -0.01em;
+  h1, h2, h3, h4 {
+    letter-spacing: -0.015em;
     color: var(--ink);
+    line-height: 1.05;
   }
-  h1 {
-    font-weight: 700;
-  }
-  /* Links default to the wax-seal red. Using the seal colour for every link
-     would exhaust the accent; most UIs use it via `.link-seal` on hover. */
+  h1 { font-weight: 500; }
   a {
-    color: var(--ink);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    color: inherit;
+    text-decoration: none;
     -webkit-tap-highlight-color: transparent;
   }
-  a:hover {
-    color: var(--seal);
-  }
   *:focus-visible {
-    outline: 2px solid var(--seal);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: 4px;
   }
   ::selection {
-    background: rgba(139, 58, 58, 0.2);
+    background: var(--accent);
+    color: #fff;
   }
 }
 
 @layer components {
-  /* Reusable parchment-themed primitives. Apply these classes directly or
-     compose their equivalents inline — keep the visual language consistent
-     but don't force an abstraction on one-off surfaces. */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md bg-ink px-5 py-2.5 text-sm font-medium text-parchment shadow-vellum transition hover:bg-ink-quill focus-visible:outline-seal disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white shadow-vellum transition hover:bg-accent-deep focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-seal {
-    @apply inline-flex items-center justify-center rounded-md bg-seal px-5 py-2.5 text-sm font-medium text-parchment shadow-seal transition hover:bg-seal-dark disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-seal transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-md border border-ink-faded/60 bg-parchment-dark px-5 py-2.5 text-sm font-medium text-ink shadow-vellum transition hover:border-ink/70 hover:bg-parchment-shade disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-rule bg-transparent px-5 py-2.5 text-sm font-medium text-ink shadow-vellum transition hover:border-ink disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:bg-parchment-dark hover:text-ink;
+    @apply inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:bg-bg-soft hover:text-ink;
   }
   .card {
-    @apply rounded-lg border border-ink-faded/30 bg-white/70 shadow-vellum;
+    @apply rounded-2xl border border-rule bg-bg-card;
   }
   .card-interactive {
-    @apply card transition hover:-translate-y-0.5 hover:border-ink-faded/60 hover:shadow-manuscript;
+    @apply card transition hover:-translate-y-0.5 hover:shadow-manuscript hover:border-ink/[0.16];
   }
   .input {
-    @apply block w-full rounded-md border border-ink-faded/50 bg-white/80 px-3 py-2 text-sm text-ink shadow-vellum transition placeholder:text-ink-faded/80 focus:border-seal focus:outline-none focus:ring-2 focus:ring-seal/20;
+    @apply block w-full rounded-[10px] border border-rule bg-bg-card px-3.5 py-2.5 text-sm text-ink shadow-none transition placeholder:text-ink-faded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/[0.12];
   }
   .label {
-    @apply mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-ink-soft;
+    @apply mb-1.5 block text-xs font-medium text-ink-soft tracking-wide;
   }
   .eyebrow {
-    @apply font-display text-xs font-semibold uppercase tracking-[0.2em] text-seal;
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-transparent bg-bg-soft px-3 py-1 text-xs text-ink-soft;
+  }
+  .chip-accent {
+    @apply bg-accent-pale text-accent-deep border-accent/[0.18];
+  }
+  .chip-outline {
+    @apply bg-transparent border-rule;
   }
   .rule {
-    /* Decorative horizontal rule with a centre diamond — used between page
-       sections to evoke a printed folio. */
     @apply flex items-center gap-3 text-ink-faded;
   }
   .rule::before,
@@ -123,8 +128,8 @@
     height: 18px;
     width: 18px;
     border-radius: 50%;
-    background: var(--ink);
-    border: 2px solid white;
+    background: var(--bg-card);
+    border: 2px solid var(--ink);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     margin-top: -7px;
@@ -134,8 +139,8 @@
     height: 18px;
     width: 18px;
     border-radius: 50%;
-    background: var(--ink);
-    border: 2px solid white;
+    background: var(--bg-card);
+    border: 2px solid var(--ink);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
   }

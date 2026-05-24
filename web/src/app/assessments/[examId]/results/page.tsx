@@ -58,20 +58,20 @@ export default function ResultsPage({
   }, [examId, router]);
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!exam) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Results</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Results · {exam.title}</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Results</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Results · {exam.title}</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         {exam.questions.length} questions ·{" "}
         <span className="font-mono">{examId}</span>
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {attempts && attempts.length === 0 && (
         <p className="mt-8 text-sm text-ink-soft">No attempts yet.</p>
@@ -83,7 +83,7 @@ export default function ResultsPage({
             <li key={a.studentId} className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-display text-base text-ink">
+                  <div className="font-serif text-base text-ink">
                     {a.student?.displayName ?? a.studentId}
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -102,7 +102,7 @@ export default function ResultsPage({
                   {exam.questions.map((q, i) => {
                     const ans = a.answers[i];
                     return (
-                      <li key={i} className="rounded-md bg-parchment/50 p-3 text-sm text-ink">
+                      <li key={i} className="rounded-lg bg-bg-soft p-3 text-sm text-ink">
                         <div className="text-xs text-ink-faded">Q{i + 1}</div>
                         <div>{q.prompt}</div>
                         <div className="mt-1 text-xs">
@@ -115,7 +115,7 @@ export default function ResultsPage({
                               {typeof ans === "number" && ans === q.correctIndex ? (
                                 <span className="text-ink">✓</span>
                               ) : (
-                                <span className="text-seal">✗</span>
+                                <span className="text-red-600">✗</span>
                               )}
                             </>
                           ) : (

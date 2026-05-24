@@ -15,21 +15,26 @@ type Notification = {
   createdAt: string;
 };
 
-type FilterTab = "all" | "unread";
+type FilterKey = "all" | "session" | "message" | "grade" | "payment" | "booking";
 
-const TYPE_META: Record<string, { icon: string; color: string }> = {
-  booking: { icon: "📅", color: "bg-blue-50 text-blue-700" },
-  session: { icon: "🎓", color: "bg-green-50 text-green-700" },
-  message: { icon: "✉️", color: "bg-purple-50 text-purple-700" },
-  grade: { icon: "📊", color: "bg-amber-50 text-amber-700" },
-  payment: { icon: "💳", color: "bg-emerald-50 text-emerald-700" },
-  review: { icon: "⭐", color: "bg-yellow-50 text-yellow-700" },
-  system: { icon: "🔔", color: "bg-parchment-dark text-ink-soft" },
+const TYPE_ICONS: Record<string, string> = {
+  booking: "📅",
+  session: "🎓",
+  message: "✉️",
+  grade: "📊",
+  payment: "💳",
+  review: "⭐",
+  system: "🔔",
 };
 
-function getTypeMeta(type: string) {
-  return TYPE_META[type] ?? TYPE_META.system;
-}
+const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "session", label: "Sessions" },
+  { key: "message", label: "Messages" },
+  { key: "grade", label: "Achievements" },
+  { key: "payment", label: "Payments" },
+  { key: "booking", label: "Bookings" },
+];
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -47,25 +52,31 @@ function groupByDate(items: Notification[]): { label: string; items: Notificatio
   const groups: Record<string, Notification[]> = {};
   const today = new Date().toDateString();
   const yesterday = new Date(Date.now() - 86_400_000).toDateString();
+  const weekAgo = Date.now() - 7 * 86_400_000;
 
   for (const n of items) {
-    const d = new Date(n.createdAt).toDateString();
+    const d = new Date(n.createdAt);
+    const ds = d.toDateString();
     let label: string;
-    if (d === today) label = "Today";
-    else if (d === yesterday) label = "Yesterday";
-    else label = new Date(n.createdAt).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+    if (ds === today) label = "Today";
+    else if (ds === yesterday) label = "Yesterday";
+    else if (d.getTime() > weekAgo) label = "This week";
+    else label = "Earlier";
     if (!groups[label]) groups[label] = [];
     groups[label].push(n);
   }
 
-  return Object.entries(groups).map(([label, items]) => ({ label, items }));
+  const order = ["Today", "Yesterday", "This week", "Earlier"];
+  return order
+    .filter((l) => groups[l])
+    .map((label) => ({ label, items: groups[label] }));
 }
 
 export default function NotificationsPage() {
   const router = useRouter();
   const [items, setItems] = useState<Notification[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<FilterTab>("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   const load = useCallback(async () => {
     try {
@@ -96,9 +107,7 @@ export default function NotificationsPage() {
           x.notificationId === n.notificationId ? { ...x, readAt: new Date().toISOString() } : x,
         ) ?? null,
       );
-    } catch {
-      // swallow
-    }
+    } catch {}
   }
 
   async function markAll() {
@@ -114,168 +123,156 @@ export default function NotificationsPage() {
   const unreadCount = (items ?? []).filter((n) => !n.readAt).length;
 
   const filtered = (items ?? [])
-    .filter((n) => filter === "all" || !n.readAt)
+    .filter((n) => filter === "all" || n.type === filter)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const groups = groupByDate(filtered);
 
+  const countByType = (type: FilterKey) => {
+    if (type === "all") return (items ?? []).length;
+    return (items ?? []).filter((n) => n.type === type).length;
+  };
+
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      {/* Page head */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Inbox</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Notifications</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Notifications</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+            What&apos;s <span className="italic">new</span>.
+          </h1>
+          <p className="mt-3 text-base text-ink-soft">
             {unreadCount > 0
-              ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
-              : "You're all caught up"}
+              ? `${unreadCount} unread. Everything older than 30 days is archived automatically.`
+              : "You're all caught up. Everything older than 30 days is archived automatically."}
           </p>
         </div>
-        {unreadCount > 0 && (
-          <button onClick={markAll} className="btn-ghost shrink-0">
-            Mark all read
-          </button>
-        )}
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <button onClick={markAll} className="btn-ghost text-sm">
+              Mark all as read
+            </button>
+          )}
+        </div>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      {/* Loading */}
       {items === null && !error && (
-        <div className="mt-8 flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+        <div className="mt-10 flex justify-center py-12">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
       )}
 
-      {/* Stats bar */}
-      {items && items.length > 0 && (
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-ink">{items.length}</div>
-            <div className="text-xs text-ink-faded">Total</div>
-          </div>
-          <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-seal">{unreadCount}</div>
-            <div className="text-xs text-ink-faded">Unread</div>
-          </div>
-          <div className="card p-3 text-center">
-            <div className="font-display text-2xl text-green-700">{items.length - unreadCount}</div>
-            <div className="text-xs text-ink-faded">Read</div>
-          </div>
-        </div>
-      )}
-
-      {/* Filter tabs */}
-      {items && items.length > 0 && (
-        <div className="mt-6 flex gap-1 border-b border-ink-faded/20">
-          {(["all", "unread"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`border-b-2 px-4 py-2 text-xs font-medium capitalize transition ${
-                filter === f
-                  ? "border-seal text-seal"
-                  : "border-transparent text-ink-faded hover:text-ink"
-              }`}
-            >
-              {f}
-              {f === "unread" && unreadCount > 0 && (
-                <span className="ml-1.5 rounded-full bg-seal/15 px-1.5 py-0.5 text-[10px] text-seal">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
       {items && items.length === 0 && (
         <div className="mt-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">🔔</span>
           </div>
-          <p className="mt-4 font-display text-lg text-ink">No notifications yet</p>
-          <p className="mt-1 text-sm text-ink-soft">
-            We'll notify you about bookings, messages, grades, and more.
+          <p className="mt-4 font-serif text-lg text-ink">No notifications yet</p>
+          <p className="mt-3 text-sm text-ink-soft">
+            We&apos;ll notify you about bookings, messages, grades, and more.
           </p>
         </div>
       )}
 
-      {/* Empty filtered state */}
-      {items && items.length > 0 && filtered.length === 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-sm text-ink-soft">No unread notifications</p>
-          <button
-            onClick={() => setFilter("all")}
-            className="mt-2 text-sm text-seal hover:underline"
-          >
-            Show all notifications
-          </button>
-        </div>
-      )}
+      {items && items.length > 0 && (
+        <div className="notif-grid mt-8 grid gap-8" style={{ gridTemplateColumns: "240px 1fr" }}>
+          {/* Filter rail */}
+          <aside>
+            <div className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
+              Filter
+            </div>
+            <div className="mt-2.5 flex flex-col gap-1">
+              {FILTER_OPTIONS.map((f) => {
+                const count = countByType(f.key);
+                const isActive = filter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilter(f.key)}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[13.5px] transition ${
+                      isActive
+                        ? "border border-rule bg-bg-soft font-medium text-ink"
+                        : "border border-transparent text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    <span>{f.label}</span>
+                    <span className="font-mono text-[11px] text-ink-faded">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
 
-      {/* Grouped notification list */}
-      {groups.map((group) => (
-        <div key={group.label} className="mt-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-widest text-ink-faded">
-            {group.label}
-          </h3>
-          <ul className="space-y-2">
-            {group.items.map((n) => {
-              const meta = getTypeMeta(n.type);
-              const inner = (
-                <div
-                  className={`flex items-start gap-3 rounded-lg border p-4 transition ${
-                    n.readAt
-                      ? "border-ink-faded/15 bg-parchment opacity-70"
-                      : "border-ink-faded/25 bg-parchment shadow-sm"
-                  } hover:shadow-md`}
-                >
-                  {/* Type icon */}
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${meta.color}`}>
-                    <span className="text-sm">{meta.icon}</span>
-                  </div>
-
-                  {/* Content */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className={`text-sm ${n.readAt ? "text-ink-soft" : "font-medium text-ink"}`}>
-                        {n.title}
-                      </h4>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="text-xs text-ink-faded">{timeAgo(n.createdAt)}</span>
+          {/* Notification groups */}
+          <div>
+            {groups.length === 0 && (
+              <div className="py-8 text-center text-sm text-ink-faded">
+                No notifications match this filter.
+              </div>
+            )}
+            {groups.map((g) => (
+              <div key={g.label} className="mb-6">
+                <div className="mb-2.5 px-1 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
+                  {g.label}
+                </div>
+                <div className="card divide-y divide-rule-soft overflow-hidden p-0">
+                  {g.items.map((n) => {
+                    const icon = TYPE_ICONS[n.type] ?? TYPE_ICONS.system;
+                    const inner = (
+                      <div
+                        className={`flex items-center gap-3.5 px-[18px] py-4 transition ${
+                          n.readAt ? "bg-white" : "bg-bg-soft"
+                        } hover:bg-bg-soft`}
+                      >
+                        <div
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                            n.readAt
+                              ? "bg-bg-soft text-ink-soft"
+                              : "bg-accent text-white"
+                          }`}
+                        >
+                          <span className="text-sm">{icon}</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className={`text-sm ${n.readAt ? "" : "font-medium"}`}>
+                            {n.title}
+                          </div>
+                          <div className="mt-0.5 text-[12.5px] text-ink-faded">{n.body}</div>
+                        </div>
+                        <span className="shrink-0 font-mono text-[11.5px] text-ink-faded">
+                          {timeAgo(n.createdAt)}
+                        </span>
                         {!n.readAt && (
-                          <span className="h-2 w-2 rounded-full bg-seal" />
+                          <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
                         )}
                       </div>
-                    </div>
-                    <p className="mt-0.5 text-sm text-ink-soft">{n.body}</p>
-                    {n.linkPath && (
-                      <span className="mt-1 inline-block text-xs text-seal">
-                        View details →
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
+                    );
 
-              return (
-                <li key={n.notificationId} onClick={() => markOne(n)} className="cursor-pointer">
-                  {n.linkPath ? (
-                    <Link href={n.linkPath as never} className="block">
-                      {inner}
-                    </Link>
-                  ) : (
-                    inner
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    return (
+                      <div
+                        key={n.notificationId}
+                        onClick={() => markOne(n)}
+                        className="cursor-pointer"
+                      >
+                        {n.linkPath ? (
+                          <Link href={n.linkPath as never} className="block">
+                            {inner}
+                          </Link>
+                        ) : (
+                          inner
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
     </main>
   );
 }

@@ -208,8 +208,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
     return Object.values(rx.counts).reduce((a, b) => a + b, 0);
   }
 
-  if (error) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-seal">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (error) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (!data) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const postRx = reactions[data.post.postId];
   const postTotal = totalReactions(data.post.postId);
@@ -217,7 +217,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
   const hasLikedPost = postRx?.mine?.includes("like");
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
       <Link href={`/forum/${data.post.channelId}` as never} className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
         <ArrowLeft size={16} />
         Back to channel
@@ -238,7 +238,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
               <button
                 onClick={deletePost}
                 disabled={deleting}
-                className="rounded-md p-1.5 text-ink-faded transition hover:bg-red-50 hover:text-red-600"
+                className="rounded-md p-1.5 text-ink-faded transition hover:bg-accent/5 hover:text-accent"
                 title="Delete post"
               >
                 <Trash2 size={16} />
@@ -251,14 +251,14 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
 
         {/* Reaction summary */}
         {(postTotal > 0 || data.comments.length > 0) && (
-          <div className="flex items-center justify-between border-t border-ink-faded/15 px-6 py-2">
+          <div className="flex items-center justify-between border-t border-rule-soft px-6 py-2">
             <div className="flex items-center gap-1.5">
               {postReactionEntries.length > 0 && (
                 <div className="flex -space-x-1">
                   {postReactionEntries.slice(0, 3).map(([key]) => (
                     <span
                       key={key}
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-seal/10 text-seal"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 text-accent"
                     >
                       <ReactionIcon name={key} size={16} />
                     </span>
@@ -278,11 +278,11 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
         )}
 
         {/* Facebook-style action buttons */}
-        <div className="flex border-t border-ink-faded/15">
+        <div className="flex border-t border-rule-soft">
           <button
             onClick={() => toggleReaction(data.post.postId, "post", "like")}
             className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition hover:bg-gray-50 ${
-              hasLikedPost ? "text-seal" : "text-ink-soft"
+              hasLikedPost ? "text-red-600" : "text-ink-soft"
             }`}
           >
             <ThumbsUp size={18} fill={hasLikedPost ? "currentColor" : "none"} />
@@ -329,7 +329,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
         {/* Comment input */}
         <form onSubmit={addComment} className="mt-4 flex items-start gap-3">
           {viewerSub && <Avatar userId={viewerSub} size="sm" />}
-          <div className="flex-1 overflow-hidden rounded-2xl border border-ink-faded/30 bg-gray-50 focus-within:border-seal/40 focus-within:bg-white">
+          <div className="flex-1 overflow-hidden rounded-2xl border border-rule bg-gray-50 focus-within:border-accent/40 focus-within:bg-white">
             <textarea
               id="comment-box"
               rows={2}
@@ -339,11 +339,11 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Write a comment..."
             />
-            <div className="flex items-center justify-end border-t border-ink-faded/10 px-3 py-1.5">
+            <div className="flex items-center justify-end border-t border-rule-soft px-3 py-1.5">
               <button
                 type="submit"
                 disabled={submitting || !draft.trim()}
-                className="inline-flex items-center gap-1.5 rounded-full bg-seal px-4 py-1.5 text-xs font-medium text-white transition hover:bg-seal-dark disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-white transition hover:bg-accent-deep disabled:opacity-40"
               >
                 <Send size={14} />
                 {submitting ? "Posting..." : "Post"}
@@ -372,7 +372,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
                       {viewerSub === cm.authorId && (
                         <button
                           onClick={() => deleteComment(cm.commentId)}
-                          className="rounded p-1 text-ink-faded opacity-0 transition hover:bg-red-50 hover:text-red-600 group-hover/comment:opacity-100"
+                          className="rounded p-1 text-ink-faded opacity-0 transition hover:bg-accent/5 hover:text-accent group-hover/comment:opacity-100"
                           title="Delete comment"
                         >
                           <Trash2 size={14} />
@@ -387,8 +387,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
                   <div className="mt-1 flex items-center gap-4 pl-4">
                     <button
                       onClick={() => toggleReaction(cm.commentId, "comment", "like")}
-                      className={`flex items-center gap-1 text-xs font-semibold transition hover:text-seal ${
-                        hasLikedComment ? "text-seal" : "text-ink-faded"
+                      className={`flex items-center gap-1 text-xs font-semibold transition hover:text-accent ${
+                        hasLikedComment ? "text-red-600" : "text-ink-faded"
                       }`}
                     >
                       <ThumbsUp size={13} fill={hasLikedComment ? "currentColor" : "none"} />
@@ -412,7 +412,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
                           }
                         }
                       }}
-                      className="flex items-center gap-1 text-xs font-semibold text-ink-faded transition hover:text-seal"
+                      className="flex items-center gap-1 text-xs font-semibold text-ink-faded transition hover:text-accent"
                     >
                       <Link2 size={13} />
                       {shared === cm.commentId ? "Copied!" : "Share"}
@@ -423,7 +423,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
                           {cmEntries.slice(0, 3).map(([key]) => (
                             <span
                               key={key}
-                              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-seal/10 text-seal"
+                              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent/10 text-accent"
                             >
                               <ReactionIcon name={key} size={10} />
                             </span>
@@ -465,7 +465,7 @@ function ReactionPicker({
         <SmilePlus size={small ? 13 : 18} />
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 gap-1 rounded-full border border-ink-faded/20 bg-white px-2 py-1.5 shadow-lg">
+        <div className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 gap-1 rounded-full border border-rule-soft bg-white px-2 py-1.5 shadow-lg">
           {Object.entries(REACTION_META).map(([key, { label }]) => (
             <button
               key={key}
@@ -474,7 +474,7 @@ function ReactionPicker({
                 setOpen(false);
               }}
               className={`rounded-full p-2 transition hover:scale-125 hover:bg-gray-100 ${
-                existing.includes(key) ? "bg-seal/10 text-seal" : "text-ink-soft"
+                existing.includes(key) ? "bg-accent/10 text-accent" : "text-ink-soft"
               }`}
               title={label}
             >

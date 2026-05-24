@@ -73,12 +73,12 @@ function NewSessionForm() {
 
   if (!bookingId && !classroomId) {
     return (
-      <main className="mx-auto max-w-lg px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-parchment-dark">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📅</span>
           </div>
-          <h1 className="mt-4 font-display text-2xl tracking-tight text-ink">
+          <h1 className="mt-4 font-serif text-2xl tracking-tight text-ink">
             Schedule a session
           </h1>
           <p className="mt-2 text-sm text-ink-soft">
@@ -99,12 +99,12 @@ function NewSessionForm() {
 
   if (success) {
     return (
-      <main className="mx-auto max-w-lg px-6 pb-24 pt-16">
+      <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
         <div className="text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <span className="text-2xl">✅</span>
           </div>
-          <h1 className="mt-4 font-display text-2xl text-ink">Session scheduled!</h1>
+          <h1 className="mt-4 font-serif text-2xl text-ink">Session scheduled!</h1>
           <p className="mt-2 text-sm text-ink-soft">Redirecting to your calendar...</p>
         </div>
       </main>
@@ -112,7 +112,7 @@ function NewSessionForm() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
       {/* Back link */}
       <Link
         href={bookingId ? "/teacher/bookings" : "/classrooms"}
@@ -123,14 +123,14 @@ function NewSessionForm() {
 
       {/* Header */}
       <div className="mt-4">
-        <p className="eyebrow">Session</p>
-        <h1 className="mt-1 font-display text-3xl tracking-tight text-ink">
+        <div className="eyebrow">Session</div>
+        <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">
           Schedule a session
         </h1>
       </div>
 
       {/* Context card */}
-      <div className="card mt-6 flex items-center gap-3 bg-parchment-dark p-4">
+      <div className="card mt-6 flex items-center gap-3 bg-bg-soft p-4">
         <span className="text-2xl">{bookingId ? "📋" : "🏫"}</span>
         <div>
           <div className="text-sm font-medium text-ink">
@@ -144,8 +144,8 @@ function NewSessionForm() {
 
       {/* Form */}
       <form onSubmit={onSubmit} className="card mt-6 overflow-hidden">
-        <div className="border-b border-ink-faded/20 bg-parchment-dark px-5 py-3">
-          <h2 className="font-display text-base text-ink">Session details</h2>
+        <div className="border-b border-rule-soft bg-bg-soft px-5 py-3">
+          <h2 className="font-serif text-base text-ink">Session details</h2>
         </div>
 
         <div className="space-y-5 p-5">
@@ -161,7 +161,7 @@ function NewSessionForm() {
               onChange={(e) => setDate(e.target.value)}
             />
             {isPast && (
-              <p className="mt-1 text-xs text-seal">Selected time is in the past</p>
+              <p className="mt-1 text-xs text-red-600">Selected time is in the past</p>
             )}
             {isWeekend && !isPast && (
               <p className="mt-1 text-xs text-amber-600">This is a weekend day</p>
@@ -179,8 +179,8 @@ function NewSessionForm() {
                   onClick={() => setDurationMin(d)}
                   className={`rounded-md border px-3 py-2 text-sm font-medium transition ${
                     durationMin === d
-                      ? "border-seal bg-seal/10 text-seal"
-                      : "border-ink-faded/30 text-ink-soft hover:border-ink-faded"
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-rule text-ink-soft hover:border-rule"
                   }`}
                 >
                   {d} min
@@ -205,7 +205,7 @@ function NewSessionForm() {
           </div>
 
           {/* Preview */}
-          <div className="rounded-md bg-parchment-dark p-4">
+          <div className="rounded-lg bg-bg-soft p-4">
             <h4 className="eyebrow mb-2">Session preview</h4>
             <div className="space-y-1.5 text-sm">
               <div className="flex items-center gap-2 text-ink">
@@ -236,7 +236,7 @@ function NewSessionForm() {
 
           {/* Error */}
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-lg border border-accent/20 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -272,11 +272,11 @@ export default function NewSessionPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-lg px-6 pb-24 pt-16">
-          <p className="eyebrow">Session</p>
-          <h1 className="mt-1 font-display text-3xl tracking-tight text-ink">Schedule a session</h1>
+        <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
+          <div className="eyebrow">Session</div>
+          <h1 className="mt-1 font-serif text-3xl tracking-tight text-ink">Schedule a session</h1>
           <div className="mt-8 flex justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-faded border-t-seal" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>
         </main>
       }

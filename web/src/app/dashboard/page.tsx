@@ -44,7 +44,7 @@ export default function DashboardPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">
       Loading...
     </main>
   );

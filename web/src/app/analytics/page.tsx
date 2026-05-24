@@ -81,11 +81,11 @@ export default function AnalyticsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Insights</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+          <div className="eyebrow">Insights</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
             {role === "parent"
               ? "Family analytics"
               : role === "teacher"
@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
         </div>
 </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {!error && !student && !parent && !teacher && (
         <p className="mt-6 text-sm text-ink-soft">Loading...</p>
       )}
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
 
       {teacher && (
         <section className="card mt-8 p-5">
-          <h2 className="font-display text-xl text-ink">Totals</h2>
+          <h2 className="font-serif text-xl text-ink">Totals</h2>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             <Stat
               label="Earnings (net)"
@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
       {parent && (
         <>
           <section className="card mt-8 p-5">
-            <h2 className="font-display text-xl text-ink">Household summary</h2>
+            <h2 className="font-serif text-xl text-ink">Household summary</h2>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <Stat
                 label="Total spent"
@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
 function MetricsGrid({ title, m }: { title: string; m: UserMetrics }) {
   return (
     <section className="card mt-8 p-5">
-      <h2 className="font-display text-xl text-ink">{title}</h2>
+      <h2 className="font-serif text-xl text-ink">{title}</h2>
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <Stat
           label="Total spent"
@@ -204,7 +204,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="eyebrow">{label}</div>
-      <div className="mt-1 font-display text-lg text-ink">{value}</div>
+      <div className="mt-1 font-serif text-lg text-ink">{value}</div>
     </div>
   );
 }

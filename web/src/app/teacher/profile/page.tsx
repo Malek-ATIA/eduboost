@@ -111,20 +111,20 @@ export default function TeacherProfilePage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-2xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (loading) return <main className="mx-auto max-w-2xl px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const vStatus = form.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Teacher</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Teacher profile</h1>
-      <p className="mt-1 text-sm text-ink-soft">This is what students and parents see.</p>
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Teacher</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Teacher profile</h1>
+      <p className="mt-3 text-sm text-ink-soft">This is what students and parents see.</p>
 
       <section className="card mt-6 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-display text-base text-ink">Verification</div>
+            <div className="font-serif text-base text-ink">Verification</div>
             <div className="mt-0.5 text-xs text-ink-faded">
               Verified teachers get a badge and rank higher in search results.
             </div>
@@ -132,12 +132,12 @@ export default function TeacherProfilePage() {
           <span
             className={`rounded-sm border px-3 py-1 text-xs uppercase tracking-widest ${
               vStatus === "verified"
-                ? "border-seal/40 bg-seal/10 text-seal"
+                ? "border-accent/30 bg-accent/10 text-accent"
                 : vStatus === "pending"
-                  ? "border-ink-faded/50 bg-parchment/40 text-ink-faded"
+                  ? "border-rule bg-bg-soft text-ink-faded"
                   : vStatus === "rejected"
-                    ? "border-seal/40 bg-seal/10 text-seal"
-                    : "border-ink-faded/50 bg-parchment/40 text-ink-soft"
+                    ? "border-accent/30 bg-accent/10 text-accent"
+                    : "border-rule bg-bg-soft text-ink-soft"
             }`}
           >
             {vStatus.replace("_", " ")}
@@ -160,7 +160,7 @@ export default function TeacherProfilePage() {
 
       {userId && (
         <section className="card mt-6 p-6">
-          <div className="font-display text-base text-ink">Profile picture</div>
+          <div className="font-serif text-base text-ink">Profile picture</div>
           <div className="mt-0.5 text-xs text-ink-faded">Optional. Shown on the directory and your teacher page.</div>
           <div className="mt-4">
             <AvatarPicker userId={userId} />
@@ -170,7 +170,7 @@ export default function TeacherProfilePage() {
 
       {userId && (
         <section className="card mt-6 p-6">
-          <div className="font-display text-base text-ink">Intro video</div>
+          <div className="font-serif text-base text-ink">Intro video</div>
           <div className="mt-0.5 text-xs text-ink-faded">
             Record a short video introducing yourself. Students see this on your profile.
           </div>
@@ -273,7 +273,7 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.trialSession}
             onChange={(e) => setForm({ ...form, trialSession: e.target.checked })}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           Offer a free or discounted trial session
         </label>
@@ -282,7 +282,7 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.individualSessions}
             onChange={(e) => setForm({ ...form, individualSessions: e.target.checked })}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           Offer 1-on-1 individual sessions
         </label>
@@ -291,12 +291,12 @@ export default function TeacherProfilePage() {
             type="checkbox"
             checked={form.groupSessions}
             onChange={(e) => setForm({ ...form, groupSessions: e.target.checked })}
-            className="accent-seal"
+            className="accent-[#1f4a3a]"
           />
           Offer group sessions
         </label>
 
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
         {saved && <p className="text-sm text-ink">Saved.</p>}
 
         <button

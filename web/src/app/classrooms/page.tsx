@@ -39,29 +39,35 @@ export default function MyClassroomsPage() {
   }, [router]);
 
   if (!ready)
-    return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">Loading…</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
 
   const teaching = (items ?? []).filter((c) => c.myRole === "teacher");
   const enrolled = (items ?? []).filter((c) => c.myRole !== "teacher");
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
-      <div className="flex items-start justify-between gap-4">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Classrooms</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">My classrooms</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Manage the courses you teach, or open a room you&apos;re enrolled in.
+          <div className="eyebrow">Classroom</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+            {role === "student" && <>Return to your <span className="italic">studies</span>.</>}
+            {role === "teacher" && <>Open your <span className="italic">classroom</span>.</>}
+            {role !== "student" && role !== "teacher" && <>My <span className="italic">classrooms</span>.</>}
+          </h1>
+          <p className="mt-3 max-w-[560px] text-base leading-relaxed text-ink-soft">
+            {role === "student" && "Pick up the lesson you left, review notes, and join the next session — all from one room."}
+            {role === "teacher" && "Manage your students, schedule, and live sessions."}
+            {role !== "student" && role !== "teacher" && "Manage the courses you teach, or open a room you're enrolled in."}
           </p>
         </div>
         {role === "teacher" && (
-          <Link href="/classrooms/new" className="btn-seal shrink-0">
+          <Link href="/classrooms/new" className="btn-primary shrink-0">
             Create a classroom
           </Link>
         )}
       </div>
 
-      {error && <p className="mt-6 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
 
       {items === null && !error && (
         <p className="mt-8 text-sm text-ink-soft">Loading…</p>
@@ -83,7 +89,7 @@ export default function MyClassroomsPage() {
 
       {teaching.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-display text-xl text-ink">Teaching</h2>
+          <h2 className="font-serif text-xl text-ink">Teaching</h2>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {teaching.map((c) => (
               <ClassroomCard key={c.classroomId} c={c} />
@@ -94,7 +100,7 @@ export default function MyClassroomsPage() {
 
       {enrolled.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-display text-xl text-ink">Enrolled</h2>
+          <h2 className="font-serif text-xl text-ink">Enrolled</h2>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {enrolled.map((c) => (
               <ClassroomCard key={c.classroomId} c={c} />
@@ -114,8 +120,8 @@ function ClassroomCard({ c }: { c: Classroom }) {
         className="card-interactive block p-5"
       >
         <div className="flex items-center justify-between">
-          <div className="font-display text-lg text-ink">{c.title}</div>
-          <span className="rounded-sm border border-ink-faded/40 bg-parchment-dark px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
+          <div className="font-serif text-lg text-ink">{c.title}</div>
+          <span className="rounded-md border border-rule bg-bg-soft px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
             {c.status}
           </span>
         </div>

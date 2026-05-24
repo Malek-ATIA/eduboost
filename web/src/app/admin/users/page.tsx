@@ -70,14 +70,14 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-4xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Users</h1>
+          <div className="eyebrow">Admin</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Users</h1>
         </div>
         <Link href="/admin" className="btn-ghost">
           ← Admin hub
@@ -117,25 +117,25 @@ export default function AdminUsersPage() {
         </form>
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-6 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && <p className="mt-6 text-sm text-ink-soft">No users found.</p>}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((u) => (
             <li key={u.userId}>
               <Link
                 href={`/admin/users/${u.userId}` as never}
-                className="flex items-center justify-between p-3 transition hover:bg-parchment-shade"
+                className="flex items-center justify-between p-3 transition hover:bg-bg-soft"
               >
                 <div>
-                  <div className="font-display text-base text-ink">{u.displayName}</div>
+                  <div className="font-serif text-base text-ink">{u.displayName}</div>
                   <div className="text-xs text-ink-faded">
                     {u.email} · {u.role} · joined {new Date(u.createdAt).toLocaleDateString()}
                   </div>
                 </div>
                 {u.bannedAt ? (
-                  <span className="rounded-sm border border-seal/40 bg-seal/10 px-2 py-0.5 text-xs uppercase tracking-widest text-seal">
+                  <span className="rounded-md border border-accent/30 bg-accent-pale px-2 py-0.5 text-xs uppercase tracking-widest text-accent">
                     banned
                   </span>
                 ) : (

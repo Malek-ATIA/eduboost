@@ -122,19 +122,19 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
     }
   }
 
-  if (error) return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-seal">{error}</main>;
+  if (error) return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-red-600">{error}</main>;
   if (!listing)
-    return <main className="mx-auto max-w-md px-6 pb-24 pt-16 text-ink-soft">Preparing checkout...</main>;
+    return <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-ink-soft">Preparing checkout...</main>;
 
   const isPhysical = listing.kind === "physical";
   const shipping = listing.shippingCostCents ?? 0;
   const total = listing.priceCents + (isPhysical ? shipping : 0);
 
   return (
-    <main className="mx-auto max-w-md px-6 pb-24 pt-16">
-      <p className="eyebrow">Checkout</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">Buy {listing.title}</h1>
-      <p className="mt-1 text-sm text-ink-soft">
+    <main className="mx-auto max-w-md px-8 pb-24 pt-12">
+      <div className="eyebrow">Checkout</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Buy {listing.title}</h1>
+      <p className="mt-3 text-sm text-ink-soft">
         {formatMoney(listing.priceCents, listing.currency)}
         {isPhysical && (
           <>
@@ -147,7 +147,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
         )}
       </p>
       {isPhysical && (
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-3 text-sm text-ink-soft">
           Total:{" "}
           <strong className="text-ink">
             {formatMoney(total, listing.currency)}
@@ -157,7 +157,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
 
       {isPhysical && !clientSecret && (
         <form onSubmit={onAddressSubmit} className="card mt-8 space-y-3 p-6">
-          <h2 className="font-display text-base text-ink">Shipping address</h2>
+          <h2 className="font-serif text-base text-ink">Shipping address</h2>
           <label className="block">
             <span className="label">Full name</span>
             <input
@@ -284,7 +284,7 @@ function CheckoutForm({ orderId }: { orderId: string }) {
   return (
     <form onSubmit={onSubmit} className="card mt-8 space-y-4 p-6">
       <PaymentElement />
-      {error && <p className="text-sm text-seal">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
         disabled={!stripe || submitting}

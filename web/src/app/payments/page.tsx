@@ -22,7 +22,7 @@ type Payment = {
 const STATUS_COLORS: Record<Payment["status"], string> = {
   pending: "text-ink-faded",
   succeeded: "text-ink",
-  failed: "text-seal",
+  failed: "text-red-600",
   refunded: "text-ink-faded",
 };
 
@@ -78,28 +78,28 @@ export default function PaymentsPage() {
 
   const isTeacher = role === "teacher";
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Ledger</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <div className="eyebrow">Ledger</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
         {isTeacher ? "Payments received" : "Payment history"}
       </h1>
-      <p className="mt-1 text-sm text-ink-soft">
+      <p className="mt-3 text-sm text-ink-soft">
         {isTeacher
           ? "Session payouts paid to you. Download invoices for your records."
           : "All payments you\u2019ve made. Download invoices for your records."}
       </p>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No payments yet.</p>
       )}
       {items && items.length > 0 && (
-        <ul className="card mt-6 divide-y divide-ink-faded/30">
+        <ul className="card mt-6 divide-y divide-rule">
           {items.map((p) => (
             <li key={p.paymentId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-display text-base text-ink">
+                <div className="font-serif text-base text-ink">
                   {formatMoney(p.amountCents, p.currency)}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-faded">
@@ -128,7 +128,7 @@ export default function PaymentsPage() {
                       pathname: "/support/new",
                       query: { category: "payment_dispute", paymentId: p.paymentId, bookingId: p.bookingId },
                     }}
-                    className="btn-secondary text-seal"
+                    className="btn-secondary text-red-600"
                   >
                     Dispute
                   </Link>

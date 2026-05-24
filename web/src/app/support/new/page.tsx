@@ -140,9 +140,9 @@ function NewTicketForm() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-      <p className="eyebrow">Support</p>
-      <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New support ticket</h1>
+    <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+      <div className="eyebrow">Support</div>
+      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New support ticket</h1>
 
       <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <Field label="Subject">
@@ -254,7 +254,7 @@ function NewTicketForm() {
         </div>
 
         {progress && <p className="text-xs text-ink-soft">{progress}</p>}
-        {error && <p className="text-sm text-seal">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
@@ -274,9 +274,9 @@ export default function NewTicketPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-2xl px-6 pb-24 pt-16">
-          <p className="eyebrow">Support</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">New support ticket</h1>
+        <main className="mx-auto max-w-2xl px-8 pb-24 pt-12">
+          <div className="eyebrow">Support</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New support ticket</h1>
           <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }

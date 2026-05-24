@@ -123,7 +123,7 @@ function ClassroomStudents({
         {open ? "Hide" : "Manage"} students →
       </button>
       {open && (
-        <div className="mt-3 space-y-3 rounded-md border border-ink-faded/40 bg-parchment/40 p-3">
+        <div className="mt-3 space-y-3 rounded-lg border border-rule bg-bg-soft p-3">
           <form onSubmit={assign} className="space-y-2">
             <label className="block">
               <span className="label">Add students by email (comma, space, or newline-separated)</span>
@@ -143,7 +143,7 @@ function ClassroomStudents({
               {submitting ? "Adding..." : "Add students"}
             </button>
           </form>
-          {error && <p className="text-xs text-seal">{error}</p>}
+          {error && <p className="text-xs text-red-600">{error}</p>}
           {lastResult && (
             <p className="text-xs text-ink-soft">
               {lastResult.added.length} added · {lastResult.alreadyMember.length} already enrolled ·{" "}
@@ -160,7 +160,7 @@ function ClassroomStudents({
             <p className="text-xs text-ink-faded">No members yet.</p>
           )}
           {members && members.length > 0 && (
-            <ul className="divide-y divide-ink-faded/30">
+            <ul className="divide-y divide-rule">
               {members.map((m) => (
                 <li key={m.userId} className="flex items-center justify-between py-2 text-xs">
                   <span>
@@ -264,20 +264,20 @@ export default function OrgDetailPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-sm text-seal">{error}</main>;
+    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 text-ink-soft">Loading...</main>;
+  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
 
   const { org, members } = data;
   const canManage = org.myRole === "owner" || org.myRole === "admin";
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <div className="flex items-center justify-between">
         <div>
-          <p className="eyebrow">Organization</p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-ink">{org.name}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <div className="eyebrow">Organization</div>
+          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{org.name}</h1>
+          <p className="mt-3 text-sm text-ink-soft">
             {org.kind} · {org.country ?? "—"} · your role: {org.myRole}
           </p>
         </div>
@@ -290,10 +290,10 @@ export default function OrgDetailPage({
         <p className="mt-4 text-sm text-ink">{org.description}</p>
       )}
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Members ({members.length})</h2>
+        <h2 className="font-serif text-xl text-ink">Members ({members.length})</h2>
         {canManage && (
           <form onSubmit={invite} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <input
@@ -324,11 +324,11 @@ export default function OrgDetailPage({
             </button>
           </form>
         )}
-        <ul className="card mt-4 divide-y divide-ink-faded/30">
+        <ul className="card mt-4 divide-y divide-rule">
           {members.map((m) => (
             <li key={m.userId} className="flex items-center justify-between p-3 text-sm">
               <div>
-                <div className="font-display text-base text-ink">{m.user?.displayName ?? m.userId}</div>
+                <div className="font-serif text-base text-ink">{m.user?.displayName ?? m.userId}</div>
                 <div className="text-xs text-ink-faded">
                   {m.user?.email ?? m.userId} · {m.role} · joined{" "}
                   {new Date(m.joinedAt).toLocaleDateString()}
@@ -337,7 +337,7 @@ export default function OrgDetailPage({
               {canManage && m.userId !== org.ownerId && (
                 <button
                   onClick={() => removeMember(m.userId)}
-                  className="btn-ghost text-seal"
+                  className="btn-ghost text-red-600"
                 >
                   Remove
                 </button>
@@ -348,7 +348,7 @@ export default function OrgDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-ink">Classrooms ({classrooms?.length ?? 0})</h2>
+        <h2 className="font-serif text-xl text-ink">Classrooms ({classrooms?.length ?? 0})</h2>
         {canManage && (
           <form onSubmit={linkClassroom} className="mt-4 flex gap-2">
             <input
@@ -370,10 +370,10 @@ export default function OrgDetailPage({
           <p className="mt-4 text-sm text-ink-soft">No classrooms linked yet.</p>
         )}
         {classrooms && classrooms.length > 0 && (
-          <ul className="card mt-4 divide-y divide-ink-faded/30">
+          <ul className="card mt-4 divide-y divide-rule">
             {classrooms.map((c) => (
               <li key={c.classroomId} className="p-3 text-sm">
-                <div className="font-display text-base text-ink">{c.title}</div>
+                <div className="font-serif text-base text-ink">{c.title}</div>
                 <div className="text-xs text-ink-faded">
                   {c.subject} · status {c.status} ·{" "}
                   <span className="font-mono">{c.classroomId}</span>
@@ -390,7 +390,7 @@ export default function OrgDetailPage({
       {org.kind === "commercial" && (
         <section className="mt-10">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl text-ink">
+            <h2 className="font-serif text-xl text-ink">
               Marketplace listings ({listings?.length ?? 0})
             </h2>
             {canManage && (
@@ -408,7 +408,7 @@ export default function OrgDetailPage({
             </p>
           )}
           {listings && listings.length > 0 && (
-            <ul className="card mt-4 divide-y divide-ink-faded/30">
+            <ul className="card mt-4 divide-y divide-rule">
               {listings.map((l) => (
                 <li
                   key={l.listingId}
@@ -417,7 +417,7 @@ export default function OrgDetailPage({
                   <div>
                     <Link
                       href={`/marketplace/listings/${l.listingId}` as never}
-                      className="font-display text-base text-ink underline"
+                      className="font-serif text-base text-ink underline"
                     >
                       {l.title}
                     </Link>

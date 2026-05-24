@@ -153,16 +153,16 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
+    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
       <Link href="/forum" className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
         <ArrowLeft size={16} />
         Forum
       </Link>
       <div className="mt-2 flex items-center justify-between">
         <div>
-          <p className="eyebrow">Channel</p>
+          <div className="eyebrow">Channel</div>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">{channel?.name ?? channelId}</h1>
-          {channel && <p className="mt-1 text-sm text-ink-soft">{channel.description}</p>}
+          {channel && <p className="mt-3 text-sm text-ink-soft">{channel.description}</p>}
         </div>
         <Link
           href={`/forum/posts/new?channelId=${channelId}` as never}
@@ -199,7 +199,7 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
         ))}
       </div>
 
-      {error && <p className="mt-4 text-sm text-seal">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
         <p className="mt-6 text-sm text-ink-soft">No posts yet. Be the first!</p>
@@ -231,7 +231,7 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
                       {viewerSub === p.authorId && (
                         <button
                           onClick={() => deletePost(p.postId)}
-                          className="rounded-md p-1.5 text-ink-faded transition hover:bg-red-50 hover:text-red-600"
+                          className="rounded-md p-1.5 text-ink-faded transition hover:bg-accent/5 hover:text-accent"
                           title="Delete post"
                         >
                           <Trash2 size={14} />
@@ -240,7 +240,7 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
                     </div>
                     <Link
                       href={`/forum/posts/${p.postId}` as never}
-                      className="mt-1 block text-lg font-bold text-ink hover:text-seal"
+                      className="mt-1 block text-lg font-bold text-ink hover:text-accent"
                     >
                       {p.title}
                     </Link>
@@ -253,14 +253,14 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
 
               {/* Reaction summary row */}
               {(total > 0 || p.commentCount > 0) && (
-                <div className="flex items-center justify-between border-t border-ink-faded/15 px-5 py-2">
+                <div className="flex items-center justify-between border-t border-rule-soft px-5 py-2">
                   <div className="flex items-center gap-1.5">
                     {reactionEntries.length > 0 && (
                       <div className="flex -space-x-1">
                         {reactionEntries.slice(0, 3).map(([key]) => (
                           <span
                             key={key}
-                            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-seal/10 text-seal"
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 text-accent"
                           >
                             {REACTION_EMOJI[key]?.icon}
                           </span>
@@ -283,11 +283,11 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
               )}
 
               {/* Facebook-style action buttons */}
-              <div className="flex border-t border-ink-faded/15">
+              <div className="flex border-t border-rule-soft">
                 <button
                   onClick={() => toggleReaction(p.postId, "like")}
                   className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition hover:bg-gray-50 ${
-                    hasLiked ? "text-seal" : "text-ink-soft"
+                    hasLiked ? "text-red-600" : "text-ink-soft"
                   }`}
                 >
                   <ThumbsUp size={18} fill={hasLiked ? "currentColor" : "none"} />
@@ -349,7 +349,7 @@ function ReactionPicker({
         <SmilePlus size={18} />
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 gap-1 rounded-full border border-ink-faded/20 bg-white px-2 py-1.5 shadow-lg">
+        <div className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 gap-1 rounded-full border border-rule-soft bg-white px-2 py-1.5 shadow-lg">
           {Object.entries(REACTION_EMOJI).map(([key, { icon, label }]) => (
             <button
               key={key}
@@ -358,7 +358,7 @@ function ReactionPicker({
                 setOpen(false);
               }}
               className={`rounded-full p-2 transition hover:scale-125 hover:bg-gray-100 ${
-                existing.includes(key) ? "bg-seal/10 text-seal" : "text-ink-soft"
+                existing.includes(key) ? "bg-accent/10 text-accent" : "text-ink-soft"
               }`}
               title={label}
             >
