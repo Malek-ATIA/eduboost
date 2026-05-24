@@ -63,9 +63,9 @@ const CITIES = [
 ];
 
 type Filters = {
-  subject: string;
-  language: string;
-  city: string;
+  subjects: string[];
+  languages: string[];
+  cities: string[];
   rateRange: [number, number];
   ratingRange: [number, number];
   experienceRange: [number, number];
@@ -77,9 +77,9 @@ type Filters = {
 };
 
 const EMPTY: Filters = {
-  subject: "",
-  language: "",
-  city: "",
+  subjects: [],
+  languages: [],
+  cities: [],
   rateRange: [0, 200],
   ratingRange: [0, 5],
   experienceRange: [0, 30],
@@ -92,9 +92,9 @@ const EMPTY: Filters = {
 
 function countActive(f: Filters): number {
   let n = 0;
-  if (f.subject) n++;
-  if (f.language) n++;
-  if (f.city) n++;
+  n += f.subjects.length;
+  n += f.languages.length;
+  n += f.cities.length;
   if (f.rateRange[0] !== 0 || f.rateRange[1] !== 200) n++;
   if (f.ratingRange[0] !== 0 || f.ratingRange[1] !== 5) n++;
   if (f.experienceRange[0] !== 0 || f.experienceRange[1] !== 30) n++;
@@ -108,9 +108,15 @@ function countActive(f: Filters): number {
 function getActiveChips(f: Filters): { key: string; label: string; clear: () => Filters }[] {
   const chips: { key: string; label: string; clear: () => Filters }[] = [];
   if (f.search) chips.push({ key: "search", label: `"${f.search}"`, clear: () => ({ ...f, search: "" }) });
-  if (f.subject) chips.push({ key: "subject", label: f.subject, clear: () => ({ ...f, subject: "" }) });
-  if (f.language) chips.push({ key: "language", label: `Speaks ${f.language}`, clear: () => ({ ...f, language: "" }) });
-  if (f.city) chips.push({ key: "city", label: f.city, clear: () => ({ ...f, city: "" }) });
+  f.subjects.forEach((s) =>
+    chips.push({ key: `subject-${s}`, label: s, clear: () => ({ ...f, subjects: f.subjects.filter((x) => x !== s) }) }),
+  );
+  f.languages.forEach((l) =>
+    chips.push({ key: `lang-${l}`, label: `Speaks ${l}`, clear: () => ({ ...f, languages: f.languages.filter((x) => x !== l) }) }),
+  );
+  f.cities.forEach((c) =>
+    chips.push({ key: `city-${c}`, label: c, clear: () => ({ ...f, cities: f.cities.filter((x) => x !== c) }) }),
+  );
   if (f.rateRange[0] !== 0 || f.rateRange[1] !== 200)
     chips.push({ key: "rate", label: `${f.rateRange[0]}--${f.rateRange[1]} DT/hr`, clear: () => ({ ...f, rateRange: EMPTY.rateRange }) });
   if (f.ratingRange[0] !== 0 || f.ratingRange[1] !== 5)
@@ -121,6 +127,10 @@ function getActiveChips(f: Filters): { key: string; label: string; clear: () => 
   if (f.individual) chips.push({ key: "individual", label: "1-on-1", clear: () => ({ ...f, individual: false }) });
   if (f.group) chips.push({ key: "group", label: "Group", clear: () => ({ ...f, group: false }) });
   return chips;
+}
+
+function toggle<T>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
 }
 
 export default function TeachersPage() {
@@ -136,8 +146,11 @@ export default function TeachersPage() {
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
-    if (debounced.subject) p.set("subject", debounced.subject);
-    if (debounced.city) p.set("city", debounced.city);
+    // Only narrow the server query when a single value is picked — multi-value
+    // filtering happens client-side so it stays cheap and we don't need the
+    // API to support arrays.
+    if (debounced.subjects.length === 1) p.set("subject", debounced.subjects[0]);
+    if (debounced.cities.length === 1) p.set("city", debounced.cities[0]);
     if (debounced.ratingRange[0] !== EMPTY.ratingRange[0])
       p.set("minRating", String(debounced.ratingRange[0]));
     if (debounced.ratingRange[1] !== EMPTY.ratingRange[1])
@@ -191,9 +204,15 @@ export default function TeachersPage() {
       );
     }
 
-    // Client-side language filter
-    if (filters.language) {
-      copy = copy.filter((t) => t.languages.includes(filters.language));
+    // Client-side multi-select filters (OR within each group)
+    if (filters.subjects.length > 0) {
+      copy = copy.filter((t) => filters.subjects.some((s) => t.subjects.includes(s)));
+    }
+    if (filters.languages.length > 0) {
+      copy = copy.filter((t) => filters.languages.some((l) => t.languages.includes(l)));
+    }
+    if (filters.cities.length > 0) {
+      copy = copy.filter((t) => t.city != null && filters.cities.includes(t.city));
     }
 
     if (filters.sort === "price-low") copy.sort((a, b) => a.hourlyRateCents - b.hourlyRateCents);
@@ -201,7 +220,7 @@ export default function TeachersPage() {
     else if (filters.sort === "experience") copy.sort((a, b) => b.yearsExperience - a.yearsExperience);
     else copy.sort((a, b) => b.ratingAvg - a.ratingAvg);
     return copy;
-  }, [items, filters.sort, filters.search, filters.language]);
+  }, [items, filters.sort, filters.search, filters.subjects, filters.languages, filters.cities]);
 
   const activeChips = getActiveChips(filters);
 
@@ -217,15 +236,15 @@ export default function TeachersPage() {
         />
       </FilterGroup>
 
-      {/* Subjects */}
+      {/* Subjects (multi-select) */}
       <FilterGroup title="Subject">
         <div className="space-y-1.5">
           {SUBJECTS.map((s) => (
             <label key={s} className="flex cursor-pointer items-center gap-2.5">
               <input
                 type="checkbox"
-                checked={filters.subject === s}
-                onChange={() => setFilters({ ...filters, subject: filters.subject === s ? "" : s })}
+                checked={filters.subjects.includes(s)}
+                onChange={() => setFilters({ ...filters, subjects: toggle(filters.subjects, s) })}
                 className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
               />
               <span className="text-sm text-ink">{s}</span>
@@ -234,15 +253,15 @@ export default function TeachersPage() {
         </div>
       </FilterGroup>
 
-      {/* Languages */}
+      {/* Languages (multi-select) */}
       <FilterGroup title="Language">
         <div className="space-y-1.5">
           {LANGUAGES.map((l) => (
             <label key={l} className="flex cursor-pointer items-center gap-2.5">
               <input
                 type="checkbox"
-                checked={filters.language === l}
-                onChange={() => setFilters({ ...filters, language: filters.language === l ? "" : l })}
+                checked={filters.languages.includes(l)}
+                onChange={() => setFilters({ ...filters, languages: toggle(filters.languages, l) })}
                 className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
               />
               <span className="text-sm text-ink">{l}</span>
@@ -251,15 +270,15 @@ export default function TeachersPage() {
         </div>
       </FilterGroup>
 
-      {/* City */}
+      {/* City (multi-select) */}
       <FilterGroup title="City">
         <div className="space-y-1.5">
           {CITIES.map((c) => (
             <label key={c} className="flex cursor-pointer items-center gap-2.5">
               <input
                 type="checkbox"
-                checked={filters.city === c}
-                onChange={() => setFilters({ ...filters, city: filters.city === c ? "" : c })}
+                checked={filters.cities.includes(c)}
+                onChange={() => setFilters({ ...filters, cities: toggle(filters.cities, c) })}
                 className="h-4 w-4 rounded border-rule text-accent focus:ring-accent/20"
               />
               <span className="text-sm text-ink">{c}</span>
@@ -463,8 +482,8 @@ export default function TeachersPage() {
           {error && <p className="mb-4 text-sm text-warn">{error}</p>}
 
           {/* ── Teacher wide cards + hover preview ─────────────────── */}
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="grid grid-cols-1 gap-4">
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="flex flex-col gap-4">
             {sorted.map((t) => {
               const name = t.displayName ?? "Teacher";
               let h = 0;
@@ -592,9 +611,9 @@ export default function TeachersPage() {
             )}
             </div>
 
-            {/* Hover preview — desktop only */}
+            {/* Hover preview — desktop only, shows only when a card is hovered */}
             <aside className="hidden lg:block">
-              <HoverPreview teacher={sorted.find((t) => t.userId === hoveredTeacherId) ?? sorted[0]} />
+              <HoverPreview teacher={sorted.find((t) => t.userId === hoveredTeacherId)} />
             </aside>
           </div>
 
