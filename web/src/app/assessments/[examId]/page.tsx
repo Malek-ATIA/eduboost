@@ -69,15 +69,15 @@ export default function TakeAssessmentPage({
   }
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="pb-8 text-sm text-red-600">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!exam) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   if (result) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-center">
+      <main className="pb-8 text-center">
         <div className="eyebrow">Result</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Submitted</h1>
+        <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Submitted</h1>
         <p className="mt-2 text-sm text-ink-soft">
           {exam.title}: auto-graded MCQ score{" "}
           <span className="font-mono text-ink">{result.autoScore}/{result.maxMcqScore}</span>.
@@ -106,9 +106,9 @@ export default function TakeAssessmentPage({
   });
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Assessment</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{exam.title}</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{exam.title}</h1>
       {exam.description && (
         <p className="mt-3 text-sm text-ink-soft">{exam.description}</p>
       )}

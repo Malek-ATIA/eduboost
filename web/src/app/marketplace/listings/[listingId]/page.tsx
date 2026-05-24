@@ -63,10 +63,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
       .catch((e) => setError((e as Error).message));
   }, [listingId]);
 
-  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
+  if (error) return <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8 text-red-600">{error}</main>;
   if (!data) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -83,7 +83,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
     : null;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8">
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-faded">
         <Link href="/marketplace" className="hover:text-ink">
@@ -102,7 +102,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             <span>{kInfo.label}</span>
           </div>
 
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">
             {data.title}
           </h1>
 
@@ -185,7 +185,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
           {/* Price card */}
           <div className="card sticky top-24 space-y-4 p-5">
             <div>
-              <div className="font-serif text-3xl text-ink">
+              <div className="font-bold text-[26px] text-ink">
                 {formatMoney(data.priceCents, data.currency, { trim: true })}
               </div>
               {data.kind === "physical" && data.shippingCostCents != null && data.shippingCostCents > 0 && (
@@ -233,7 +233,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
             <div className="flex items-center gap-3">
               <Avatar userId={data.sellerId} size="md" initial={seller?.displayName?.charAt(0)} />
               <div>
-                <div className="font-serif text-sm text-ink">
+                <div className="font-semibold text-[13.5px] text-ink">
                   {seller?.displayName || "EduBoost Seller"}
                 </div>
                 <Link
@@ -263,7 +263,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
                   <span className="text-sm">{KIND_ICON[l.kind]?.icon ?? "📄"}</span>
                   <span className="text-[10px] uppercase tracking-widest text-ink-faded">{l.kind}</span>
                 </div>
-                <h3 className="mt-2 font-serif text-sm text-ink">{l.title}</h3>
+                <h3 className="mt-2 font-semibold text-[13.5px] text-ink">{l.title}</h3>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {l.subjects.slice(0, 2).map((s) => (
                     <span key={s} className="rounded-full bg-bg-soft px-2 py-0.5 text-[10px] text-ink-faded">
@@ -271,7 +271,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ listin
                     </span>
                   ))}
                 </div>
-                <div className="mt-3 font-serif text-base text-ink">
+                <div className="mt-3 font-semibold text-[15px] text-ink">
                   {formatMoney(l.priceCents, l.currency, { trim: true })}
                 </div>
               </Link>

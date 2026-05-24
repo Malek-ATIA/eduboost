@@ -99,9 +99,9 @@ export default function SmsSettingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Settings</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
         SMS notifications
       </h1>
       <p className="mt-3 text-base text-ink-soft">
@@ -176,7 +176,7 @@ export default function SmsSettingsPage() {
             <div className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-serif text-base text-ink">SMS notifications</div>
+                  <div className="font-semibold text-[15px] text-ink">SMS notifications</div>
                   <div className="mt-0.5 text-xs text-ink-faded">
                     Currently {prefs.smsOptIn ? "enabled" : "disabled"}.
                   </div>

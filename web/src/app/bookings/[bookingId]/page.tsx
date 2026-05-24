@@ -105,7 +105,7 @@ export default function BookingDetailPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
           <ArrowLeft size={16} /> Back to bookings
         </Link>
@@ -118,7 +118,7 @@ export default function BookingDetailPage() {
 
   if (!booking) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex items-center gap-2 text-sm text-ink-soft">
           <Loader2 size={16} className="animate-spin" /> Loading booking...
         </div>
@@ -133,7 +133,7 @@ export default function BookingDetailPage() {
   const created = new Date(booking.createdAt);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
         <ArrowLeft size={16} /> Back to bookings
       </Link>
@@ -142,7 +142,7 @@ export default function BookingDetailPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="eyebrow">Booking</div>
-            <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{TYPE_LABELS[booking.type]}</h1>
+            <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{TYPE_LABELS[booking.type]}</h1>
             <p className="mt-3 text-sm text-ink-soft">
               #{booking.bookingId.slice(0, 8)} · booked {created.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
             </p>
@@ -159,23 +159,23 @@ export default function BookingDetailPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="card p-5">
                 <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Type</div>
-                <div className="mt-1 font-serif text-xl capitalize text-ink">{booking.type}</div>
+                <div className="mt-1 font-bold text-lg capitalize text-ink">{booking.type}</div>
               </div>
               <div className="card p-5">
                 <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Amount</div>
-                <div className="mt-1 font-serif text-xl text-ink">
+                <div className="mt-1 font-bold text-lg text-ink">
                   {formatMoneySymbol(booking.amountCents, booking.currency, { trim: true })}
                 </div>
               </div>
               <div className="card p-5">
                 <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Date</div>
-                <div className="mt-1 font-serif text-xl text-ink">
+                <div className="mt-1 font-bold text-lg text-ink">
                   {created.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </div>
               </div>
               <div className="card p-5">
                 <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">Time</div>
-                <div className="mt-1 font-serif text-xl text-ink">
+                <div className="mt-1 font-bold text-lg text-ink">
                   {created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
@@ -185,7 +185,7 @@ export default function BookingDetailPage() {
               <div className="flex items-center gap-4">
                 <Avatar userId={booking.teacherId} size="md" />
                 <div className="flex-1">
-                  <div className="font-serif text-lg text-ink">Teacher</div>
+                  <div className="font-semibold text-base text-ink">Teacher</div>
                   <Link href={`/teachers/${booking.teacherId}` as never} className="text-sm text-ink-soft underline hover:text-accent">
                     View profile →
                   </Link>
@@ -243,7 +243,7 @@ export default function BookingDetailPage() {
                 <div className="flex items-baseline justify-between">
                   <span className="text-[13px] text-ink-soft">Total</span>
                   <div>
-                    <span className="font-serif text-[28px] tracking-tight text-ink">
+                    <span className="font-bold text-[28px] tracking-tight text-ink">
                       {formatMoneySymbol(booking.amountCents, booking.currency, { trim: true })}
                     </span>
                   </div>

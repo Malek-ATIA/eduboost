@@ -75,9 +75,9 @@ export default function DmChatPage({
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Messages</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Direct message</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Direct message</h1>
       <p className="mt-1 font-mono text-sm text-ink-soft">with {otherUserId}</p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 

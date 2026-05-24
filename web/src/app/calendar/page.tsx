@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession } from "@/lib/cognito";
 import { api } from "@/lib/api";
@@ -12,7 +12,10 @@ type Session = {
   startsAt: string;
   endsAt: string;
   status: "scheduled" | "live" | "completed" | "cancelled" | "booked";
+  title?: string;
+  teacherName?: string;
   childName?: string;
+  color?: string;
 };
 
 type Booking = {
@@ -26,19 +29,12 @@ type Booking = {
   currency: string;
   createdAt: string;
   childName?: string;
+  teacherName?: string;
 };
 
 type FamilyCalendar = {
   sessions: (Session & { childName?: string })[];
   bookings: (Booking & { childName?: string })[];
-};
-
-const STATUS_STYLE: Record<Session["status"], { dot: string; text: string; bg: string }> = {
-  scheduled: { dot: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
-  live: { dot: "bg-accent", text: "text-accent", bg: "bg-accent/10 border-accent/30" },
-  completed: { dot: "bg-ink-faded", text: "text-ink-faded", bg: "bg-bg-soft border-rule" },
-  cancelled: { dot: "bg-red-400", text: "text-red-500", bg: "bg-red-50 border-accent/20" },
-  booked: { dot: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
 };
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -47,15 +43,21 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-type View = "month" | "week" | "agenda";
+type View = "day" | "week" | "month";
+
+const HOUR_HEIGHT = 50;
+const START_HOUR = 7;
+const END_HOUR = 20;
+const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) =>
+  String(START_HOUR + i).padStart(2, "0") + ":00",
+);
 
 export default function CalendarPage() {
   const router = useRouter();
   const [items, setItems] = useState<Session[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<View>("month");
+  const [view, setView] = useState<View>("week");
   const [current, setCurrent] = useState(() => new Date());
-
   const [isParent, setIsParent] = useState(false);
 
   useEffect(() => {
@@ -69,10 +71,7 @@ export default function CalendarPage() {
       try {
         if (parentMode) {
           const family = await api<FamilyCalendar>(`/family/calendar`);
-          const sessions: Session[] = family.sessions.map((s) => ({
-            ...s,
-            childName: s.childName,
-          }));
+          const sessions: Session[] = family.sessions.map((s) => ({ ...s, childName: s.childName }));
           const bookingItems: Session[] = family.bookings.map((b) => {
             const created = new Date(b.createdAt);
             const end = new Date(created.getTime() + 60 * 60_000);
@@ -84,6 +83,7 @@ export default function CalendarPage() {
               endsAt: end.toISOString(),
               status: "booked" as const,
               childName: b.childName,
+              teacherName: b.teacherName,
             };
           });
           setItems([...sessions, ...bookingItems]);
@@ -92,7 +92,6 @@ export default function CalendarPage() {
             api<{ items: Session[] }>(`/sessions/upcoming`).catch(() => ({ items: [] as Session[] })),
             api<{ items: Booking[] }>(`/bookings/mine`).catch(() => ({ items: [] as Booking[] })),
           ]);
-
           const bookingItems: Session[] = bookingsRes.items
             .filter((b) => b.status === "confirmed" || b.status === "completed")
             .map((b) => {
@@ -105,9 +104,9 @@ export default function CalendarPage() {
                 startsAt: created.toISOString(),
                 endsAt: end.toISOString(),
                 status: "booked" as const,
+                teacherName: b.teacherName,
               };
             });
-
           setItems([...sessionsRes.items, ...bookingItems]);
         }
       } catch (err) {
@@ -116,21 +115,34 @@ export default function CalendarPage() {
     })();
   }, [router]);
 
-  const today = useMemo(() => {
+  // Compute the week of `current`
+  const weekDays = useMemo(() => {
+    const d = new Date(current);
+    const dow = (d.getDay() + 6) % 7; // 0 = Mon
+    d.setDate(d.getDate() - dow);
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = new Date(d);
+      day.setDate(d.getDate() + i);
+      day.setHours(0, 0, 0, 0);
+      return day;
+    });
+  }, [current]);
+
+  const todayKey = useMemo(() => {
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return d.toDateString();
   }, []);
 
-  const sessionsByDate = useMemo(() => {
-    const map = new Map<string, Session[]>();
+  // Group sessions by day index in the current week
+  const sessionsByDay = useMemo<Session[][]>(() => {
+    const map: Session[][] = Array.from({ length: 7 }, () => []);
     for (const s of items ?? []) {
-      const d = new Date(s.startsAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(s);
+      const start = new Date(s.startsAt);
+      const dayIdx = weekDays.findIndex((d) => d.toDateString() === start.toDateString());
+      if (dayIdx >= 0) map[dayIdx].push(s);
     }
     return map;
-  }, [items]);
+  }, [items, weekDays]);
 
   function navigate(delta: number) {
     setCurrent((prev) => {
@@ -142,575 +154,286 @@ export default function CalendarPage() {
     });
   }
 
-  function goToday() {
-    setCurrent(new Date());
+  function colorFor(s: Session): string {
+    if (s.status === "cancelled") return "#b2362c";
+    if (s.status === "live") return "var(--accent-deep)";
+    if (s.status === "booked") return "var(--accent)";
+    return "var(--accent)";
   }
 
-  const upcomingToday = (items ?? []).filter((s) => {
-    const d = new Date(s.startsAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    return key === today && (s.status === "scheduled" || s.status === "live" || s.status === "booked");
-  });
-
-  const upcomingCount = (items ?? []).filter(
-    (s) => s.status === "scheduled" || s.status === "live" || s.status === "booked",
-  ).length;
-
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">
             {MONTHS[current.getMonth()]} {current.getFullYear()}
           </div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             {isParent ? "Family calendar" : "Your schedule"}
           </h1>
-          <p className="mt-3 text-base text-ink-soft">
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
             All your tutoring sessions across teachers — at a glance.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="inline-flex rounded-full border border-rule bg-white p-[3px]">
-            {(["month", "week", "agenda"] as View[]).map((v) => (
+            {(["day", "week", "month"] as View[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium capitalize transition ${
-                  view === v
-                    ? "bg-ink text-white"
-                    : "text-ink-soft hover:text-ink"
-                }`}
+                className="rounded-full px-3.5 py-1.5 text-[12.5px] font-medium capitalize transition"
+                style={{
+                  background: view === v ? "var(--ink)" : "transparent",
+                  color: view === v ? "#fff" : "var(--ink-soft)",
+                }}
               >
-                {v === "agenda" ? "day" : v}
+                {v}
               </button>
             ))}
           </div>
+          <button className="btn-outline btn-sm">Sync to Google</button>
         </div>
       </div>
 
-      {error && <p className="mt-4 text-sm text-accent">{error}</p>}
-      {items === null && !error && (
-        <div className="mt-8 flex justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
-        </div>
-      )}
+      <div className="px-4 pt-6 sm:px-8 sm:pt-7">
+        {error && <p className="mb-4 text-sm text-warn">{error}</p>}
 
-      {items !== null && (
-        <>
-          {/* Navigation bar */}
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink-soft transition hover:bg-bg-soft"
-              >
-                ‹
-              </button>
-              <button
-                onClick={() => navigate(1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-rule text-ink-soft transition hover:bg-bg-soft"
-              >
-                ›
-              </button>
-              <button
-                onClick={goToday}
-                className="rounded-full border border-rule px-3 py-1 text-xs text-ink-soft transition hover:bg-bg-soft"
-              >
-                Today
-              </button>
+        {items === null && !error && (
+          <div className="flex justify-center py-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
+          </div>
+        )}
+
+        {items && view === "week" && (
+          <div className="card overflow-hidden p-0">
+            {/* Day headers */}
+            <div
+              className="grid border-b border-rule"
+              style={{ gridTemplateColumns: "60px repeat(7, minmax(0, 1fr))" }}
+            >
+              <div />
+              {weekDays.map((d) => {
+                const isToday = d.toDateString() === todayKey;
+                return (
+                  <div
+                    key={d.toDateString()}
+                    className="border-l border-rule-soft px-2 py-3 text-center"
+                  >
+                    <div className="font-mono text-[11px] tracking-[0.05em] text-ink-faded">
+                      {WEEKDAYS[(d.getDay() + 6) % 7]}
+                    </div>
+                    <div
+                      className="mt-1 text-[22px] font-bold leading-none"
+                      style={{ color: isToday ? "var(--accent)" : "var(--ink)" }}
+                    >
+                      {d.getDate()}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <h2 className="font-serif text-xl text-ink">
-              {view === "week"
-                ? `Week of ${current.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
-                : `${MONTHS[current.getMonth()]} ${current.getFullYear()}`}
-            </h2>
-          </div>
 
-          {/* Calendar views */}
-          {view === "month" && (
-            <MonthGrid
-              year={current.getFullYear()}
-              month={current.getMonth()}
-              today={today}
-              sessionsByDate={sessionsByDate}
-            />
-          )}
-          {view === "week" && (
-            <WeekView
-              anchor={current}
-              today={today}
-              sessionsByDate={sessionsByDate}
-            />
-          )}
-          {view === "agenda" && (
-            <AgendaView items={items} today={today} />
-          )}
-        </>
-      )}
+            {/* Hour grid + sessions */}
+            <div
+              className="relative grid"
+              style={{ gridTemplateColumns: "60px repeat(7, minmax(0, 1fr))" }}
+            >
+              {/* Hour gutter */}
+              <div>
+                {HOURS.map((h) => (
+                  <div
+                    key={h}
+                    className="border-t border-rule-soft px-2 py-0.5 font-mono text-[10.5px] text-ink-faded"
+                    style={{ height: HOUR_HEIGHT }}
+                  >
+                    {h}
+                  </div>
+                ))}
+              </div>
 
-      {/* Today's sessions detail */}
-      {upcomingToday.length > 0 && (
-        <section className="mt-8">
-          <h2 className="eyebrow font-mono">Happening today</h2>
-          <div className="mt-3 space-y-2">
-            {upcomingToday.map((s) => (
-              <SessionCard key={s.sessionId} session={s} />
-            ))}
+              {/* Day columns */}
+              {weekDays.map((d, di) => (
+                <div key={d.toDateString()} className="relative border-l border-rule-soft">
+                  {HOURS.map((h) => (
+                    <div key={h} className="border-t border-rule-soft" style={{ height: HOUR_HEIGHT }} />
+                  ))}
+                  {sessionsByDay[di]?.map((s) => {
+                    const start = new Date(s.startsAt);
+                    const end = new Date(s.endsAt);
+                    const startHrs = start.getHours() + start.getMinutes() / 60;
+                    const endHrs = end.getHours() + end.getMinutes() / 60;
+                    const top = (startHrs - START_HOUR) * HOUR_HEIGHT;
+                    const height = Math.max(28, (endHrs - startHrs) * HOUR_HEIGHT);
+                    if (top + height < 0 || top > HOURS.length * HOUR_HEIGHT) return null;
+                    return (
+                      <Link
+                        key={s.sessionId}
+                        href={`/classroom/${s.sessionId}` as never}
+                        className="absolute overflow-hidden rounded-md px-2 py-1.5 text-[11.5px] text-white"
+                        style={{
+                          left: 4,
+                          right: 4,
+                          top,
+                          height,
+                          background: colorFor(s),
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div className="font-medium leading-tight">
+                          {s.title ?? (s.childName ? `${s.childName}'s session` : "Session")}
+                        </div>
+                        <div className="mt-0.5 text-[10.5px] opacity-80">
+                          {s.teacherName ?? s.teacherId.slice(0, 6)}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
-      )}
+        )}
+
+        {items && view === "day" && (
+          <div className="card overflow-hidden p-0">
+            <div className="border-b border-rule px-5 py-3 text-center">
+              <div className="font-mono text-[11px] uppercase text-ink-faded">
+                {WEEKDAYS[(current.getDay() + 6) % 7]}
+              </div>
+              <div className="mt-1 text-[28px] font-bold leading-none">{current.getDate()}</div>
+            </div>
+            <div className="relative grid" style={{ gridTemplateColumns: "60px minmax(0, 1fr)" }}>
+              <div>
+                {HOURS.map((h) => (
+                  <div
+                    key={h}
+                    className="border-t border-rule-soft px-2 py-0.5 font-mono text-[10.5px] text-ink-faded"
+                    style={{ height: HOUR_HEIGHT }}
+                  >
+                    {h}
+                  </div>
+                ))}
+              </div>
+              <div className="relative border-l border-rule-soft">
+                {HOURS.map((h) => (
+                  <div key={h} className="border-t border-rule-soft" style={{ height: HOUR_HEIGHT }} />
+                ))}
+                {(items ?? [])
+                  .filter((s) => new Date(s.startsAt).toDateString() === current.toDateString())
+                  .map((s) => {
+                    const start = new Date(s.startsAt);
+                    const end = new Date(s.endsAt);
+                    const startHrs = start.getHours() + start.getMinutes() / 60;
+                    const endHrs = end.getHours() + end.getMinutes() / 60;
+                    const top = (startHrs - START_HOUR) * HOUR_HEIGHT;
+                    const height = Math.max(32, (endHrs - startHrs) * HOUR_HEIGHT);
+                    return (
+                      <Link
+                        key={s.sessionId}
+                        href={`/classroom/${s.sessionId}` as never}
+                        className="absolute overflow-hidden rounded-md px-3 py-2 text-[13px] text-white"
+                        style={{
+                          left: 4,
+                          right: 4,
+                          top,
+                          height,
+                          background: colorFor(s),
+                        }}
+                      >
+                        <div className="font-medium leading-tight">
+                          {s.title ?? "Session"}
+                        </div>
+                        <div className="mt-0.5 text-[11px] opacity-80">
+                          {s.teacherName ?? s.teacherId.slice(0, 6)}
+                        </div>
+                      </Link>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {items && view === "month" && (
+          <MonthGrid current={current} items={items} todayKey={todayKey} colorFor={colorFor} />
+        )}
+      </div>
     </main>
   );
 }
 
-/* ── Month grid ─────────────────────────────────────────── */
-
 function MonthGrid({
-  year,
-  month,
-  today,
-  sessionsByDate,
+  current,
+  items,
+  todayKey,
+  colorFor,
 }: {
-  year: number;
-  month: number;
-  today: string;
-  sessionsByDate: Map<string, Session[]>;
+  current: Date;
+  items: Session[];
+  todayKey: string;
+  colorFor: (s: Session) => string;
 }) {
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const startDow = (firstDay.getDay() + 6) % 7; // Monday = 0
-
-  const cells: { date: string; day: number; inMonth: boolean }[] = [];
-  // Leading days from previous month
-  for (let i = startDow - 1; i >= 0; i--) {
-    const d = new Date(year, month, -i);
-    cells.push({
-      date: fmtDate(d),
-      day: d.getDate(),
-      inMonth: false,
-    });
+  const first = new Date(current.getFullYear(), current.getMonth(), 1);
+  const firstDow = (first.getDay() + 6) % 7;
+  const start = new Date(first);
+  start.setDate(first.getDate() - firstDow);
+  const days = Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+  const grouped = new Map<string, Session[]>();
+  for (const s of items) {
+    const key = new Date(s.startsAt).toDateString();
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(s);
   }
-  // Current month
-  for (let d = 1; d <= lastDay.getDate(); d++) {
-    cells.push({
-      date: `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
-      day: d,
-      inMonth: true,
-    });
-  }
-  // Trailing days
-  const trailing = 7 - (cells.length % 7);
-  if (trailing < 7) {
-    for (let i = 1; i <= trailing; i++) {
-      const d = new Date(year, month + 1, i);
-      cells.push({ date: fmtDate(d), day: d.getDate(), inMonth: false });
-    }
-  }
-
   return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-rule">
-      <div className="grid grid-cols-7 border-b border-rule bg-bg-soft">
+    <div className="card overflow-hidden p-0">
+      <div className="grid grid-cols-7 border-b border-rule">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="p-2 text-center font-mono text-[11px] font-semibold uppercase tracking-widest text-ink-faded">
+          <div key={w} className="border-l border-rule-soft px-2 py-2.5 text-center font-mono text-[11px] uppercase text-ink-faded">
             {w}
           </div>
         ))}
       </div>
       <div className="grid grid-cols-7">
-        {cells.map((cell, i) => {
-          const isToday = cell.date === today;
-          const sessions = sessionsByDate.get(cell.date) ?? [];
-          const hasLive = sessions.some((s) => s.status === "live");
+        {days.map((d) => {
+          const inMonth = d.getMonth() === current.getMonth();
+          const isToday = d.toDateString() === todayKey;
+          const dayItems = grouped.get(d.toDateString()) ?? [];
           return (
             <div
-              key={i}
-              className={`min-h-[80px] border-b border-r border-rule-soft p-1.5 transition ${
-                !cell.inMonth ? "bg-bg-soft/50" : "bg-bg-card"
-              } ${isToday ? "ring-2 ring-inset ring-accent/12" : ""}`}
+              key={d.toDateString()}
+              className="min-h-[110px] border-l border-t border-rule-soft p-2"
+              style={{ opacity: inMonth ? 1 : 0.45 }}
             >
-              <div className="flex items-center justify-between">
-                <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                    isToday
-                      ? "bg-accent font-bold text-white"
-                      : cell.inMonth
-                        ? "text-ink"
-                        : "text-ink-faded/50"
-                  }`}
-                >
-                  {cell.day}
-                </span>
-                {hasLive && (
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-                )}
-              </div>
-              <div className="mt-0.5 space-y-0.5">
-                {sessions.slice(0, 3).map((s) => {
-                  const st = STATUS_STYLE[s.status];
-                  const time = new Date(s.startsAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
-                  return (
-                    <SessionPeek key={s.sessionId} session={s}>
-                      <div
-                        className={`block cursor-pointer truncate rounded border px-1 py-0.5 text-[10px] leading-tight transition hover:opacity-80 ${st.bg} ${st.text}`}
-                      >
-                        {s.childName ? `${s.childName.split(" ")[0]} ${time}` : time}
-                      </div>
-                    </SessionPeek>
-                  );
-                })}
-                {sessions.length > 3 && (
-                  <span className="block text-[10px] text-ink-faded">
-                    +{sessions.length - 3} more
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Week view ──────────────────────────────────────────── */
-
-function WeekView({
-  anchor,
-  today,
-  sessionsByDate,
-}: {
-  anchor: Date;
-  today: string;
-  sessionsByDate: Map<string, Session[]>;
-}) {
-  const weekStart = new Date(anchor);
-  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
-
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return { date: fmtDate(d), day: d, dayNum: d.getDate(), dow: WEEKDAYS[i] };
-  });
-
-  const hours = Array.from({ length: 14 }, (_, i) => i + 7); // 7am to 8pm
-
-  return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-rule">
-      {/* Day headers */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-rule bg-bg-soft">
-        <div className="p-2" />
-        {days.map((d) => {
-          const isToday = d.date === today;
-          return (
-            <div key={d.date} className="p-2 text-center">
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-widest text-ink-faded">
-                {d.dow}
-              </div>
               <div
-                className={`mx-auto mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm ${
-                  isToday ? "bg-accent font-bold text-white" : "text-ink"
-                }`}
+                className="text-[13px] font-semibold"
+                style={{ color: isToday ? "var(--accent)" : "var(--ink)" }}
               >
-                {d.dayNum}
+                {d.getDate()}
+              </div>
+              <div className="mt-1 space-y-1">
+                {dayItems.slice(0, 3).map((s) => (
+                  <Link
+                    key={s.sessionId}
+                    href={`/classroom/${s.sessionId}` as never}
+                    className="block overflow-hidden truncate rounded px-1.5 py-0.5 text-[11px] text-white"
+                    style={{ background: colorFor(s) }}
+                  >
+                    {s.title ?? "Session"}
+                  </Link>
+                ))}
+                {dayItems.length > 3 && (
+                  <div className="text-[11px] text-ink-faded">+{dayItems.length - 3} more</div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
-      {/* Hour rows */}
-      <div className="max-h-[500px] overflow-y-auto">
-        {hours.map((hour) => (
-          <div
-            key={hour}
-            className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-rule-soft"
-          >
-            <div className="flex items-start justify-end pr-2 pt-1 font-mono text-[10px] text-ink-faded">
-              {String(hour).padStart(2, "0")}:00
-            </div>
-            {days.map((d) => {
-              const sessions = (sessionsByDate.get(d.date) ?? []).filter((s) => {
-                const h = new Date(s.startsAt).getHours();
-                return h === hour;
-              });
-              return (
-                <div
-                  key={d.date}
-                  className="min-h-[48px] border-l border-rule-soft p-0.5"
-                >
-                  {sessions.map((s) => {
-                    const st = STATUS_STYLE[s.status];
-                    const time = new Date(s.startsAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    });
-                    return (
-                      <SessionPeek key={s.sessionId} session={s}>
-                        <div
-                          className={`block cursor-pointer truncate rounded border px-1 py-0.5 text-[10px] leading-tight transition hover:opacity-80 ${st.bg} ${st.text}`}
-                        >
-                          {time}
-                        </div>
-                      </SessionPeek>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
     </div>
   );
-}
-
-/* ── Agenda view ────────────────────────────────────────── */
-
-function AgendaView({ items, today }: { items: Session[]; today: string }) {
-  const grouped = groupByDay(items);
-
-  if (grouped.length === 0) {
-    return (
-      <div className="mt-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
-          <span className="text-2xl text-ink-faded">📅</span>
-        </div>
-        <p className="mt-4 font-serif text-lg text-ink">No upcoming sessions</p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Book a session with a teacher to see it here.
-        </p>
-        <Link href="/teachers" className="btn-primary mt-4 inline-block">
-          Find a teacher
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-4 space-y-6">
-      {grouped.map((day) => (
-        <section key={day.date}>
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <span
-              className={`inline-flex h-7 min-w-[28px] items-center justify-center rounded-full px-1 text-xs ${
-                day.date === today ? "bg-accent text-white" : "bg-bg-soft text-ink-soft"
-              }`}
-            >
-              {new Date(day.date).getDate()}
-            </span>
-            {day.label}
-          </h3>
-          <div className="mt-2 space-y-2">
-            {day.items.map((s) => (
-              <SessionCard key={s.sessionId} session={s} />
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  );
-}
-
-/* ── Session card ───────────────────────────────────────── */
-
-function SessionCard({ session: s }: { session: Session }) {
-  const st = STATUS_STYLE[s.status];
-  const starts = new Date(s.startsAt);
-  const ends = new Date(s.endsAt);
-  const durationMin = Math.round((ends.getTime() - starts.getTime()) / 60_000);
-  const joinable = s.status === "scheduled" || s.status === "live";
-  const isBooked = s.status === "booked";
-
-  return (
-    <div className={`rounded-2xl border p-4 transition ${st.bg}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-center rounded-xl bg-bg-card px-3 py-1.5">
-            <span className="font-mono text-xs font-semibold uppercase text-ink-faded">
-              {starts.toLocaleDateString(undefined, { weekday: "short" })}
-            </span>
-            <span className="font-serif text-lg font-bold text-ink">
-              {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${st.dot} ${s.status === "live" ? "animate-pulse" : ""}`} />
-              <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${st.text}`}>
-                {isBooked ? "Booked" : s.status}
-              </span>
-            </div>
-            {isBooked ? (
-              <div className="mt-1 text-sm text-ink">
-                Booked session — awaiting schedule
-                {s.childName && (
-                  <span className="ml-2 text-xs text-ink-faded">({s.childName})</span>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="mt-1 text-sm text-ink">
-                  {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} –{" "}
-                  {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  <span className="ml-2 text-ink-faded">({durationMin} min)</span>
-                  {s.childName && (
-                    <span className="ml-2 text-xs text-ink-faded">({s.childName})</span>
-                  )}
-                </div>
-                {s.classroomId && (
-                  <div className="mt-0.5 text-xs text-ink-faded">
-                    Classroom {s.classroomId.slice(0, 16)}…
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        {joinable && (
-          <Link href={`/classroom/${s.sessionId}` as never} className="btn-primary">
-            {s.status === "live" ? "Join now" : "Join"}
-          </Link>
-        )}
-        {isBooked && (
-          <Link href={"/bookings" as never} className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
-            View
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ── Session peek popover ──────────────────────────────── */
-
-function SessionPeek({ session, children }: { session: Session; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const st = STATUS_STYLE[session.status];
-  const starts = new Date(session.startsAt);
-  const ends = new Date(session.endsAt);
-  const durationMin = Math.round((ends.getTime() - starts.getTime()) / 60_000);
-  const joinable = session.status === "scheduled" || session.status === "live";
-  const isBooked = session.status === "booked";
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return (
-    <div
-      ref={ref}
-      className="relative cursor-pointer"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setOpen((v) => !v);
-      }}
-    >
-      {children}
-      {open && (
-        <div className="absolute left-0 top-full z-30 w-52 pt-1">
-        <div className="rounded-2xl border border-rule bg-white p-3 shadow-manuscript">
-          <div className="flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${st.dot} ${session.status === "live" ? "animate-pulse" : ""}`} />
-            <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${st.text}`}>
-              {isBooked ? "Booked" : session.status}
-            </span>
-          </div>
-          {isBooked ? (
-            <>
-              <div className="mt-2 text-sm font-medium text-ink">
-                Booked on {starts.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-              </div>
-              {session.childName && (
-                <div className="mt-0.5 text-xs font-medium text-accent">{session.childName}</div>
-              )}
-              <div className="mt-0.5 text-xs text-ink-faded">Awaiting teacher to schedule</div>
-              <Link
-                href={`/bookings/${session.sessionId}` as never}
-                className="mt-3 flex items-center justify-center rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700"
-                onClick={(e) => e.stopPropagation()}
-              >
-                View booking
-              </Link>
-            </>
-          ) : (
-            <>
-              <div className="mt-2 text-sm font-medium text-ink">
-                {starts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} –{" "}
-                {ends.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </div>
-              {session.childName && (
-                <div className="mt-0.5 text-xs font-medium text-accent">{session.childName}</div>
-              )}
-              <div className="mt-0.5 text-xs text-ink-faded">{durationMin} min session</div>
-              {session.classroomId && (
-                <div className="mt-1 truncate text-xs text-ink-faded">
-                  Room {session.classroomId.slice(0, 12)}…
-                </div>
-              )}
-              {joinable && (
-                <Link
-                  href={`/classroom/${session.sessionId}` as never}
-                  className="mt-3 flex items-center justify-center rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-deep"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {session.status === "live" ? "Join now" : "Join session"}
-                </Link>
-              )}
-              {!joinable && (
-                <div className="mt-2 text-center text-[10px] text-ink-faded">
-                  {session.status === "completed" ? "Session ended" : "Cancelled"}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── Helpers ────────────────────────────────────────────── */
-
-function fmtDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function groupByDay(items: Session[]): { date: string; label: string; items: Session[] }[] {
-  const map = new Map<string, Session[]>();
-  for (const s of items) {
-    const d = new Date(s.startsAt);
-    const key = fmtDate(d);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(s);
-  }
-  const todayStr = fmtDate(new Date());
-  const tomorrowStr = fmtDate(new Date(Date.now() + 86_400_000));
-  return Array.from(map.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, items]) => ({
-      date,
-      label:
-        date === todayStr
-          ? "Today"
-          : date === tomorrowStr
-            ? "Tomorrow"
-            : new Date(date).toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              }),
-      items,
-    }));
 }

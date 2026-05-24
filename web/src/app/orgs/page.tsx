@@ -33,11 +33,11 @@ export default function OrgsListPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Teams</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Organizations</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Organizations</h1>
         </div>
         <Link
           href="/orgs/new"
@@ -62,7 +62,7 @@ export default function OrgsListPage() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-serif text-base text-ink">{o.name}</div>
+                    <div className="font-semibold text-[15px] text-ink">{o.name}</div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {o.kind} · {o.country ?? "—"} · your role: {o.myRole}
                     </div>

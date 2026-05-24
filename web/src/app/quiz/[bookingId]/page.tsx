@@ -63,7 +63,7 @@ export default function TeacherQuizPage({
     return (
       <main className="mx-auto max-w-xl px-8 pb-24 pt-12 text-center">
         <div className="eyebrow">Feedback</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Thanks for the feedback!</h1>
+        <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Thanks for the feedback!</h1>
         <p className="mt-2 text-sm text-ink-soft">
           Your rating helps future students choose the right teacher.
         </p>
@@ -80,7 +80,7 @@ export default function TeacherQuizPage({
   return (
     <main className="mx-auto max-w-xl px-8 pb-24 pt-12">
       <div className="eyebrow">Feedback</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Rate this session</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Rate this session</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Booking <span className="font-mono">{bookingId}</span>. Your ratings are
         anonymised and aggregated across sessions.

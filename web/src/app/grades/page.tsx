@@ -90,12 +90,12 @@ export default function GradesPage() {
   const lowestScore = filtered.length > 0 ? Math.min(...filtered.map(scorePercent)) : 0;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="eyebrow">Grades</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             {isTeacher ? "Grades you've given" : "My grades"}
           </h1>
           <p className="mt-3 text-sm text-ink-soft">
@@ -124,19 +124,19 @@ export default function GradesPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{filtered.length}</div>
+            <div className="font-bold text-[22px] text-ink">{filtered.length}</div>
             <div className="text-xs text-ink-faded">Total grades</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-serif text-2xl ${scoreColor(avgScore)}`}>{avgScore}%</div>
+            <div className={`font-bold text-[22px] ${scoreColor(avgScore)}`}>{avgScore}%</div>
             <div className="text-xs text-ink-faded">Average</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-serif text-2xl ${scoreColor(highestScore)}`}>{highestScore}%</div>
+            <div className={`font-bold text-[22px] ${scoreColor(highestScore)}`}>{highestScore}%</div>
             <div className="text-xs text-ink-faded">Highest</div>
           </div>
           <div className="card p-3 text-center">
-            <div className={`font-serif text-2xl ${scoreColor(lowestScore)}`}>{lowestScore}%</div>
+            <div className={`font-bold text-[22px] ${scoreColor(lowestScore)}`}>{lowestScore}%</div>
             <div className="text-xs text-ink-faded">Lowest</div>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function GradesPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📊</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No grades yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No grades yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "Use the AI grader to evaluate student work."
@@ -233,7 +233,7 @@ export default function GradesPage() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-serif text-base text-ink">{g.subject}</span>
+                      <span className="font-semibold text-[15px] text-ink">{g.subject}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         pct >= 80
                           ? "bg-green-50 text-green-700"

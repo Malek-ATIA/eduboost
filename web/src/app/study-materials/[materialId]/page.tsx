@@ -102,11 +102,11 @@ export default function MaterialDetailPage({
   }
 
   if (error && !item) {
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="pb-8 text-sm text-red-600">{error}</main>;
   }
   if (!item) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -122,7 +122,7 @@ export default function MaterialDetailPage({
     : null;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-faded">
         <Link href="/study-materials" className="hover:text-ink">
@@ -148,7 +148,7 @@ export default function MaterialDetailPage({
             )}
           </div>
 
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             {item.title}
           </h1>
 
@@ -282,7 +282,7 @@ export default function MaterialDetailPage({
             <div className="flex items-center gap-3">
               <Avatar userId={item.authorId} size="md" initial={author?.displayName?.charAt(0)} />
               <div>
-                <div className="font-serif text-sm text-ink">
+                <div className="font-semibold text-[13.5px] text-ink">
                   {author?.displayName || "EduBoost User"}
                 </div>
                 <div className="text-xs text-ink-faded">
@@ -316,7 +316,7 @@ export default function MaterialDetailPage({
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-2 font-serif text-sm text-ink">{m.title}</h3>
+                  <h3 className="mt-2 font-semibold text-[13.5px] text-ink">{m.title}</h3>
                   <div className="mt-1 text-xs text-ink-faded">
                     {m.subject} · {new Date(m.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                   </div>

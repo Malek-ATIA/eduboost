@@ -3,8 +3,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { currentRole, currentSession, isAdmin, signOut, type Role } from "@/lib/cognito";
-import { NotificationBell } from "./NotificationBell";
-import { AvatarDropdown } from "./AvatarDropdown";
 import {
   Search,
   Monitor,
@@ -12,22 +10,66 @@ import {
   ShoppingBag,
   Menu,
   X,
-  User,
-  Package,
-  Settings,
-  Gift,
-  LogOut,
   BookOpen,
 } from "lucide-react";
-import { linksForRole } from "./SideNav";
 
 const NAV_ALL = [
-  { href: "/teachers", label: "Find a teacher", hideFor: ["teacher"] as string[], icon: Search },
-  { href: "/classrooms", label: "Classroom", hideFor: ["teacher"] as string[], icon: Monitor },
-  { href: "/forum", label: "Community", hideFor: [] as string[], icon: Users },
-  { href: "/marketplace", label: "Marketplace", hideFor: [] as string[], icon: ShoppingBag },
-  { href: "/faq", label: "Blog", hideFor: [] as string[], icon: BookOpen },
+  { href: "/teachers", label: "Find a teacher", icon: Search },
+  { href: "/classrooms", label: "Classroom", icon: Monitor },
+  { href: "/forum", label: "Community", icon: Users },
+  { href: "/marketplace", label: "Marketplace", icon: ShoppingBag },
+  { href: "/blog", label: "Blog", icon: BookOpen },
 ];
+
+const HIDE_ON_PREFIXES = [
+  "/student",
+  "/teacher",
+  "/parent",
+  "/admin",
+  "/calendar",
+  "/mailbox",
+  "/notifications",
+  "/profile",
+  "/dashboard",
+  "/classrooms",
+  "/bookings",
+  "/favorites",
+  "/grades",
+  "/study-materials",
+  "/seller",
+  "/requests",
+  "/support",
+  "/payments",
+  "/analytics",
+  "/orgs",
+  "/wall",
+  "/chat",
+  "/breakout",
+  "/quiz",
+  "/assessments",
+  "/notes",
+  "/reviews",
+  "/referrals",
+  "/sessions",
+  "/book",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/classroom/",
+  "/whiteboard/",
+  "/settings",
+  "/mailbox/",
+  "/classroom-chat",
+  "/teachers",
+  "/marketplace",
+  "/forum",
+  "/blog",
+];
+
+function shouldHideOnSignedIn(pathname: string, signedIn: boolean | null): boolean {
+  if (!signedIn) return false;
+  return HIDE_ON_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -35,8 +77,6 @@ export function Header() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [admin, setAdmin] = useState(false);
-  const [sub, setSub] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string | undefined>();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -44,13 +84,14 @@ export function Header() {
       setSignedIn(!!s);
       setRole(currentRole(s));
       setAdmin(isAdmin(s));
-      if (s) {
-        const payload = s.getIdToken().payload;
-        setSub((payload.sub as string) ?? null);
-        setDisplayName((payload.name as string) ?? (payload.email as string) ?? undefined);
-      }
     });
   }, [pathname]);
+
+  // Hide the marketing header entirely on signed-in app pages (the AppShell has its own header)
+  if (shouldHideOnSignedIn(pathname, signedIn)) return null;
+
+  // Also hide on the live classroom and whiteboard pages (full-bleed)
+  if (pathname.startsWith("/classroom/") || pathname.startsWith("/whiteboard/")) return null;
 
   function onSignOut() {
     signOut();
@@ -61,65 +102,58 @@ export function Header() {
     router.refresh();
   }
 
+  const showNav = !signedIn;
+
   return (
-    <header className="sticky top-0 z-40 border-b border-rule-soft bg-white/92 backdrop-blur-[10px]">
+    <header
+      className="sticky top-0 z-40 border-b border-rule-soft"
+      style={{ background: "color-mix(in oklab, var(--bg) 92%, transparent)", backdropFilter: "blur(10px)" }}
+    >
       <div className="mx-auto flex h-16 max-w-container-wide items-center gap-7 px-8">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 hover:no-underline">
+        <Link href="/" className="flex items-center gap-2.5">
           <span
             aria-hidden
-            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink font-serif text-lg font-medium italic text-white"
+            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-lg font-bold text-lg text-white"
+            style={{ background: "var(--ink)" }}
           >
             E
           </span>
-          <span className="font-serif text-[22px] font-medium tracking-tight text-ink">
-            EduBoost
-          </span>
+          <span className="text-[22px] font-bold tracking-[-0.02em] text-ink">EduBoost</span>
         </Link>
 
-        {/* Nav links */}
-        <nav className="ml-4 hidden items-center gap-5 md:flex">
-          {NAV_ALL.filter((l) => !role || !l.hideFor.includes(role)).map((l) => {
-            const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
-            return (
-              <Link
-                key={l.href}
-                href={l.href as never}
-                className={`relative whitespace-nowrap px-0 py-2 text-sm transition ${
-                  active ? "text-ink font-medium" : "text-ink-soft hover:text-ink"
-                }`}
-              >
-                {l.label}
-                {active && (
-                  <span className="absolute inset-x-0 -bottom-[14px] h-0.5 bg-accent" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        {showNav && (
+          <nav className="ml-4 hidden items-center gap-5 md:flex">
+            {NAV_ALL.map((l) => {
+              const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href as never}
+                  className={`relative whitespace-nowrap px-0 py-2 text-[14.5px] transition ${
+                    active ? "font-semibold text-ink" : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  {l.label}
+                  {active && (
+                    <span className="absolute inset-x-0 -bottom-[14px] h-0.5 rounded bg-accent" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
-        {/* Right actions */}
         <div className="ml-auto flex items-center gap-2">
           {signedIn === null ? null : signedIn ? (
-            <>
-              <NotificationBell />
-              <AvatarDropdown
-                userId={sub ?? ""}
-                role={role}
-                displayName={displayName}
-                isAdmin={admin}
-                onSignOut={onSignOut}
-              />
-            </>
+            <button onClick={onSignOut} className="btn-ghost text-sm">
+              Sign out
+            </button>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="btn-ghost hidden text-sm sm:inline-flex"
-              >
+              <Link href="/login" className="btn-ghost hidden text-sm sm:inline-flex">
                 Log in
               </Link>
-              <Link href="/signup" className="btn-seal">
+              <Link href="/signup" className="btn-accent btn-sm">
                 Sign up
               </Link>
             </>
@@ -136,87 +170,19 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <nav className="border-t border-rule-soft bg-white/95 md:hidden">
-          <div className="mx-auto flex max-w-container-wide flex-col px-8 py-3 max-h-[calc(100vh-60px)] overflow-y-auto">
-            <div className="eyebrow px-2 pb-1">Navigate</div>
-            {NAV_ALL.filter((l) => !role || !l.hideFor.includes(role)).map((l) => {
-              const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
-              const Icon = l.icon;
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href as never}
-                  onClick={() => setMobileOpen(false)}
-                  className={`inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm transition ${
-                    active ? "bg-bg-soft font-medium text-ink" : "text-ink-soft"
-                  }`}
-                >
-                  <Icon size={16} className={active ? "text-accent" : ""} />
-                  {l.label}
-                </Link>
-              );
-            })}
-
-            {signedIn && role && (
-              <>
-                <div className="my-2 border-t border-rule" />
-                <div className="eyebrow px-2 pb-1">
-                  {role === "student" ? "My space" : role === "teacher" ? "Teacher tools" : role === "parent" ? "Family" : "Dashboard"}
-                </div>
-                {linksForRole(role, admin).map((l) => {
-                  const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
-                  const Icon = l.icon;
-                  return (
-                    <Link
-                      key={l.href}
-                      href={l.href as never}
-                      onClick={() => setMobileOpen(false)}
-                      className={`inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm transition ${
-                        active ? "bg-bg-soft font-medium text-ink" : "text-ink-soft"
-                      }`}
-                    >
-                      <Icon size={16} className={active ? "text-accent" : ""} />
-                      {l.label}
-                    </Link>
-                  );
-                })}
-              </>
-            )}
-
-            {signedIn && (
-              <>
-                <div className="my-2 border-t border-rule" />
-                <div className="eyebrow px-2 pb-1">Account</div>
-                {[
-                  { href: "/profile", label: "Profile", icon: User },
-                  { href: "/orders", label: "My orders", icon: Package },
-                  { href: "/settings/sms", label: "Settings", icon: Settings },
-                  { href: "/referrals", label: "Invite a friend", icon: Gift },
-                ].map((l) => {
-                  const Icon = l.icon;
-                  return (
-                    <Link
-                      key={l.href}
-                      href={l.href as never}
-                      onClick={() => setMobileOpen(false)}
-                      className="inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-sm text-ink-soft"
-                    >
-                      <Icon size={16} />
-                      {l.label}
-                    </Link>
-                  );
-                })}
-                <button
-                  onClick={() => { setMobileOpen(false); onSignOut(); }}
-                  className="inline-flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-left text-sm text-ink-soft"
-                >
-                  <LogOut size={16} />
-                  Log out
-                </button>
-              </>
-            )}
+      {mobileOpen && showNav && (
+        <nav className="border-t border-rule-soft bg-white md:hidden">
+          <div className="mx-auto flex max-w-container-wide flex-col px-8 py-3">
+            {NAV_ALL.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href as never}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-2 py-2.5 text-[14px] text-ink-soft transition hover:bg-bg-soft hover:text-ink"
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
         </nav>
       )}

@@ -39,7 +39,7 @@ function BookSuccessInner() {
   return (
     <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-center">
       <div className="eyebrow">Checkout</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+      <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">
         {paid ? "Booking confirmed" : "Processing..."}
       </h1>
       <p className="mt-2 text-ink-soft">
@@ -72,7 +72,7 @@ export default function BookSuccessPage() {
       fallback={
         <main className="mx-auto max-w-md px-8 pb-24 pt-12 text-center">
           <div className="eyebrow">Checkout</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">
             Processing...
           </h1>
         </main>

@@ -208,8 +208,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
     return Object.values(rx.counts).reduce((a, b) => a + b, 0);
   }
 
-  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (error) return <main className="pb-8 text-red-600">{error}</main>;
+  if (!data) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const postRx = reactions[data.post.postId];
   const postTotal = totalReactions(data.post.postId);
@@ -217,7 +217,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postId: st
   const hasLikedPost = postRx?.mine?.includes("like");
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href={`/forum/${data.post.channelId}` as never} className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
         <ArrowLeft size={16} />
         Back to channel

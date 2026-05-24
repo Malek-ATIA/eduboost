@@ -13,6 +13,7 @@ type Booking = {
   date: string;
   startTime: string;
   status: string;
+  type?: string;
 };
 
 type LessonRequest = {
@@ -23,20 +24,13 @@ type LessonRequest = {
   createdAt: string;
 };
 
-type RecentStudent = {
-  studentId: string;
-  studentName?: string;
-};
-
 export default function TeacherSpacePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [displayName, setDisplayName] = useState("there");
-  const [sub, setSub] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
+  const [todayBookings, setTodayBookings] = useState<Booking[]>([]);
   const [pendingRequests, setPendingRequests] = useState<LessonRequest[]>([]);
-  const [recentStudents, setRecentStudents] = useState<RecentStudent[]>([]);
+  const [unreadMsg, setUnreadMsg] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -45,282 +39,252 @@ export default function TeacherSpacePage() {
       const role = currentRole(s);
       if (role !== "teacher" && !isAdmin(s)) return router.replace("/dashboard");
       const payload = s.getIdToken().payload;
-      const userId = (payload.sub as string) ?? null;
-      setSub(userId);
       setDisplayName(
-        (payload.name as string) ??
-          (payload.email as string)?.split("@")[0] ??
-          "there",
+        (payload.name as string) ?? (payload.email as string)?.split("@")[0] ?? "there"
       );
       setReady(true);
 
-      api<{ count: number }>("/notifications/unread-count")
-        .then((r) => setUnreadCount(r.count))
-        .catch(() => {});
-
       api<{ items: Booking[] }>("/bookings/as-teacher")
         .then((r) => {
-          const now = new Date();
-          const upcoming = r.items
-            .filter((b) => new Date(b.date) >= now && b.status !== "cancelled")
+          const today = new Date().toDateString();
+          const todays = r.items
+            .filter((b) => new Date(b.date).toDateString() === today && b.status !== "cancelled")
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-          setUpcomingBookings(upcoming.slice(0, 3));
-
-          const seen = new Set<string>();
-          const students: RecentStudent[] = [];
-          for (const b of r.items) {
-            if (!seen.has(b.studentId)) {
-              seen.add(b.studentId);
-              students.push({ studentId: b.studentId, studentName: b.studentName });
-            }
-            if (students.length >= 4) break;
-          }
-          setRecentStudents(students);
+          setTodayBookings(todays.length > 0 ? todays : r.items.slice(0, 5));
         })
         .catch(() => {});
 
-      api<{ items: LessonRequest[] }>("/lesson-requests/received")
-        .then((r) => {
-          setPendingRequests(
-            r.items.filter((lr) => lr.status === "pending").slice(0, 5),
-          );
-        })
+      api<{ items: LessonRequest[] }>("/requests/teacher")
+        .then((r) => setPendingRequests(r.items.filter((x) => x.status === "pending").slice(0, 4)))
+        .catch(() => {});
+
+      api<{ count: number }>("/notifications/unread-count")
+        .then((r) => setUnreadMsg(r.count))
         .catch(() => {});
     })();
   }, [router]);
 
   if (!ready)
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">
-        Loading...
+      <main className="flex h-[60vh] items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
       </main>
     );
 
-  const greeting = getGreeting();
+  const todayStr = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      <div className="max-w-container-wide">
-        {/* ── Page header ────────────────────────────────────── */}
-        <div className="eyebrow">
-          {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+    <main>
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
+        <div>
+          <div className="eyebrow">{todayStr}</div>
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
+            Bonjour, <span className="text-accent">{displayName}</span>.
+          </h1>
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
+            {todayBookings.length} session{todayBookings.length === 1 ? "" : "s"} today.
+          </p>
         </div>
-        <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-          Bonjour, <span className="italic">{displayName}</span>.
-        </h1>
-        <p className="mt-3 text-base text-ink-soft">
-          Here&apos;s your teaching overview for today.
-        </p>
-
-        {/* ── Public profile link ────────────────────────────── */}
-        {sub && (
-          <section className="mt-8">
-            <Link
-              href={`/teachers/${sub}` as never}
-              className="card-interactive flex items-center gap-4 p-5"
-            >
-              <Avatar userId={sub} size="md" initial={displayName?.[0]} />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-ink">View my public profile</div>
-                <div className="text-xs text-ink-faded">See what students see when they find you</div>
-              </div>
-              <svg className="h-5 w-5 text-ink-mute" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 5l5 5-5 5" />
-              </svg>
+        <div className="flex gap-2">
+          <Link href="/profile" className="btn-outline btn-sm">Edit profile</Link>
+          {todayBookings[0] && (
+            <Link href={`/bookings/${todayBookings[0].bookingId}`} className="btn-accent btn-sm">
+              Start next session
             </Link>
-          </section>
-        )}
-
-        {/* ── Stats grid ─────────────────────────────────────── */}
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Link href="/teacher/bookings" className="card-interactive p-5 text-center">
-            <div className="font-serif text-3xl text-ink">{upcomingBookings.length}</div>
-            <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-              Upcoming
-            </div>
-          </Link>
-          <Link href="/requests" className="card-interactive p-5 text-center">
-            <div className="font-serif text-3xl text-ink">{pendingRequests.length}</div>
-            <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-              Requests
-            </div>
-          </Link>
-          <Link href="/mailbox" className="card-interactive p-5 text-center">
-            <div className="font-serif text-3xl text-ink">{unreadCount}</div>
-            <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-              Unread
-            </div>
-          </Link>
-          <Link href="/teacher/students" className="card-interactive p-5 text-center">
-            <div className="font-serif text-3xl text-ink">{recentStudents.length}</div>
-            <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-              Students
-            </div>
-          </Link>
+          )}
         </div>
-
-        {/* ── Upcoming sessions ──────────────────────────────── */}
-        {upcomingBookings.length > 0 && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl text-ink">Next sessions</h2>
-              <Link href="/teacher/bookings" className="text-xs font-medium text-accent hover:text-accent-deep">
-                View all
-              </Link>
-            </div>
-            <ul className="mt-4 space-y-3">
-              {upcomingBookings.map((b) => (
-                <li key={b.bookingId} className="card flex items-center justify-between p-5">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-pale">
-                      <svg className="h-5 w-5 text-accent" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="4" width="14" height="14" rx="2" />
-                        <path d="M3 8h14M7 2v4M13 2v4" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-ink">
-                        {b.studentName ?? "Student session"}
-                      </div>
-                      <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-                        {new Date(b.date).toLocaleDateString(undefined, {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                        {b.startTime ? ` at ${b.startTime}` : ""}
-                      </div>
-                    </div>
-                  </div>
-                  <Link
-                    href={`/bookings/${b.bookingId}` as never}
-                    className="btn-ghost text-xs text-accent"
-                  >
-                    View
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* ── Pending lesson requests ────────────────────────── */}
-        {pendingRequests.length > 0 && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl text-ink">Pending requests</h2>
-              <Link href="/requests" className="text-xs font-medium text-accent hover:text-accent-deep">
-                See all
-              </Link>
-            </div>
-            <ul className="mt-4 space-y-3">
-              {pendingRequests.map((lr) => (
-                <li key={lr.requestId} className="card flex items-center justify-between p-5">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-pale">
-                      <svg className="h-5 w-5 text-accent" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M4 4h12v12H4zM4 8h12M8 8v8" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-ink">
-                        {lr.subject ?? "Lesson request"}
-                      </div>
-                      <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">
-                        {new Date(lr.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <Link
-                    href={`/requests/${lr.requestId}` as never}
-                    className="btn-ghost text-xs text-accent"
-                  >
-                    Review
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* ── Recent students ────────────────────────────────── */}
-        {recentStudents.length > 0 && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl text-ink">Recent students</h2>
-              <Link href="/teacher/students" className="text-xs font-medium text-accent hover:text-accent-deep">
-                See all
-              </Link>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {recentStudents.map((st) => (
-                <Link
-                  key={st.studentId}
-                  href={`/teacher/students/${st.studentId}` as never}
-                  className="card-interactive flex items-center gap-4 p-4"
-                >
-                  <Avatar userId={st.studentId} size="md" initial={st.studentName?.[0]} />
-                  <div className="truncate text-sm font-medium text-ink">
-                    {st.studentName ?? "Student"}
-                  </div>
-                  <svg className="ml-auto h-4 w-4 shrink-0 text-ink-mute" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                    <path d="M6 4l4 4-4 4" />
-                  </svg>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Quick actions ──────────────────────────────────── */}
-        <section className="mt-10">
-          <h2 className="font-serif text-xl text-ink">Quick actions</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <Link href="/seller/listings/new" className="card-interactive group p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-pale text-accent">
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M10 4v12M4 10h12" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-ink group-hover:text-accent">
-                    Create a listing
-                  </div>
-                  <div className="mt-0.5 text-xs text-ink-faded">
-                    Sell study materials on the marketplace
-                  </div>
-                </div>
-              </div>
-            </Link>
-            <Link href="/forum" className="card-interactive group p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-pale text-accent">
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M4 4h12v9H8l-3 3v-3H4z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-ink group-hover:text-accent">
-                    Join the community
-                  </div>
-                  <div className="mt-0.5 text-xs text-ink-faded">
-                    Post articles and connect with students
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </section>
       </div>
+
+      {/* Today at a glance — 4 stat cards */}
+      <Section title="Today at a glance">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat label="Sessions today" value={String(todayBookings.length)} sub={`${todayBookings.length} booked`} />
+          <Stat label="Hours booked" value={String(todayBookings.length * 1)} sub={todayBookings.length > 0 ? "Stay sharp" : "Free time"} />
+          <Stat label="Pending requests" value={String(pendingRequests.length)} sub={pendingRequests.length > 0 ? "Awaiting reply" : "All clear"} accent />
+          <Stat label="Unread messages" value={String(unreadMsg)} sub={unreadMsg > 0 ? "Reply soon" : "Inbox clear"} />
+        </div>
+      </Section>
+
+      {/* Schedule */}
+      <Section title="Schedule">
+        {todayBookings.length === 0 ? (
+          <div className="card p-6 text-center">
+            <div className="text-sm text-ink-soft">No sessions today.</div>
+            <Link href="/calendar" className="btn-outline mt-3 inline-block text-sm">View calendar</Link>
+          </div>
+        ) : (
+          <div className="card overflow-hidden p-0">
+            {todayBookings.map((b, i) => {
+              const isNow =
+                new Date(b.date).getTime() - Date.now() < 15 * 60 * 1000 &&
+                new Date(b.date).getTime() > Date.now() - 60 * 60 * 1000;
+              return (
+                <div
+                  key={b.bookingId}
+                  className="flex items-center gap-4 px-5 py-3.5"
+                  style={{
+                    borderTop: i === 0 ? "none" : "1px solid var(--rule)",
+                    background: isNow ? "var(--bg-soft)" : "transparent",
+                  }}
+                >
+                  <div className="w-14 font-mono text-[13px] text-ink">
+                    {b.startTime ||
+                      new Date(b.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                  <Avatar userId={b.studentId} size="sm" initial={b.studentName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14.5px]">{b.studentName || "Student"}</div>
+                    <div className="text-[12.5px] text-ink-faded">{b.type || b.status}</div>
+                  </div>
+                  {b.type === "trial" && <span className="chip chip-accent">Free trial</span>}
+                  {isNow && (
+                    <span className="chip chip-accent">
+                      <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-accent" /> Starting now
+                    </span>
+                  )}
+                  <Link href={`/bookings/${b.bookingId}`} className="btn-ghost text-sm">Notes</Link>
+                  <Link href={`/bookings/${b.bookingId}`} className="btn-accent btn-sm">Open</Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+
+      {/* Needs your attention — 4 pickup tiles */}
+      <Section title="Needs your attention">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <PickupTile
+            tag="Bookings"
+            title={`${pendingRequests.length} pending request${pendingRequests.length === 1 ? "" : "s"}`}
+            sub={pendingRequests.length > 0 ? "Propose times or decline" : "Nothing waiting"}
+            href="/requests"
+          />
+          <PickupTile
+            tag="Messages"
+            title={unreadMsg > 0 ? `${unreadMsg} unread message${unreadMsg === 1 ? "" : "s"}` : "Inbox clear"}
+            sub="Reply to students"
+            href="/mailbox"
+          />
+          <PickupTile
+            tag="Earnings"
+            title="View payouts"
+            sub="Weekly Stripe payout"
+            href="/teacher/earnings"
+          />
+          <PickupTile
+            tag="Profile"
+            title="Add a profile video"
+            sub="Improves listing rank"
+            href="/profile"
+          />
+        </div>
+      </Section>
+
+      {/* Your students — 5-col table */}
+      <Section
+        title="Your students"
+        action={<Link href="/teacher/students" className="btn-ghost text-sm">All students</Link>}
+      >
+        <div className="card overflow-hidden p-0">
+          {todayBookings.slice(0, 5).map((b, i) => (
+            <div
+              key={`student-${b.bookingId}`}
+              className="grid items-center gap-3 px-5 py-3.5"
+              style={{
+                borderTop: i === 0 ? "none" : "1px solid var(--rule)",
+                gridTemplateColumns: "2fr 1.5fr 1fr 1fr auto",
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <Avatar userId={b.studentId} size="sm" initial={b.studentName} />
+                <div>
+                  <div className="text-sm">{b.studentName || "Student"}</div>
+                  <div className="text-xs text-ink-faded">{b.type || "Regular"}</div>
+                </div>
+              </div>
+              <div className="text-[12.5px] text-ink-soft">
+                Next: {b.startTime || new Date(b.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </div>
+              <div className="text-[12.5px] text-accent-deep">+— grade</div>
+              <div className="text-[12.5px] text-ink-soft">— attended</div>
+              <Link href={`/bookings/${b.bookingId}`} className="btn-outline btn-sm">View</Link>
+            </div>
+          ))}
+          {todayBookings.length === 0 && (
+            <div className="px-5 py-6 text-center text-sm text-ink-soft">
+              No students yet. Bookings will appear here as students book you.
+            </div>
+          )}
+        </div>
+      </Section>
+
+      <div className="h-16" />
     </main>
   );
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="px-4 pt-6 sm:px-8 sm:pt-7">
+      <div className="flex items-end justify-between gap-2 pb-3.5">
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="card p-[18px]">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">{label}</div>
+      <div className="mt-1.5 text-[34px] font-bold leading-none tracking-[-0.02em]">{value}</div>
+      {sub && <div className={`mt-1.5 text-[12.5px] ${accent ? "text-accent-deep" : "text-ink-soft"}`}>{sub}</div>}
+    </div>
+  );
+}
+
+function PickupTile({
+  tag,
+  title,
+  sub,
+  href,
+}: {
+  tag: string;
+  title: string;
+  sub: string;
+  href: string;
+}) {
+  return (
+    <Link href={href as never} className="card-interactive block p-[18px]">
+      <div className="font-mono text-[10.5px] uppercase text-accent">{tag}</div>
+      <div className="mt-2 text-lg font-bold leading-tight tracking-[-0.005em]">{title}</div>
+      <div className="mt-2 text-[12.5px] text-ink-faded">{sub}</div>
+    </Link>
+  );
 }

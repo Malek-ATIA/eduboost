@@ -96,12 +96,12 @@ export default function SellerListingsPage() {
   const archivedCount = (items ?? []).filter((l) => l.status === "archived").length;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="eyebrow">Seller</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My listings</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My listings</h1>
           <p className="mt-3 text-sm text-ink-soft">
             Manage your marketplace products and study materials
           </p>
@@ -131,15 +131,15 @@ export default function SellerListingsPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-green-700">{activeCount}</div>
+            <div className="font-bold text-[22px] text-green-700">{activeCount}</div>
             <div className="text-xs text-ink-faded">Active</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-amber-600">{draftCount}</div>
+            <div className="font-bold text-[22px] text-amber-600">{draftCount}</div>
             <div className="text-xs text-ink-faded">Drafts</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink-faded">{archivedCount}</div>
+            <div className="font-bold text-[22px] text-ink-faded">{archivedCount}</div>
             <div className="text-xs text-ink-faded">Archived</div>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function SellerListingsPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">🏪</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No listings yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No listings yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Create your first listing to start selling study materials on the marketplace.
           </p>
@@ -212,7 +212,7 @@ export default function SellerListingsPage() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate font-serif text-base text-ink">{l.title}</h3>
+                      <h3 className="truncate font-semibold text-[15px] text-ink">{l.title}</h3>
                       <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}>
                         {st.label}
                       </span>

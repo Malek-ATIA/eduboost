@@ -74,7 +74,7 @@ function NewRequestForm() {
         ← Back to {teacher.user.displayName}
       </Link>
       <div className="eyebrow">Lesson request</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Request a lesson</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Request a lesson</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Send a note to {teacher.user.displayName}. They&apos;ll accept or decline before you book.
       </p>
@@ -145,7 +145,7 @@ export default function NewRequestPage() {
       fallback={
         <main className="mx-auto max-w-md px-8 pb-24 pt-12">
           <div className="eyebrow">Lesson request</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Request a lesson</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Request a lesson</h1>
           <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }

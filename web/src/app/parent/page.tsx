@@ -4,75 +4,33 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { currentRole, currentSession, isAdmin } from "@/lib/cognito";
 import { api } from "@/lib/api";
-import { formatMoney } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
-import {
-  Users,
-  GraduationCap,
-  CalendarDays,
-  CreditCard,
-  BookOpen,
-  Search,
-  Heart,
-  ShoppingBag,
-  ChevronRight,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-} from "lucide-react";
 
 type ChildLink = {
   parentId: string;
   childId: string;
-  relationship: "mother" | "father" | "guardian";
   status: "pending" | "accepted" | "rejected";
-  createdAt: string;
   child: { userId: string; displayName: string; email: string } | null;
 };
 
-type FamilySummary = {
-  totalSpentCents: number;
-  sessionsAttended: number;
-  currency: string;
-  childCount: number;
+type Booking = {
+  bookingId: string;
+  studentId: string;
+  teacherId: string;
+  teacherName?: string;
+  date: string;
+  startTime?: string;
+  status: string;
+  amountCents?: number;
+  currency?: string;
 };
 
-type AnalyticsResponse = {
-  summary: FamilySummary;
-};
-
-const STATUS_CONFIG: Record<
-  ChildLink["status"],
-  { icon: typeof CheckCircle2; label: string; color: string; bg: string }
-> = {
-  accepted: {
-    icon: CheckCircle2,
-    label: "Linked",
-    color: "text-green-700",
-    bg: "bg-green-50 border-green-200",
-  },
-  pending: {
-    icon: Clock,
-    label: "Pending",
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-200",
-  },
-  rejected: {
-    icon: XCircle,
-    label: "Declined",
-    color: "text-accent",
-    bg: "bg-red-50 border-accent/20",
-  },
-};
-
-export default function ParentSpacePage() {
+export default function ParentDashboard() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [displayName, setDisplayName] = useState("there");
-  const [unreadCount, setUnreadCount] = useState(0);
   const [children, setChildren] = useState<ChildLink[]>([]);
-  const [summary, setSummary] = useState<FamilySummary | null>(null);
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -80,264 +38,236 @@ export default function ParentSpacePage() {
       if (!s) return router.replace("/login");
       const role = currentRole(s);
       if (role !== "parent" && !isAdmin(s)) return router.replace("/dashboard");
-      const payload = s.getIdToken().payload;
-      setDisplayName(
-        (payload.name as string) ??
-          (payload.email as string)?.split("@")[0] ??
-          "there",
-      );
       setReady(true);
 
-      api<{ count: number }>("/notifications/unread-count")
-        .then((r) => setUnreadCount(r.count))
+      api<{ items: ChildLink[] }>("/parent/children")
+        .then((r) => {
+          const accepted = r.items.filter((c) => c.status === "accepted" && c.child);
+          setChildren(accepted);
+          if (accepted[0]) setActiveChildId(accepted[0].childId);
+        })
         .catch(() => {});
 
-      api<{ items: ChildLink[] }>("/family/children")
-        .then((r) => setChildren(r.items))
-        .catch(() => {});
-
-      api<AnalyticsResponse>("/analytics/parent")
-        .then((r) => setSummary(r.summary))
+      api<{ items: Booking[] }>("/bookings/mine")
+        .then((r) => setBookings(r.items.slice(0, 3)))
         .catch(() => {});
     })();
   }, [router]);
 
-  if (!ready) {
+  if (!ready)
     return (
-      <main className="mx-auto max-w-4xl px-8 pb-24 pt-12">
-        <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
-        </div>
+      <main className="flex h-[60vh] items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
       </main>
     );
-  }
 
-  const greeting = getGreeting();
-  const accepted = children.filter((c) => c.status === "accepted");
-  const pending = children.filter((c) => c.status === "pending");
+  const activeChild = children.find((c) => c.childId === activeChildId) ?? children[0];
+  const firstName = activeChild?.child?.displayName.split(" ")[0] ?? "your child";
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main>
+      {/* PageHead with child switcher */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">Family view</div>
-          <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            How <span className="italic">{accepted[0]?.child?.displayName?.split(" ")[0] ?? displayName}</span> is doing.
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
+            How <span className="text-accent">{firstName}</span> is doing.
           </h1>
-          <p className="mt-3 text-base text-ink-soft">
-            Attendance, grades, and what&apos;s coming up — all in one place.
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
+            Attendance, grades, and what&apos;s coming up — all in one place. No micromanaging.
           </p>
         </div>
-        <Link href="/parent/children" className="btn-primary shrink-0 inline-flex items-center gap-2">
-          <Users size={16} />
-          Manage children
-        </Link>
-      </div>
-
-      {/* Stats cards */}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="card p-5">
-          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
-            Sessions attended
-          </div>
-          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
-            {summary ? summary.sessionsAttended : "—"}
-          </div>
-        </div>
-        <div className="card p-5">
-          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
-            Children linked
-          </div>
-          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
-            {children.length}
-          </div>
-        </div>
-        <div className="card p-5">
-          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
-            Unread messages
-          </div>
-          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
-            {unreadCount}
-          </div>
-        </div>
-        <div className="card p-5">
-          <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-faded">
-            Total spent
-          </div>
-          <div className="mt-1 font-serif text-[34px] tracking-tight text-ink">
-            {summary
-              ? formatMoney(summary.totalSpentCents, summary.currency, { trim: true })
-              : "—"}
-          </div>
-        </div>
-      </div>
-
-      {/* Pending requests alert */}
-      {pending.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle size={18} className="text-amber-600" />
-            <span className="text-sm font-medium text-amber-800">
-              {pending.length} pending link request{pending.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-amber-700">
-            Waiting for your child{pending.length !== 1 ? "ren" : ""} to accept the link invitation.
-          </p>
-        </div>
-      )}
-
-      {/* Children overview */}
-      <section className="mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-lg text-ink">My children</h2>
-          <Link
-            href="/parent/children"
-            className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
-          >
-            Manage <ChevronRight size={12} />
+        <div className="inline-flex rounded-full border border-rule bg-white p-1">
+          {children.map((c) => (
+            <button
+              key={c.childId}
+              onClick={() => setActiveChildId(c.childId)}
+              className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+                activeChildId === c.childId ? "bg-ink text-white" : "text-ink-soft"
+              }`}
+            >
+              {c.child?.displayName.split(" ")[0]}
+            </button>
+          ))}
+          <Link href="/parent/children" className="px-3 py-1.5 text-[13px] text-ink-faded">
+            +
           </Link>
         </div>
+      </div>
 
-        {children.length > 0 ? (
-          <ul className="mt-3 space-y-2">
-            {children.map((c) => {
-              const st = STATUS_CONFIG[c.status];
-              const StIcon = st.icon;
+      {/* This month — 4 stat cards */}
+      <Section title="This month">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat label="Sessions attended" value="—" sub="No data yet" />
+          <Stat label="Hours studied" value="—" sub="Will track soon" />
+          <Stat label="Average grade" value="—" sub="Awaiting grades" accent />
+          <Stat label="Spent" value="—" sub="No payments yet" />
+        </div>
+      </Section>
+
+      {/* Upcoming sessions */}
+      <Section title="Upcoming sessions">
+        {bookings.length === 0 ? (
+          <div className="card p-6 text-center text-sm text-ink-soft">
+            No upcoming sessions for {firstName} yet.
+          </div>
+        ) : (
+          <div className="card overflow-hidden p-0">
+            {bookings.map((b, i) => {
+              const d = new Date(b.date);
               return (
-                <li key={c.childId} className="card overflow-hidden">
-                  <div className="flex items-center gap-4 p-4">
-                    <Avatar
-                      userId={c.childId}
-                      size="md"
-                      initial={c.child?.displayName?.charAt(0)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate font-serif text-base text-ink">
-                          {c.child?.displayName ?? c.child?.email ?? "Child"}
-                        </span>
-                        <span
-                          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
-                        >
-                          <StIcon size={10} />
-                          {st.label}
-                        </span>
-                      </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-ink-faded">
-                        {c.child?.email && <span>{c.child.email}</span>}
-                        <span className="capitalize">{c.relationship}</span>
-                      </div>
+                <div
+                  key={b.bookingId}
+                  className="flex items-center gap-4 px-5 py-3.5"
+                  style={{ borderTop: i === 0 ? "none" : "1px solid var(--rule)" }}
+                >
+                  <div className="w-16">
+                    <div className="text-[12.5px] text-ink-soft">
+                      {d.toLocaleDateString(undefined, { weekday: "short" })}
                     </div>
-                    {c.status === "accepted" && (
-                      <Link
-                        href="/analytics"
-                        className="shrink-0 rounded-full border border-rule px-3 py-1.5 text-xs text-ink-soft transition hover:bg-bg-soft hover:text-ink"
-                      >
-                        View progress
-                      </Link>
-                    )}
+                    <div className="font-mono text-[13px]">
+                      {b.startTime || d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
                   </div>
-                </li>
+                  <Avatar userId={b.teacherId} size="sm" initial={b.teacherName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14.5px]">Session with {b.teacherName || "teacher"}</div>
+                    <div className="text-[12.5px] text-ink-faded">{b.status}</div>
+                  </div>
+                  {b.amountCents != null && (
+                    <div className="text-[13px] text-ink-soft">
+                      {(b.amountCents / 1000).toFixed(0)} DT
+                    </div>
+                  )}
+                  <Link href={`/bookings/${b.bookingId}`} className="btn-ghost text-sm">Reschedule</Link>
+                </div>
               );
             })}
-          </ul>
-        ) : (
-          <div className="card mt-3 p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
-              <Users size={28} className="text-ink-faded" />
-            </div>
-            <p className="mt-4 font-serif text-lg text-ink">No children linked yet</p>
-            <p className="mt-3 text-sm text-ink-soft">
-              Link your child&apos;s EduBoost student account to track their learning progress.
-            </p>
-            <Link href="/parent/children" className="btn-primary mt-4 inline-block">
-              Add a child
-            </Link>
           </div>
         )}
-      </section>
+      </Section>
 
-      {/* Quick actions */}
-      <section className="mt-8">
-        <h2 className="font-serif text-lg text-ink">Quick actions</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/teachers" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <Search size={18} className="text-ink-faded group-hover:text-accent" />
-            </div>
+      {/* Grade trajectory chart */}
+      <Section title={`Grade trajectory · ${firstName}`}>
+        <div className="card p-6">
+          <div className="mb-3.5 flex items-end justify-between">
             <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                Find a teacher
-              </div>
-              <div className="text-xs text-ink-soft">Browse verified tutors</div>
+              <div className="text-4xl font-bold tracking-[-0.02em]">—</div>
+              <div className="text-[12.5px] text-accent-deep">No grade data yet</div>
             </div>
-          </Link>
-          <Link href="/calendar" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <CalendarDays size={18} className="text-ink-faded group-hover:text-accent" />
+            <div className="flex gap-3.5 text-xs text-ink-faded">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {firstName}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-ink-mute" /> Class avg
+              </span>
             </div>
-            <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                View calendar
-              </div>
-              <div className="text-xs text-ink-soft">Upcoming sessions & events</div>
-            </div>
-          </Link>
-          <Link href="/analytics" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <GraduationCap size={18} className="text-ink-faded group-hover:text-accent" />
-            </div>
-            <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                Family analytics
-              </div>
-              <div className="text-xs text-ink-soft">Grades, attendance & spending</div>
-            </div>
-          </Link>
-          <Link href="/payments" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <CreditCard size={18} className="text-ink-faded group-hover:text-accent" />
-            </div>
-            <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                Payments
-              </div>
-              <div className="text-xs text-ink-soft">View transaction history</div>
-            </div>
-          </Link>
-          <Link href="/favorites" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <Heart size={18} className="text-ink-faded group-hover:text-accent" />
-            </div>
-            <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                Saved teachers
-              </div>
-              <div className="text-xs text-ink-soft">Bookmarked teachers</div>
-            </div>
-          </Link>
-          <Link href="/marketplace" className="card-interactive group flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-soft">
-              <ShoppingBag size={18} className="text-ink-faded group-hover:text-accent" />
-            </div>
-            <div>
-              <div className="font-serif text-sm text-ink group-hover:text-accent">
-                Marketplace
-              </div>
-              <div className="text-xs text-ink-soft">Study materials & exam banks</div>
-            </div>
-          </Link>
+          </div>
+          <svg viewBox="0 0 600 140" className="w-full">
+            <line x1="0" y1="120" x2="600" y2="120" stroke="var(--rule)" strokeWidth="1" />
+            <line x1="0" y1="80" x2="600" y2="80" stroke="var(--rule)" strokeWidth="1" strokeDasharray="3 4" />
+            <line x1="0" y1="40" x2="600" y2="40" stroke="var(--rule)" strokeWidth="1" strokeDasharray="3 4" />
+            <polyline
+              points="0,110 60,108 120,100 180,92 240,80 300,72 360,62 420,48 480,42 540,32 600,28"
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="2"
+            />
+            <polyline
+              points="0,95 60,93 120,90 180,88 240,85 300,82 360,80 420,78 480,76 540,74 600,72"
+              fill="none"
+              stroke="var(--ink-mute)"
+              strokeWidth="1.5"
+              strokeDasharray="2 3"
+            />
+          </svg>
+          <div className="mt-2 flex justify-between font-mono text-[11px] text-ink-faded">
+            <span>FEB</span>
+            <span>MAR</span>
+            <span>APR</span>
+            <span>MAY</span>
+          </div>
         </div>
-      </section>
+      </Section>
+
+      {/* Teachers */}
+      <Section
+        title="Teachers"
+        action={<Link href="/teachers" className="btn-ghost text-sm">Find another teacher</Link>}
+      >
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          {Array.from(new Set(bookings.map((b) => b.teacherId)))
+            .slice(0, 3)
+            .map((teacherId) => {
+              const b = bookings.find((x) => x.teacherId === teacherId);
+              return (
+                <div key={teacherId} className="card flex gap-3 p-[18px]">
+                  <Avatar userId={teacherId} size="md" initial={b?.teacherName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[17px] font-bold">{b?.teacherName || "Teacher"}</div>
+                    <div className="text-xs text-ink-faded">Since recently</div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-[13px] text-ink-soft">
+                        {b?.amountCents != null ? `${(b.amountCents / 1000).toFixed(0)} DT/hr` : "—"}
+                      </span>
+                      <Link href={`/chat/${teacherId}` as never} className="btn-ghost text-sm">
+                        Message
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          {bookings.length === 0 && (
+            <div className="card col-span-full p-6 text-center text-sm text-ink-soft">
+              No teachers yet. Browse and book to see them here.
+            </div>
+          )}
+        </div>
+      </Section>
+
+      <div className="h-16" />
     </main>
   );
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="px-4 pt-6 sm:px-8 sm:pt-7">
+      <div className="flex items-end justify-between gap-2 pb-3.5">
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="card p-[18px]">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-faded">{label}</div>
+      <div className="mt-1.5 text-[34px] font-bold leading-none tracking-[-0.02em]">{value}</div>
+      {sub && <div className={`mt-1.5 text-[12.5px] ${accent ? "text-accent-deep" : "text-ink-soft"}`}>{sub}</div>}
+    </div>
+  );
 }

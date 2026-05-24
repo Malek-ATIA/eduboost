@@ -109,11 +109,11 @@ function MembershipInner() {
   const activePlan = sub && (sub.status === "active" || sub.status === "trialing") ? sub.planId : null;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="text-center">
         <div className="eyebrow">Account</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Membership</h1>
+        <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Membership</h1>
         <p className="mt-2 text-sm text-ink-soft">
           Upgrade your account for premium features, exclusive content, and priority support.
         </p>
@@ -123,7 +123,7 @@ function MembershipInner() {
       {checkoutStatus === "success" && (
         <div className="mx-auto mt-6 max-w-xl rounded-md border border-green-200 bg-green-50 p-4 text-center">
           <span className="text-lg">🎉</span>
-          <p className="mt-1 font-serif text-base text-green-800">Welcome to Premium!</p>
+          <p className="mt-1 font-semibold text-[15px] text-green-800">Welcome to Premium!</p>
           <p className="mt-0.5 text-sm text-green-700">
             Your subscription will activate within a minute. Enjoy your new features!
           </p>
@@ -145,7 +145,7 @@ function MembershipInner() {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{PLAN_ICONS[sub.planId] ?? "⭐"}</span>
                   <div>
-                    <h2 className="font-serif text-lg text-ink">
+                    <h2 className="font-semibold text-base text-ink">
                       {sub.planId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                     </h2>
                     <p className="text-xs text-ink-soft">
@@ -230,7 +230,7 @@ function MembershipInner() {
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{icon}</span>
                   <div>
-                    <h3 className="font-serif text-xl text-ink">{p.label}</h3>
+                    <h3 className="font-bold text-lg text-ink">{p.label}</h3>
                     <p className="text-xs text-ink-faded capitalize">{p.audience} plan</p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ function MembershipInner() {
                 <p className="mt-3 text-sm text-ink-soft">{p.description}</p>
 
                 <div className="mt-5">
-                  <span className="font-serif text-4xl text-ink">
+                  <span className="font-bold text-[32px] text-ink">
                     {formatMoney(p.priceMonthlyCents, p.currency, { trim: true })}
                   </span>
                   <span className="text-sm text-ink-soft">/month</span>
@@ -289,19 +289,19 @@ function MembershipInner() {
         <h2 className="eyebrow mb-4 text-center">Common questions</h2>
         <div className="space-y-3">
           <div className="card p-4">
-            <h4 className="font-serif text-sm text-ink">Can I cancel anytime?</h4>
+            <h4 className="font-semibold text-[13.5px] text-ink">Can I cancel anytime?</h4>
             <p className="mt-3 text-sm text-ink-soft">
               Yes! Cancel at any time and your subscription will remain active until the end of your billing period.
             </p>
           </div>
           <div className="card p-4">
-            <h4 className="font-serif text-sm text-ink">What payment methods are accepted?</h4>
+            <h4 className="font-semibold text-[13.5px] text-ink">What payment methods are accepted?</h4>
             <p className="mt-3 text-sm text-ink-soft">
               We accept all major credit and debit cards through Stripe, including Visa, Mastercard, and Amex.
             </p>
           </div>
           <div className="card p-4">
-            <h4 className="font-serif text-sm text-ink">Can I switch plans later?</h4>
+            <h4 className="font-semibold text-[13.5px] text-ink">Can I switch plans later?</h4>
             <p className="mt-3 text-sm text-ink-soft">
               You can upgrade or change your plan at any time. Contact support for plan changes.
             </p>
@@ -316,10 +316,10 @@ export default function MembershipPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+        <main className="pb-8">
           <div className="text-center">
             <div className="eyebrow">Account</div>
-            <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Membership</h1>
+            <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Membership</h1>
           </div>
           <div className="mt-8 flex justify-center py-12">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />

@@ -142,12 +142,12 @@ export default function EventDetailPage({
 
   if (error && !event) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>
+      <main className="pb-8 text-sm text-red-600">{error}</main>
     );
   }
   if (!event) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -171,7 +171,7 @@ export default function EventDetailPage({
         : `${durationHrs} hours`;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-faded">
         <Link href="/events" className="hover:text-ink">
@@ -201,7 +201,7 @@ export default function EventDetailPage({
             )}
           </div>
 
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             {event.title}
           </h1>
 
@@ -296,7 +296,7 @@ export default function EventDetailPage({
             </div>
 
             <div>
-              <div className="font-serif text-3xl text-ink">
+              <div className="font-bold text-[26px] text-ink">
                 {isFree ? "Free" : formatMoney(event.priceCents, event.currency, { trim: true })}
               </div>
               {!isFree && (
@@ -360,7 +360,7 @@ export default function EventDetailPage({
             <div className="flex items-center gap-3">
               <Avatar userId={event.organizerId} size="md" initial={organizer?.displayName?.charAt(0)} />
               <div>
-                <div className="font-serif text-sm text-ink">
+                <div className="font-semibold text-[13.5px] text-ink">
                   {organizer?.displayName || "EduBoost Organizer"}
                 </div>
                 <Link
@@ -397,12 +397,12 @@ export default function EventDetailPage({
                     </span>
                   )}
                 </div>
-                <h3 className="mt-2 font-serif text-sm text-ink">{r.title}</h3>
+                <h3 className="mt-2 font-semibold text-[13.5px] text-ink">{r.title}</h3>
                 <div className="mt-1 text-xs text-ink-faded">
                   {r.venue} · {r.capacity} spots
                 </div>
                 {r.priceCents > 0 && (
-                  <div className="mt-2 font-serif text-sm text-ink">
+                  <div className="mt-2 font-semibold text-[13.5px] text-ink">
                     {formatMoney(r.priceCents, r.currency, { trim: true })}
                   </div>
                 )}

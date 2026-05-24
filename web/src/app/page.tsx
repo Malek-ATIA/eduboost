@@ -3,20 +3,29 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { formatMoney } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
-import { FAQ_GENERAL } from "@/lib/faq-data";
 import { currentRole, currentSession, isAdmin } from "@/lib/cognito";
-
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
+import {
+  Search,
+  BookOpen,
+  User,
+  MapPin,
+  Star,
+  Check,
+  Play,
+  ArrowRight,
+  Shield,
+  Monitor,
+  Lock,
+  Plus,
+} from "lucide-react";
 
 type TeacherPreview = {
   userId: string;
   displayName?: string;
   bio?: string;
   subjects: string[];
+  languages: string[];
   yearsExperience: number;
   hourlyRateCents: number;
   currency: string;
@@ -27,24 +36,6 @@ type TeacherPreview = {
   country?: string;
 };
 
-type ForumChannel = {
-  channelId: string;
-  name: string;
-  description?: string;
-};
-
-type MarketplaceListing = {
-  listingId: string;
-  title: string;
-  subjects: string[];
-  priceCents: number;
-  currency: string;
-};
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
 const SUBJECTS = [
   "Mathematics",
   "Physics",
@@ -54,89 +45,84 @@ const SUBJECTS = [
   "Biology",
   "Computer Science",
   "Economics",
+  "Chemistry",
+  "Philosophy",
+];
+
+const LEVELS = [
+  "Bac · terminale",
+  "1ère année",
+  "2ème année",
+  "3ème année",
+  "Université",
+  "Adult learner",
+];
+
+const CITIES = ["Online", "Tunis", "Sfax", "Sousse", "Monastir", "Bizerte", "Nabeul"];
+
+const POPULAR = [
+  "Bac maths",
+  "English speaking",
+  "IELTS",
+  "Physics",
+  "French dissertation",
+  "Programming",
 ];
 
 const TESTIMONIALS = [
   {
     quote:
-      "EduBoost helped me prepare for the bac in just 3 months. My teacher was amazing.",
-    name: "Yasmine",
-    role: "Student",
+      "My teacher explains things so clearly — I went from 11 to 16 in three months. Worth every dinar.",
+    name: "Yasmine M.",
+    role: "Bac student, Tunis",
   },
   {
     quote:
       "I earn a fair rate and the platform handles everything — payments, reminders, the classroom. I just teach.",
-    name: "Karim",
-    role: "Teacher",
+    name: "Karim H.",
+    role: "Physics teacher, Sfax",
   },
   {
     quote:
       "I can track my daughter's grades and attendance from one place. Very reassuring.",
-    name: "Amina",
-    role: "Parent",
+    name: "Amina R.",
+    role: "Parent of 2 bac students",
   },
 ];
 
-const HOW_IT_WORKS_STUDENT = [
+const FAQ_ITEMS = [
   {
-    step: "01",
-    title: "Browse teachers",
-    desc: "Filter by subject, price, and availability. Read reviews from real students.",
+    q: "How are teachers verified?",
+    a: "Every teacher submits ID, qualifications, and a short intro video. We interview them by video and check references before they can take students. The badge on their profile shows the verification date.",
   },
   {
-    step: "02",
-    title: "Book a session",
-    desc: "Pick a time slot that works for you. Pay securely on the platform.",
+    q: "What does a trial lesson cost?",
+    a: "Trial lessons are free with any teacher who offers them — usually 25 to 30 minutes. You'll see a 'Free trial' badge on their card. You only pay after the trial if you book a real session.",
   },
   {
-    step: "03",
-    title: "Join the classroom",
-    desc: "Video, whiteboard, and chat — all in your browser. No installs needed.",
+    q: "Can my parent pay for me?",
+    a: "Yes. Parents can create a linked account, add their card, and approve sessions for one or more children. They also see attendance and grades from a shared dashboard.",
   },
   {
-    step: "04",
-    title: "Track your progress",
-    desc: "Review recordings, check grades, and book your next session.",
-  },
-];
-
-const HOW_IT_WORKS_TEACHER = [
-  {
-    step: "01",
-    title: "Create your profile",
-    desc: "Set your subjects, hourly rate, and availability. We verify every profile.",
+    q: "What if a lesson is cancelled?",
+    a: "If you cancel more than 12 hours ahead, the lesson is rescheduled for free. Within 12 hours, the teacher decides — most rebook for free anyway. If the teacher cancels, you're refunded automatically.",
   },
   {
-    step: "02",
-    title: "Accept bookings",
-    desc: "Students find you and book sessions. You approve and confirm the time.",
-  },
-  {
-    step: "03",
-    title: "Teach in our classroom",
-    desc: "Video, whiteboard, screen share, and quizzes — all built in.",
-  },
-  {
-    step: "04",
-    title: "Get paid",
-    desc: "Funds are released after each completed session. Track earnings on your dashboard.",
+    q: "Where do you operate?",
+    a: "Anywhere in Tunisia, online. Many teachers also offer in-person lessons in Tunis, Sfax, Sousse, Monastir, Bizerte, Nabeul and Kairouan — use the city filter to find them.",
   },
 ];
-
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
 
 export default function Home() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [teachers, setTeachers] = useState<TeacherPreview[] | null>(null);
-  const [channels, setChannels] = useState<ForumChannel[] | null>(null);
-  const [listings, setListings] = useState<MarketplaceListing[] | null>(null);
   const [activeSubject, setActiveSubject] = useState(SUBJECTS[0]);
-  const [howItWorksRole, setHowItWorksRole] = useState<"student" | "teacher">(
-    "student"
-  );
+  const [audience, setAudience] = useState<"student" | "teacher">("student");
+  const [openFaq, setOpenFaq] = useState(0);
+  const [subject, setSubject] = useState("Mathematics");
+  const [level, setLevel] = useState("Bac · terminale");
+  const [city, setCity] = useState("Online");
 
   useEffect(() => {
     currentSession().then((s) => {
@@ -156,620 +142,475 @@ export default function Home() {
     api<{ items: TeacherPreview[] }>(`/teachers`)
       .then((r) => setTeachers(r.items))
       .catch(() => setTeachers([]));
-
-    api<{ items: ForumChannel[] }>(`/forum/channels`)
-      .then((r) => setChannels(r.items.slice(0, 3)))
-      .catch(() => setChannels([]));
-
-    api<{ items: MarketplaceListing[] }>(`/marketplace/listings?limit=4`)
-      .then((r) => setListings(r.items.slice(0, 4)))
-      .catch(() => setListings([]));
   }, [checked]);
 
-  const teachersBySubject: Record<string, TeacherPreview[]> = {};
-  if (teachers) {
-    for (const t of teachers) {
-      for (const subj of t.subjects) {
-        if (!teachersBySubject[subj]) teachersBySubject[subj] = [];
-        teachersBySubject[subj].push(t);
-      }
-    }
-  }
-  const visibleTeachers = (teachersBySubject[activeSubject] ?? []).slice(0, 4);
+  const teachersBySubject = (subj: string) =>
+    (teachers ?? []).filter((t) => t.subjects.includes(subj)).slice(0, 4);
 
-  const howItWorksSteps =
-    howItWorksRole === "student" ? HOW_IT_WORKS_STUDENT : HOW_IT_WORKS_TEACHER;
+  const visible = teachersBySubject(activeSubject);
 
   if (!checked) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">
-        Loading...
+      <main className="flex h-[60vh] items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
       </main>
     );
   }
 
   return (
     <main>
-      {/* ── 1. Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-bg pt-20 pb-20 sm:pt-28 sm:pb-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left — text */}
-            <div>
-              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-                Tunisian tutoring, online
-              </div>
-              <h1 className="mt-5 font-serif text-5xl leading-[1.08] tracking-tight text-ink sm:text-6xl md:text-7xl">
-                Tutoring,{" "}
-                <span className="italic text-accent">thoughtfully</span> done.
-              </h1>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-                Find verified teachers, book sessions, and learn in a built-in
-                classroom — all in one place. Pay securely in TND.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href="/teachers" className="btn-seal">
-                  Find a teacher
-                </Link>
-                <Link href="/signup" className="btn-secondary">
-                  Create an account
-                </Link>
-              </div>
-
-              {/* Stacked avatars + rating */}
-              {teachers && teachers.length > 0 && (
-                <div className="mt-10 flex items-center gap-3">
-                  <div className="flex -space-x-2">
-                    {teachers.slice(0, 5).map((t) => (
-                      <Avatar
-                        key={t.userId}
-                        userId={t.userId}
-                        size="sm"
-                        initial={t.displayName?.[0]}
-                        className="ring-2 ring-white"
-                      />
-                    ))}
-                  </div>
-                  <div className="text-sm text-ink-soft">
-                    <span className="font-medium text-ink">
-                      {teachers.length}+ teachers
-                    </span>{" "}
-                    ready to help
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right — composed visual card */}
-            <div className="hidden lg:block">
-              <div className="relative mx-auto max-w-sm">
-                {/* Main card */}
-                <div className="card overflow-hidden p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-2.5 w-2.5 items-center justify-center">
-                      <span className="absolute h-2.5 w-2.5 animate-ping rounded-full bg-green-400 opacity-75" />
-                      <span className="relative h-2 w-2 rounded-full bg-green-500" />
-                    </div>
-                    <span className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-accent">
-                      Live now
-                    </span>
-                  </div>
-                  <div className="mt-5 flex items-center gap-4">
-                    {teachers && teachers[0] ? (
-                      <Avatar
-                        userId={teachers[0].userId}
-                        size="lg"
-                        initial={teachers[0].displayName?.[0]}
-                      />
-                    ) : (
-                      <div className="h-24 w-24 rounded-full bg-bg-soft" />
-                    )}
-                    <div>
-                      <div className="font-serif text-xl text-ink">
-                        {teachers?.[0]?.displayName ?? "Expert Teacher"}
-                      </div>
-                      <div className="mt-3 text-sm text-ink-soft">
-                        {teachers?.[0]?.subjects?.slice(0, 2).join(", ") ??
-                          "Mathematics, Physics"}
-                      </div>
-                      {teachers?.[0]?.ratingCount ? (
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <span className="text-sm text-gold">
-                            {"★".repeat(
-                              Math.round(teachers[0].ratingAvg)
-                            )}
-                          </span>
-                          <span className="text-xs text-ink-faded">
-                            ({teachers[0].ratingCount} reviews)
-                          </span>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="mt-5 flex items-center justify-between rounded-xl bg-accent-pale px-4 py-3">
-                    <span className="text-sm text-accent-deep">
-                      Next available slot
-                    </span>
-                    <span className="font-mono text-sm font-medium text-accent">
-                      Today
-                    </span>
-                  </div>
-                </div>
-
-                {/* Floating accent badge */}
-                <div className="absolute -right-4 -top-3 rounded-full bg-accent px-4 py-2 text-xs font-medium text-white shadow-seal">
-                  Verified
-                </div>
-              </div>
-            </div>
+      {/* ════ HERO ════ */}
+      <section
+        className="relative overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #eaf1ff 0%, #ffffff 70%)" }}
+      >
+        <div className="relative mx-auto max-w-container-wide px-4 pb-14 pt-16 sm:px-8">
+          {/* Decorative dots */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50">
+            <div className="absolute left-[6%] top-10 h-3.5 w-3.5 rounded-full bg-accent" />
+            <div className="absolute right-[8%] top-[120px] h-[22px] w-[22px] rounded-full border-2 border-gold bg-bg-sun" />
+            <div className="absolute left-[2%] top-[320px] h-2.5 w-2.5 rounded-full bg-warn" />
+            <div className="absolute right-[3%] top-[220px] h-3 w-3 rounded-full bg-green" />
           </div>
-        </div>
-      </section>
 
-      {/* ── 2. Value strip ──────────────────────────────────────── */}
-      <section className="border-y border-rule bg-bg-soft">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="grid divide-y divide-rule sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {/* Verified teachers */}
-            <div className="flex items-start gap-4 py-8 sm:pr-8">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-pale">
-                <svg
-                  className="h-5 w-5 text-accent"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.746 3.746 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="font-serif text-base font-medium text-ink">
-                  Verified teachers
-                </div>
-                <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-                  Every profile is reviewed and approved by our team.
-                </p>
-              </div>
-            </div>
-            {/* Built-in classroom */}
-            <div className="flex items-start gap-4 py-8 sm:px-8">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-pale">
-                <svg
-                  className="h-5 w-5 text-accent"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="font-serif text-base font-medium text-ink">
-                  Classroom built-in
-                </div>
-                <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-                  Video, whiteboard, and chat. No external tools needed.
-                </p>
-              </div>
-            </div>
-            {/* Paid in TND */}
-            <div className="flex items-start gap-4 py-8 sm:pl-8">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-pale">
-                <svg
-                  className="h-5 w-5 text-accent"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="font-serif text-base font-medium text-ink">
-                  Paid in TND
-                </div>
-                <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-                  Pay securely. Teachers get paid after each lesson.
-                </p>
-              </div>
-            </div>
+          <div className="relative mx-auto max-w-[820px] text-center">
+            <span className="chip chip-sun font-semibold">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+              Free trial · cancel anytime
+            </span>
+            <h1 className="mt-[18px] text-[clamp(44px,6vw,76px)] font-bold leading-[1.02] tracking-[-0.03em]">
+              Learn from a real <span className="text-accent">teacher.</span>
+              <br />
+              Anywhere in Tunisia.
+            </h1>
+            <p className="mx-auto mt-[18px] max-w-[620px] text-lg leading-relaxed text-ink-soft">
+              Pick a subject. Pick a teacher you actually click with. Pay only after the lesson.
+            </p>
           </div>
-        </div>
-      </section>
 
-      {/* ── 3. Subject browser ──────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-            Browse by subject
-          </div>
-          <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            Find your subject, find your{" "}
-            <span className="italic">teacher</span>.
-          </h2>
-
-          {/* Subject chip tabs */}
-          <div className="mt-8 flex flex-wrap items-center gap-2">
-            {SUBJECTS.map((subj) => (
-              <button
-                key={subj}
-                type="button"
-                onClick={() => setActiveSubject(subj)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  activeSubject === subj
-                    ? "bg-accent text-white"
-                    : "chip chip-outline hover:border-ink/30 hover:text-ink"
-                }`}
-              >
-                {subj}
-              </button>
-            ))}
-            <Link
-              href="/teachers"
-              className="rounded-full px-4 py-2 text-sm font-medium text-ink-faded transition hover:text-ink"
+          {/* Search bar */}
+          <div className="relative mx-auto mt-8 max-w-[780px]">
+            <div
+              className="card flex flex-wrap items-center gap-1 p-2 sm:flex-nowrap"
+              style={{
+                borderRadius: 999,
+                borderWidth: "1.5px",
+                boxShadow:
+                  "0 22px 60px -30px rgba(20,18,8,0.35), 0 6px 16px -10px rgba(44,91,255,0.18)",
+              }}
             >
-              All subjects →
-            </Link>
-          </div>
-
-          {/* Teacher cards — 4 col */}
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {teachers === null
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="card h-72 animate-pulse opacity-60"
-                  />
-                ))
-              : visibleTeachers.length > 0
-                ? visibleTeachers.map((t) => (
-                    <Link
-                      key={t.userId}
-                      href={`/teachers/${t.userId}` as never}
-                      className="card-interactive group overflow-hidden"
-                    >
-                      <div className="relative flex h-44 items-center justify-center bg-bg-soft">
-                        <Avatar
-                          userId={t.userId}
-                          size="lg"
-                          initial={t.displayName?.[0]}
-                        />
-                        {t.ratingCount > 0 && (
-                          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm">
-                            ★ {t.ratingAvg.toFixed(1)}
-                          </span>
-                        )}
-                        {t.trialSession && (
-                          <span className="absolute right-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-semibold text-white">
-                            Trial
-                          </span>
-                        )}
-                      </div>
-                      <div className="p-5">
-                        <div className="font-serif text-lg text-ink group-hover:text-accent transition">
-                          {t.displayName ?? "Teacher"}
-                        </div>
-                        <div className="mt-1 text-xs text-ink-faded">
-                          {t.subjects.slice(0, 2).join(" · ")}
-                        </div>
-                        <div className="mt-3 flex items-baseline justify-between">
-                          <span className="text-xs text-ink-soft">
-                            From
-                          </span>
-                          <span className="font-serif text-lg font-medium text-ink">
-                            {formatMoney(t.hourlyRateCents, t.currency, {
-                              trim: true,
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))
-                : (
-                  <p className="col-span-full py-16 text-center text-sm text-ink-soft">
-                    No teachers listed for {activeSubject} yet.
-                  </p>
-                )}
-          </div>
-
-          <div className="mt-8 flex justify-center">
-            <Link href="/teachers" className="btn-ghost">
-              See all teachers →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4. Request banner ───────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="rounded-2xl bg-ink px-8 py-10 sm:flex sm:items-center sm:justify-between sm:px-12 sm:py-12">
-            <div>
-              <h3 className="font-serif text-2xl text-white sm:text-3xl">
-                Don&rsquo;t have time to browse?
-              </h3>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-white/60">
-                Describe what you need and let teachers come to you with lesson
-                proposals.
-              </p>
-            </div>
-            <div className="mt-6 sm:mt-0 sm:ml-8">
+              <SearchField icon={<BookOpen size={16} />} label="Subject" value={subject} options={SUBJECTS} onChange={setSubject} />
+              <div className="hidden h-8 w-px bg-rule sm:block" />
+              <SearchField icon={<User size={16} />} label="Level" value={level} options={LEVELS} onChange={setLevel} />
+              <div className="hidden h-8 w-px bg-rule sm:block" />
+              <SearchField icon={<MapPin size={16} />} label="City" value={city} options={CITIES} onChange={setCity} />
               <Link
-                href="/requests/new"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-ink shadow-vellum transition hover:bg-bg-soft"
+                href={`/teachers?subject=${encodeURIComponent(subject)}`}
+                className="btn-accent ml-auto flex items-center gap-2 px-[22px] py-[13px] w-full sm:w-auto"
               >
-                Post a lesson request
+                <Search size={16} /> Search
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 5. How it works ─────────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-            How it works
-          </div>
-          <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            Simple for <span className="italic">everyone</span>.
-          </h2>
-
-          {/* Student / Teacher toggle */}
-          <div className="mt-8 inline-flex rounded-full border border-rule bg-bg-soft p-1">
-            <button
-              type="button"
-              onClick={() => setHowItWorksRole("student")}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
-                howItWorksRole === "student"
-                  ? "bg-white text-ink shadow-vellum"
-                  : "text-ink-faded hover:text-ink"
-              }`}
-            >
-              I&rsquo;m a student
-            </button>
-            <button
-              type="button"
-              onClick={() => setHowItWorksRole("teacher")}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
-                howItWorksRole === "teacher"
-                  ? "bg-white text-ink shadow-vellum"
-                  : "text-ink-faded hover:text-ink"
-              }`}
-            >
-              I&rsquo;m a teacher
-            </button>
-          </div>
-
-          {/* 4-step cards */}
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {howItWorksSteps.map((s) => (
-              <div key={s.step} className="card p-6">
-                <div className="font-mono text-3xl font-semibold text-accent/30">
-                  {s.step}
-                </div>
-                <h3 className="mt-3 font-serif text-lg text-ink">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  {s.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Community preview ───────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-            Community
-          </div>
-          <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            Join the <span className="italic">conversation</span>.
-          </h2>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-soft">
-            Ask questions, share experiences, and compare notes with fellow
-            students and teachers.
-          </p>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-3">
-            {channels === null
-              ? Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="card h-28 animate-pulse p-6 opacity-60"
-                  />
-                ))
-              : channels.length === 0
-                ? (
-                  <p className="col-span-full text-sm text-ink-soft">
-                    Community channels coming soon.
-                  </p>
-                )
-                : channels.map((ch) => (
-                  <div key={ch.channelId} className="card-interactive p-6">
-                    <h3 className="font-serif text-lg text-ink">{ch.name}</h3>
-                    {ch.description && (
-                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-soft">
-                        {ch.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-          </div>
-
-          <div className="mt-8 flex justify-center">
-            <Link href="/forum" className="btn-ghost">
-              Join the community →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Marketplace preview ─────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-            Marketplace
-          </div>
-          <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            Study materials &amp; <span className="italic">resources</span>.
-          </h2>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-soft">
-            Digital notes, exam banks, and workshop tickets — all from verified
-            sellers.
-          </p>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {listings === null
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="card h-36 animate-pulse p-6 opacity-60"
-                  />
-                ))
-              : listings.length === 0
-                ? (
-                  <p className="col-span-full text-sm text-ink-soft">
-                    Marketplace listings coming soon.
-                  </p>
-                )
-                : listings.map((l) => (
-                  <div key={l.listingId} className="card-interactive p-6">
-                    <h3 className="font-serif text-base text-ink line-clamp-2">
-                      {l.title}
-                    </h3>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {l.subjects.map((s) => (
-                        <span key={s} className="chip text-[11px]">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-4 font-serif text-lg font-medium text-ink">
-                      {formatMoney(l.priceCents, l.currency, { trim: true })}
-                    </div>
-                  </div>
-                ))}
-          </div>
-
-          <div className="mt-8 flex justify-center">
-            <Link href="/marketplace" className="btn-ghost">
-              Browse marketplace →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 6. Testimonials ─────────────────────────────────────── */}
-      <section className="mt-24 bg-bg-soft py-20">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-            Testimonials
-          </div>
-          <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-            What people <span className="italic">say</span>.
-          </h2>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <article key={t.name} className="card bg-white p-8">
-                {/* Serif quote mark */}
-                <div className="font-serif text-5xl leading-none text-accent/20">
-                  &ldquo;
-                </div>
-                <p className="mt-2 font-serif text-lg italic leading-relaxed text-ink-soft">
-                  {t.quote}
-                </p>
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-pale font-serif text-sm font-medium text-accent">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-ink">{t.name}</div>
-                    <div className="text-xs text-ink-faded">{t.role}</div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. FAQ ──────────────────────────────────────────────── */}
-      <section className="mt-24">
-        <div className="mx-auto max-w-container-wide px-8">
-          <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
-            {/* Left — sticky heading */}
-            <div className="lg:col-span-2 lg:sticky lg:top-24 lg:self-start">
-              <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
-                FAQ
-              </div>
-              <h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">
-                Common <span className="italic">questions</span>.
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-                Everything you need to know about getting started with EduBoost.
-              </p>
-              <div className="mt-6">
-                <Link href="/faq" className="btn-secondary">
-                  See all FAQs
+            <div className="mt-3.5 flex flex-wrap justify-center gap-1.5">
+              <span className="mr-1 self-center text-[13px] text-ink-faded">Popular:</span>
+              {POPULAR.map((p) => (
+                <Link
+                  key={p}
+                  href={`/teachers?subject=${encodeURIComponent(p)}`}
+                  className="chip chip-outline cursor-pointer font-medium"
+                >
+                  {p}
                 </Link>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Right — accordion */}
-            <div className="lg:col-span-3">
-              <div className="card divide-y divide-rule">
-                {FAQ_GENERAL.map((f) => (
-                  <details key={f.q} className="group">
-                    <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-5">
-                      <span className="font-serif text-base text-ink">
-                        {f.q}
-                      </span>
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rule text-ink-faded transition-transform duration-200 group-open:rotate-45">
-                        <svg
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 4.5v15m7.5-7.5h-15"
-                          />
-                        </svg>
-                      </span>
-                    </summary>
-                    <p className="px-6 pb-5 text-sm leading-relaxed text-ink-soft">
-                      {f.a}
-                    </p>
-                  </details>
-                ))}
-              </div>
-            </div>
+          {/* Trust strip */}
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-x-12 gap-y-5 text-center">
+            <TrustStat big={`${teachers?.length ?? "380"}+`} label="Verified teachers" />
+            <TrustStat big="14k" label="Students learning" />
+            <TrustStat big="4.9 ★" label="2,400+ reviews" />
+            <TrustStat big="48" label="Subjects taught" />
           </div>
         </div>
       </section>
 
-      <div className="pb-24" />
+      {/* ════ VALUE STRIP ════ */}
+      <section className="mx-auto mt-6 max-w-container-wide px-8">
+        <div className="card grid overflow-hidden p-0 sm:grid-cols-3">
+          {[
+            { icon: <Shield size={20} />, title: "Verified teachers", body: "Every teacher is reviewed by our team before they can take students." },
+            { icon: <Monitor size={20} />, title: "Classroom built-in", body: "Video, whiteboard, notes and quizzes — no Zoom, no plugins, no setup." },
+            { icon: <Lock size={20} />, title: "Paid in TND", body: "Pay on the platform, teachers get paid after each lesson. Refunds covered." },
+          ].map((it, i) => (
+            <div
+              key={i}
+              className={`flex items-start gap-4 p-6 ${i < 2 ? "border-b border-rule sm:border-b-0 sm:border-r" : ""}`}
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-accent-pale text-accent-deep">
+                {it.icon}
+              </div>
+              <div>
+                <div className="text-[14.5px] font-semibold">{it.title}</div>
+                <div className="mt-1 text-[13px] leading-snug text-ink-soft">{it.body}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ════ SUBJECT BROWSER ════ */}
+      <section className="mx-auto mt-24 max-w-container-wide px-8">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <div className="eyebrow">Browse by subject</div>
+            <h2 className="mt-3 text-[clamp(34px,4.5vw,52px)] font-bold tracking-[-0.02em]">
+              Find your <span className="text-accent">subject</span>, find your teacher.
+            </h2>
+          </div>
+          <Link href="/teachers" className="btn-outline flex items-center gap-2 text-sm">
+            See all teachers <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="mt-7 flex flex-wrap gap-2">
+          {SUBJECTS.map((s) => (
+            <button
+              key={s}
+              onClick={() => setActiveSubject(s)}
+              className={`rounded-full border px-3.5 py-2 text-[13.5px] transition ${
+                activeSubject === s
+                  ? "border-ink bg-ink text-white"
+                  : "border-rule bg-bg-card text-ink-soft hover:border-ink/30 hover:text-ink"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-7 grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
+          {visible.length === 0 ? (
+            <p className="col-span-full py-12 text-center text-ink-faded">
+              No teachers listed for {activeSubject} yet.
+            </p>
+          ) : (
+            visible.map((t) => <TeacherCard key={t.userId} t={t} />)
+          )}
+        </div>
+      </section>
+
+      {/* ════ REQUEST BANNER ════ */}
+      <section className="mx-auto mt-16 max-w-container-wide px-8">
+        <div
+          className="card flex flex-wrap items-center justify-between gap-8 border-ink p-11"
+          style={{ background: "var(--ink)", color: "#ffffff" }}
+        >
+          <div className="max-w-[560px]">
+            <div className="text-xs font-bold uppercase tracking-[0.05em] text-white/55">
+              Don&apos;t have time to browse?
+            </div>
+            <h3 className="mt-2 text-[30px] font-bold leading-tight tracking-tight">
+              Tell us what you need. Teachers will come to <span className="text-accent" style={{ color: "var(--accent)" }}>you</span>.
+            </h3>
+            <p className="mt-2.5 text-[14.5px] text-white/70">
+              Answer five quick questions about your subject, level and schedule. You&apos;ll get matched proposals within 24 hours — pick the one you like.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/requests/new"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-[26px] py-3.5 text-[15px] font-semibold text-ink"
+            >
+              Post a lesson request <ArrowRight size={16} />
+            </Link>
+            <span className="text-[12.5px] text-white/55">
+              Takes ~2 minutes · No payment until you accept
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ════ HOW IT WORKS ════ */}
+      <section className="mx-auto mt-24 max-w-container-wide px-8">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <div className="eyebrow">How it works</div>
+            <h2 className="mt-3 text-[clamp(34px,4.5vw,52px)] font-bold tracking-[-0.02em]">
+              Two flows. <span className="text-accent">Same platform.</span>
+            </h2>
+          </div>
+          <div className="inline-flex rounded-full border border-rule bg-white p-1">
+            {[
+              { k: "student" as const, label: "I'm a student / parent" },
+              { k: "teacher" as const, label: "I'm a teacher" },
+            ].map((o) => (
+              <button
+                key={o.k}
+                onClick={() => setAudience(o.k)}
+                className={`rounded-full px-[18px] py-2.5 text-[13.5px] font-medium transition ${
+                  audience === o.k ? "bg-ink text-white" : "text-ink-soft"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {(audience === "student"
+            ? [
+                { n: "01", title: "Browse verified teachers", body: "Filter by subject, city, rate, and language. Read reviews from students who actually booked." },
+                { n: "02", title: "Book a free trial", body: "Most teachers offer a 30-minute trial. No payment until both of you confirm the match." },
+                { n: "03", title: "Learn in our classroom", body: "Video, whiteboard, shared notes, recordings, and homework — all in one place." },
+                { n: "04", title: "Pay only after the lesson", body: "Pay safely in TND. If something goes wrong, we cover refunds." },
+              ]
+            : [
+                { n: "01", title: "Apply to teach", body: "Submit your profile and credentials. Our team reviews every application within 2–3 days." },
+                { n: "02", title: "Set your rate and schedule", body: "You own your calendar and your rate. Offer trials, group sessions, or in-person lessons." },
+                { n: "03", title: "Use our classroom + tools", body: "Whiteboard, recordings, attendance, grading and parent messaging — all built in." },
+                { n: "04", title: "Get paid after each lesson", body: "Stripe payouts in TND, weekly. We handle invoicing. You keep 85% of your rate." },
+              ]
+          ).map((s, i) => (
+            <div
+              key={s.n}
+              className={`border-t border-rule p-7 ${i < 3 ? "lg:border-r" : ""}`}
+            >
+              <div className="font-mono text-[13px] text-accent">{s.n}</div>
+              <div className="mt-[18px] text-[22px] font-bold tracking-tight">{s.title}</div>
+              <p className="mt-2.5 text-[13.5px] leading-snug text-ink-soft">{s.body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-7 flex gap-2.5">
+          {audience === "student" ? (
+            <Link href="/teachers" className="btn-accent flex items-center gap-2">
+              Find your teacher <ArrowRight size={14} />
+            </Link>
+          ) : (
+            <Link href="/signup?role=teacher" className="btn-accent flex items-center gap-2">
+              Apply to teach <ArrowRight size={14} />
+            </Link>
+          )}
+          <Link href="/blog" className="btn-ghost">Read the guide</Link>
+        </div>
+      </section>
+
+      {/* ════ TESTIMONIALS ════ */}
+      <section className="mx-auto mt-24 max-w-container-wide px-8">
+        <div className="eyebrow">Voices</div>
+        <h2 className="mt-3 text-[clamp(34px,4.5vw,52px)] font-bold tracking-[-0.02em]">
+          What people say.
+        </h2>
+        <div className="mt-8 grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <div key={t.name} className="card flex flex-col p-6">
+              <div className="text-4xl leading-none text-ink-faded">&ldquo;</div>
+              <p className="mt-2.5 text-[19px] leading-snug">
+                {t.quote}
+              </p>
+              <div className="mt-auto flex items-center gap-2.5 pt-5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-pale font-semibold text-accent-deep">
+                  {t.name.charAt(0)}
+                </div>
+                <div>
+                  <div className="text-[13.5px] font-semibold">{t.name}</div>
+                  <div className="text-xs text-ink-faded">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ════ FAQ ════ */}
+      <section className="mx-auto mt-24 max-w-container-wide px-8 pb-16">
+        <div className="grid items-start gap-14 lg:grid-cols-[0.7fr_1.3fr]">
+          <div className="lg:sticky lg:top-24">
+            <div className="eyebrow">Questions</div>
+            <h2 className="mt-3 text-[clamp(34px,4.5vw,52px)] font-bold tracking-[-0.02em]">
+              Common <span className="text-accent">questions</span>.
+            </h2>
+            <p className="mt-4 max-w-[360px] text-[14.5px] text-ink-soft">
+              Can&apos;t find what you&apos;re looking for? Our support team replies in under 4 hours, every day of the week.
+            </p>
+            <Link href="/support" className="btn-outline mt-5 inline-block">Visit help center</Link>
+          </div>
+          <div>
+            {FAQ_ITEMS.map((f, i) => {
+              const isOpen = i === openFaq;
+              return (
+                <div
+                  key={f.q}
+                  className={`border-b border-rule ${i === 0 ? "border-t-[1px] border-t-ink" : ""}`}
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? -1 : i)}
+                    className="flex w-full items-center justify-between gap-4 py-5 text-left"
+                  >
+                    <span className="text-[22px] font-semibold tracking-tight">{f.q}</span>
+                    <span
+                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-rule transition-transform ${isOpen ? "rotate-45" : ""}`}
+                    >
+                      <Plus size={14} />
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="max-w-[620px] pb-6 text-[15px] leading-relaxed text-ink-soft">
+                      {f.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function SearchField({
+  icon,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative min-w-0 flex-1" onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex w-full items-center gap-3 rounded-full px-3.5 py-2 text-left transition ${
+          open ? "bg-bg-soft" : "hover:bg-bg-soft"
+        }`}
+      >
+        <span className="inline-flex text-accent">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-bold uppercase tracking-[0.04em] text-ink-faded">
+            {label}
+          </span>
+          <span className="block truncate text-sm font-semibold">{value}</span>
+        </span>
+      </button>
+      {open && (
+        <div className="card absolute left-0 right-0 top-[calc(100%+8px)] z-10 max-h-72 overflow-y-auto p-1.5 shadow-lift">
+          {options.map((o) => (
+            <button
+              key={o}
+              type="button"
+              onClick={() => {
+                onChange(o);
+                setOpen(false);
+              }}
+              className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                o === value ? "bg-accent-pale font-semibold text-accent-deep" : "hover:bg-bg-soft"
+              }`}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrustStat({ big, label }: { big: string; label: string }) {
+  return (
+    <div>
+      <div className="text-[28px] font-bold tracking-[-0.02em]">{big}</div>
+      <div className="mt-0.5 text-[12.5px] text-ink-faded">{label}</div>
+    </div>
+  );
+}
+
+function TeacherCard({ t }: { t: TeacherPreview }) {
+  // Deterministic hue from name for gradient backdrop
+  const name = t.displayName ?? "Teacher";
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) & 0xffff;
+  const hue = Math.abs(h) % 360;
+
+  return (
+    <Link
+      href={`/teachers/${t.userId}`}
+      className="card-interactive flex flex-col overflow-hidden"
+      style={{ borderRadius: 18 }}
+    >
+      {/* Photo / video thumb */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          aspectRatio: "5 / 4",
+          background: `linear-gradient(135deg, oklch(0.88 0.06 ${hue}) 0%, oklch(0.94 0.04 ${(hue + 40) % 360}) 100%)`,
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Avatar userId={t.userId} size="xl" initial={name} className="!h-[88px] !w-[88px]" />
+        </div>
+        {/* Play pill */}
+        <div className="absolute bottom-3 left-3">
+          <span className="play-pill"><Play size={10} fill="currentColor" /> Intro · 0:54</span>
+        </div>
+        {/* Free trial badge */}
+        {t.trialSession && (
+          <div className="absolute left-3 top-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5 text-[11.5px] font-semibold">
+              <span className="h-1.5 w-1.5 rounded-full bg-green" />
+              Free trial
+            </span>
+          </div>
+        )}
+        {/* Verified */}
+        {t.ratingCount > 0 && (
+          <span
+            title="Verified"
+            className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white"
+            style={{ border: "2px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,0.18)" }}
+          >
+            <Check size={14} />
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 truncate text-[17px] font-bold tracking-tight">{name}</div>
+          <div className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold">
+            <Star size={13} fill="#ffb547" className="text-gold" />
+            {t.ratingAvg > 0 ? t.ratingAvg.toFixed(1) : "—"}
+            <span className="font-normal text-ink-faded"> ({t.ratingCount})</span>
+          </div>
+        </div>
+        <div className="text-[13px] text-ink-soft">
+          Teaches <strong className="font-semibold text-ink">{t.subjects[0] ?? "various"}</strong>
+          {t.subjects.length > 1 && (
+            <span className="text-ink-faded"> · +{t.subjects.length - 1} more</span>
+          )}
+        </div>
+        <div className="mt-0.5 flex flex-wrap gap-1.5">
+          {t.languages.slice(0, 3).map((l) => (
+            <span key={l} className="chip px-2.5 py-1 text-[11.5px]">{l}</span>
+          ))}
+        </div>
+        <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-rule-soft pt-3">
+          <div>
+            <span className="text-[22px] font-bold">{(t.hourlyRateCents / 1000).toFixed(0)}</span>
+            <span className="text-[12.5px] text-ink-faded"> DT / 50-min</span>
+          </div>
+          <span className="text-[13px] font-semibold text-accent">Book →</span>
+        </div>
+      </div>
+    </Link>
   );
 }

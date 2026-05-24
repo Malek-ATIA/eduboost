@@ -61,7 +61,7 @@ export default function AdminTicketsPage() {
 
   if (!ready) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -70,11 +70,11 @@ export default function AdminTicketsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="eyebrow">Admin</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             Support tickets
           </h1>
         </div>

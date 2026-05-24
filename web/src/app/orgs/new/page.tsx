@@ -47,12 +47,12 @@ export default function NewOrgPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Teams</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Create an organization</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Create an organization</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Invite teachers to collaborate, link classrooms, and manage students under
         a single umbrella.

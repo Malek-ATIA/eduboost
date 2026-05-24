@@ -66,12 +66,12 @@ export default function GraderPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Teacher</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">AI grader</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">AI grader</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Paste a student submission; the grader returns a score and constructive
         feedback against your rubric. The student is notified.
@@ -164,7 +164,7 @@ export default function GraderPage() {
       {result && (
         <section className="card mt-8 p-4">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-serif text-xl text-ink">Result</h2>
+            <h2 className="font-bold text-lg text-ink">Result</h2>
             <span className="font-mono text-2xl font-bold text-ink">
               {result.score}/{result.maxScore}
             </span>

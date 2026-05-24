@@ -45,11 +45,11 @@ export default function SupportPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Help</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             Support & disputes
           </h1>
           <p className="mt-3 text-sm text-ink-soft">
@@ -78,7 +78,7 @@ export default function SupportPage() {
                 className="flex items-center justify-between gap-3 p-4 transition hover:bg-bg-soft"
               >
                 <div>
-                  <div className="font-serif text-base text-ink">{t.subject}</div>
+                  <div className="font-semibold text-[15px] text-ink">{t.subject}</div>
                   <div className="mt-0.5 text-xs text-ink-faded">
                     <span className="font-mono">#{t.ticketId}</span> · {t.category.replace(/_/g, " ")} · updated{" "}
                     {new Date(t.updatedAt).toLocaleDateString()}

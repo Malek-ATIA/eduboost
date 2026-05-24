@@ -1,5 +1,34 @@
+"use client";
 import Link from "next/link";
 import { Mail, Phone, MessageCircle } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { currentSession } from "@/lib/cognito";
+
+const HIDE_FOOTER_PREFIXES = [
+  "/student", "/teacher", "/parent", "/admin",
+  "/calendar", "/mailbox", "/notifications", "/profile", "/dashboard",
+  "/classrooms", "/bookings", "/favorites", "/grades", "/study-materials",
+  "/seller", "/requests", "/support", "/payments", "/analytics",
+  "/orgs", "/wall", "/chat", "/breakout", "/quiz", "/assessments",
+  "/notes", "/reviews", "/referrals", "/sessions", "/book",
+  "/login", "/signup", "/forgot-password",
+  "/classroom/", "/whiteboard/", "/settings", "/mailbox/", "/classroom-chat",
+  "/teachers", "/marketplace", "/forum", "/blog",
+];
+
+function useShowFooter(): boolean {
+  const pathname = usePathname();
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    currentSession().then((s) => setSignedIn(!!s));
+  }, [pathname]);
+  if (signedIn === true && HIDE_FOOTER_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) {
+    return false;
+  }
+  if (pathname.startsWith("/classroom/") || pathname.startsWith("/whiteboard/")) return false;
+  return true;
+}
 
 const COLS = [
   {
@@ -34,6 +63,8 @@ const COLS = [
 ];
 
 export function Footer() {
+  const show = useShowFooter();
+  if (!show) return null;
   return (
     <footer className="mt-24 border-t border-rule bg-bg-soft">
       <div className="mx-auto max-w-container-wide px-8 pb-7 pt-14">

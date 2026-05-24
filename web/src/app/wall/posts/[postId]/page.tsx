@@ -95,13 +95,13 @@ export default function WallPostPage({ params }: { params: Promise<{ postId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (error) return <main className="pb-8 text-red-600">{error}</main>;
+  if (!data) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const isOwner = viewerSub !== null && viewerSub === data.post.teacherId;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href={`/teachers/${data.post.teacherId}` as never} className="btn-ghost -ml-3">
         ← {data.post.authorName ?? "Teacher"}
       </Link>

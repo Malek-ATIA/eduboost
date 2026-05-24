@@ -133,7 +133,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
   return (
     <main className="mx-auto max-w-md px-8 pb-24 pt-12">
       <div className="eyebrow">Checkout</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Buy {listing.title}</h1>
+      <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">Buy {listing.title}</h1>
       <p className="mt-3 text-sm text-ink-soft">
         {formatMoney(listing.priceCents, listing.currency)}
         {isPhysical && (
@@ -157,7 +157,7 @@ export default function BuyListingPage({ params }: { params: Promise<{ listingId
 
       {isPhysical && !clientSecret && (
         <form onSubmit={onAddressSubmit} className="card mt-8 space-y-3 p-6">
-          <h2 className="font-serif text-base text-ink">Shipping address</h2>
+          <h2 className="font-semibold text-[15px] text-ink">Shipping address</h2>
           <label className="block">
             <span className="label">Full name</span>
             <input

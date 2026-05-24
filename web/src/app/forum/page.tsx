@@ -16,10 +16,10 @@ export default function ForumPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8">
       <div className="eyebrow">Community</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
-        Where the <span className="italic">conversation</span> happens.
+      <h1 className="mt-3 text-[clamp(40px,5vw,64px)] font-bold tracking-[-0.022em]">
+        Where the <span className="text-accent">conversation</span> happens.
       </h1>
       <p className="mt-3 max-w-[560px] text-base leading-relaxed text-ink-soft">
         Ask questions, share past exams, find study partners. Moderated by
@@ -39,7 +39,7 @@ export default function ForumPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">💬</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No channels yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No channels yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Community channels are coming soon.
           </p>
@@ -54,7 +54,7 @@ export default function ForumPage() {
               href={`/forum/${c.id}` as never}
               className="card-interactive p-6"
             >
-              <h2 className="font-serif text-2xl">{c.name}</h2>
+              <h2 className="font-bold text-[22px]">{c.name}</h2>
               <p className="mt-2 text-[13.5px] leading-relaxed text-ink-soft">
                 {c.description}
               </p>

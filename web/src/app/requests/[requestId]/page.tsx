@@ -62,14 +62,14 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
     }
   }
 
-  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
-  if (!req) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (error) return <main className="pb-8 text-red-600">{error}</main>;
+  if (!req) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const isTeacher = viewerSub === req.teacherId;
   const isStudent = viewerSub === req.studentId;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href="/requests" className="btn-ghost -ml-3">
         ← All requests
       </Link>
@@ -77,7 +77,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
       <div className="mt-4 flex items-start justify-between gap-4">
         <div>
           <div className="eyebrow">Request</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{req.subject}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{req.subject}</h1>
           <p className="mt-3 text-sm text-ink-soft">
             Sent {new Date(req.createdAt).toLocaleString()}
           </p>
@@ -110,7 +110,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ reques
 
       {req.status === "pending" && isTeacher && (
         <div className="card mt-8 space-y-3 p-4">
-          <h2 className="font-serif text-xl text-ink">Respond</h2>
+          <h2 className="font-bold text-lg text-ink">Respond</h2>
           <textarea
             rows={4}
             maxLength={2000}

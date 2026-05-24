@@ -95,9 +95,9 @@ export default function StudentParentsPage() {
   const rejected = (items ?? []).filter((l) => l.status === "rejected");
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Family</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
         My parents / guardians
       </h1>
       <p className="mt-3 text-sm text-ink-soft">
@@ -143,7 +143,7 @@ export default function StudentParentsPage() {
                         initial={parentName.charAt(0)}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="font-serif text-base text-ink">{parentName}</div>
+                        <div className="font-semibold text-[15px] text-ink">{parentName}</div>
                         <div className="mt-0.5 text-xs text-ink-faded">
                           {link.parent?.email ?? link.parentId} · wants to link as your{" "}
                           <span className="capitalize font-medium text-ink-soft">
@@ -212,7 +212,7 @@ export default function StudentParentsPage() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-serif text-base text-ink">
+                        <span className="truncate font-semibold text-[15px] text-ink">
                           {parentName}
                         </span>
                         <span
@@ -258,7 +258,7 @@ export default function StudentParentsPage() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-serif text-base text-ink">
+                        <span className="truncate font-semibold text-[15px] text-ink">
                           {parentName}
                         </span>
                         <span
@@ -286,7 +286,7 @@ export default function StudentParentsPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <Users size={28} className="text-ink-faded" />
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No parent links yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No parent links yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             When a parent or guardian sends you a link request, it will appear here for you to
             accept or decline.

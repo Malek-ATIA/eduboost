@@ -129,12 +129,12 @@ export default function OrdersPage() {
   const paidCount = (items ?? []).filter((o) => o.status === "paid").length;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Library</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My orders</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My orders</h1>
           <p className="mt-3 text-sm text-ink-soft">
             Marketplace purchases and downloads
           </p>
@@ -161,15 +161,15 @@ export default function OrdersPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{items.length}</div>
+            <div className="font-bold text-[22px] text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total orders</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-green-700">{paidCount}</div>
+            <div className="font-bold text-[22px] text-green-700">{paidCount}</div>
             <div className="text-xs text-ink-faded">Completed</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-lg text-ink">
+            <div className="font-semibold text-base text-ink">
               {formatMoney(totalSpent, items[0]?.currency ?? "TND", { trim: true })}
             </div>
             <div className="text-xs text-ink-faded">Total spent</div>
@@ -202,7 +202,7 @@ export default function OrdersPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">🛒</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No orders yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No orders yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Browse the marketplace to find study materials and resources.
           </p>
@@ -233,7 +233,7 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/marketplace/listings/${o.listingId}` as never}
-                        className="font-serif text-base text-ink hover:text-accent transition"
+                        className="font-semibold text-[15px] text-ink hover:text-accent transition"
                       >
                         {o.listingTitle || o.listingId}
                       </Link>

@@ -28,12 +28,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-16 pt-12 sm:pt-20">
-      <div className="grid min-h-[calc(100vh-200px)] items-start gap-12 lg:grid-cols-2 lg:gap-16">
-        {/* ── Left column: form ── */}
-        <div className="mx-auto w-full max-w-md lg:mx-0">
+    <main className="mx-auto max-w-[460px] px-8 pb-16 pt-12 sm:pt-20">
+      <div>
+        <div>
           <div className="eyebrow">Welcome back</div>
-          <h1 className="mt-3 font-serif text-4xl tracking-tight text-ink sm:text-5xl">
+          <h1 className="mt-3 font-bold text-[32px] tracking-tight text-ink sm:text-5xl">
             Log in.
           </h1>
           <p className="mt-3 text-sm text-ink-soft">
@@ -151,31 +150,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
-        </div>
-
-        {/* ── Right column: testimonial panel ── */}
-        <div className="hidden lg:flex lg:items-center lg:justify-center">
-          <div className="w-full max-w-md rounded-2xl bg-accent p-10 text-white">
-            <blockquote className="space-y-6">
-              <svg width="32" height="24" viewBox="0 0 32 24" fill="none" className="text-white/30">
-                <path d="M0 24V14.4C0 6.13 4.48 1.07 13.44 0l1.28 3.2C9.6 4.27 7.36 7.47 7.04 12H12.8V24H0zm18.56 0V14.4c0-8.27 4.48-13.33 13.44-14.4L33.28 3.2C28.16 4.27 25.92 7.47 25.6 12h5.76V24H18.56z" fill="currentColor" />
-              </svg>
-              <p className="font-serif text-xl italic leading-relaxed text-white/95">
-                &ldquo;EduBoost transformed how I prepare for the Bac. My tutor
-                explains things so clearly, and the AI quizzes keep me on
-                track.&rdquo;
-              </p>
-              <div className="flex items-center gap-4 pt-2">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20 font-serif text-lg font-medium">
-                  A
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-white">Amine B.</div>
-                  <div className="text-xs text-white/60">Student, Tunis</div>
-                </div>
-              </div>
-            </blockquote>
-          </div>
         </div>
       </div>
     </main>

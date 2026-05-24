@@ -13,6 +13,26 @@ import { api } from "@/lib/api";
 import { currentSession } from "@/lib/cognito";
 import { useToast } from "@/components/Toast";
 import { useDialog } from "@/components/Dialog";
+import { Avatar } from "@/components/Avatar";
+import {
+  X,
+  Settings,
+  Pen,
+  Monitor,
+  FileText,
+  BookOpen,
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Share2,
+  Hand,
+  MessageCircle,
+  MoreHorizontal,
+  Send,
+  Plus,
+  Users,
+} from "lucide-react";
 
 type JoinResponse = { meeting: unknown; attendee: unknown };
 type SessionResponse = { sessionId: string; classroomId: string; teacherId: string; status: string };
@@ -39,14 +59,7 @@ const ATTENDANCE_STATUSES = ["present", "late", "absent", "excused"] as const;
 type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 const CHAT_TOPIC = "classroom-chat";
 
-type Panel = "chat" | "participants" | "notes" | "breakouts" | null;
-
-const STATUS_COLORS: Record<AttendanceStatus, string> = {
-  present: "bg-emerald-400",
-  late: "bg-amber-400",
-  absent: "bg-red-400",
-  excused: "bg-slate-400",
-};
+type ActiveTool = "whiteboard" | "screenshare" | "notes" | "quiz";
 
 export default function ClassroomPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = use(params);
@@ -72,9 +85,11 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   const [noteBody, setNoteBody] = useState("");
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
-  const [activePanel, setActivePanel] = useState<Panel>(null);
+  const [showChat, setShowChat] = useState(true);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
+  const [handRaised, setHandRaised] = useState(false);
+  const [activeTool, setActiveTool] = useState<ActiveTool>("whiteboard");
   const [elapsed, setElapsed] = useState(0);
   const joinedAtRef = useRef<number | null>(null);
 
@@ -218,10 +233,6 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
     } catch (err) { toast((err as Error).message, "error"); }
   }
 
-  function togglePanel(panel: Panel) {
-    setActivePanel((cur) => (cur === panel ? null : panel));
-  }
-
   const isTeacher = viewerSub !== null && viewerSub === teacherId;
   const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const secs = String(elapsed % 60).padStart(2, "0");
@@ -229,10 +240,10 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
 
   if (status === "idle" || status === "joining") {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]">
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "#0c0e10", fontFamily: "Geist, sans-serif" }}>
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white/80" />
-          <p className="mt-6 font-serif text-xl text-white/90">Joining session...</p>
+          <p className="mt-6 font-bold text-lg text-white/90">Joining session...</p>
           <p className="mt-2 text-sm text-white/50">Connecting to classroom</p>
         </div>
       </div>
@@ -241,14 +252,14 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
 
   if (status === "error") {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#1a1a2e] px-6">
-        <div className="rounded-2xl bg-white/10 p-10 text-center backdrop-blur">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
-            <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6" style={{ background: "#0c0e10" }}>
+        <div className="rounded-2xl p-10 text-center" style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "rgba(227,76,76,0.2)" }}>
+            <X size={32} style={{ color: "#ff7a72" }} />
           </div>
-          <h2 className="mt-4 font-serif text-xl text-white">Unable to join</h2>
-          <p className="mt-2 max-w-sm text-sm text-white/60">{error}</p>
-          <Link href="/classrooms" className="mt-6 inline-block rounded-lg bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/20">
+          <h2 className="mt-4 font-bold text-lg text-white">Unable to join</h2>
+          <p className="mt-2 max-w-sm text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{error}</p>
+          <Link href="/classrooms" className="mt-6 inline-block rounded-lg px-6 py-2.5 text-sm font-medium text-white transition" style={{ background: "rgba(255,255,255,0.1)" }}>
             Back to classrooms
           </Link>
         </div>
@@ -257,336 +268,280 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#1a1a2e] text-white">
-      {/* ── Top bar ─────────────────────────────────────────────── */}
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-3 sm:h-14 sm:px-5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/classrooms" className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            <span className="hidden sm:inline">EduBoost</span>
-          </Link>
-          <div className="hidden h-5 w-px bg-white/20 sm:block" />
-          <span className="hidden text-sm font-medium text-white/90 sm:inline">Live Session</span>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#0c0e10", color: "#e8e8e6", fontFamily: "Geist, sans-serif" }}>
+      {/* ── Top bar ── */}
+      <header className="flex shrink-0 items-center gap-4 px-[18px]" style={{ height: 56, borderBottom: "1px solid #1a1d20" }}>
+        <button
+          onClick={() => { sessionRef.current?.audioVideo.stop(); window.location.href = "/classrooms"; }}
+          className="inline-flex items-center gap-2 text-[13px]"
+          style={{ color: "#9aa0a6" }}
+        >
+          <X size={16} /> Leave
+        </button>
+
+        <div className="ml-3.5 flex items-center gap-2">
+          {recording && (
+            <>
+              <span className="h-2 w-2 animate-pulse rounded-full" style={{ background: "#e34c4c" }} />
+              <span className="font-mono text-xs tracking-wider" style={{ color: "#9aa0a6" }}>REC · {mins}:{secs}</span>
+            </>
+          )}
+          {!recording && (
+            <span className="font-mono text-xs tracking-wider" style={{ color: "#9aa0a6" }}>{mins}:{secs}</span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {recording && (
-            <div className="flex items-center gap-1.5 rounded-full bg-red-500/20 px-2 py-1 sm:gap-2 sm:px-3">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="text-[10px] font-medium text-red-400 sm:text-xs">REC</span>
-            </div>
-          )}
-          <div className="rounded-lg bg-white/10 px-2 py-1 font-mono text-xs text-white/70 sm:px-3 sm:text-sm">
-            {mins}:{secs}
-          </div>
-          {participantCount > 0 && (
-            <div className="flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1 text-xs text-white/70 sm:gap-1.5 sm:px-3 sm:text-sm">
-              <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              {participantCount}
-            </div>
-          )}
+        <div className="ml-4 text-[13.5px]">
+          <strong style={{ fontWeight: 500, color: "#e8e8e6" }}>Live Session</strong>
+          <span className="ml-2.5" style={{ color: "#7c8086" }}>#{sessionId.slice(0, 8)}</span>
+        </div>
+
+        <div className="ml-auto flex items-center gap-1.5">
+          <span className="rounded-full px-2.5 py-1 font-mono text-[11.5px] tracking-wider" style={{ background: "#1a1d20", color: "#9aa0a6" }}>
+            {participantCount} in classroom
+          </span>
+          <button className="inline-flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "#1a1d20", color: "#9aa0a6" }}>
+            <Settings size={15} />
+          </button>
         </div>
       </header>
 
-      {/* ── Main content ────────────────────────────────────────── */}
-      <div className="relative flex flex-1 overflow-hidden">
-        {/* Video area */}
-        <div className={`flex flex-1 flex-col items-center justify-center p-2 transition-all duration-300 sm:p-4 ${activePanel ? "hidden sm:flex sm:mr-[380px]" : ""}`}>
-          <div className="relative w-full max-w-5xl overflow-hidden rounded-xl bg-[#0f0f23] shadow-2xl shadow-black/50 sm:rounded-2xl">
-            <div className="aspect-video">
-              <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
+      {/* ── Body: 3-column grid ── */}
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        {/* Left rail: tools + participants + files */}
+        <aside className="flex w-[260px] shrink-0 flex-col gap-3.5 overflow-y-auto p-3.5" style={{ borderRight: "1px solid #1a1d20" }}>
+          <div>
+            <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.12em]" style={{ color: "#6b7079" }}>Tools</div>
+            <div className="flex flex-col gap-1">
+              {([
+                { k: "whiteboard" as ActiveTool, icon: <Pen size={15} />, label: "Whiteboard" },
+                { k: "screenshare" as ActiveTool, icon: <Monitor size={15} />, label: "Screen share" },
+                { k: "notes" as ActiveTool, icon: <FileText size={15} />, label: "Notes" },
+                { k: "quiz" as ActiveTool, icon: <BookOpen size={15} />, label: "Quiz" },
+              ]).map((o) => (
+                <button
+                  key={o.k}
+                  onClick={() => setActiveTool(o.k)}
+                  className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px]"
+                  style={{
+                    background: activeTool === o.k ? "#1f2226" : "transparent",
+                    color: activeTool === o.k ? "#fff" : "#9aa0a6",
+                    border: activeTool === o.k ? "1px solid #2a2e34" : "1px solid transparent",
+                  }}
+                >
+                  {o.icon} {o.label}
+                </button>
+              ))}
             </div>
-            {status === "joined" && (
-              <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-sm sm:bottom-4 sm:left-4 sm:gap-2 sm:px-3 sm:py-1.5">
-                <div className="h-2 w-2 rounded-full bg-emerald-400" />
-                <span className="text-[10px] font-medium text-white/90 sm:text-xs">You</span>
-              </div>
+          </div>
+
+          <div style={{ borderTop: "1px solid #1a1d20", paddingTop: 14 }}>
+            <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.12em]" style={{ color: "#6b7079" }}>Participants</div>
+            {attendance && attendance.length > 0 ? (
+              attendance.map((a) => (
+                <div key={a.userId} className="flex items-center gap-2.5 py-2">
+                  <Avatar userId={a.userId} size="sm" initial={a.user?.displayName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px]" style={{ color: "#e8e8e6" }}>
+                      {a.user?.displayName ?? a.userId.slice(0, 12)}
+                    </div>
+                    <div className="text-[11px]" style={{ color: "#7c8086" }}>{a.status}</div>
+                  </div>
+                  {isTeacher && (
+                    <select
+                      value={a.status}
+                      onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
+                      className="rounded-md px-1.5 py-0.5 text-[11px] outline-none"
+                      style={{ background: "#1a1d20", color: "#9aa0a6" }}
+                    >
+                      {ATTENDANCE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  )}
+                  {handRaised && a.userId === viewerSub && (
+                    <Hand size={14} style={{ color: "#e0a83a" }} />
+                  )}
+                  {micOn ? <Mic size={13} style={{ color: "#7c8086" }} /> : <MicOff size={13} style={{ color: "#e34c4c" }} />}
+                </div>
+              ))
+            ) : (
+              <p className="text-xs" style={{ color: "#7c8086" }}>Waiting for participants...</p>
             )}
           </div>
-        </div>
 
-        {/* ── Slide-out panel ──────────────────────────────────── */}
-        {activePanel && (
-          <div className="absolute inset-0 flex flex-col border-l border-white/10 bg-[#16162a] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[380px]">
-            {/* Panel header */}
-            <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4">
-              <h3 className="text-sm font-semibold capitalize text-white/90">
-                {activePanel === "participants" ? `Participants (${participantCount})` : activePanel}
-              </h3>
-              <button onClick={() => setActivePanel(null)} className="rounded-lg p-1.5 text-white/50 transition hover:bg-white/10 hover:text-white">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div style={{ borderTop: "1px solid #1a1d20", paddingTop: 14 }}>
+            <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.12em]" style={{ color: "#6b7079" }}>Session files</div>
+            <div className="flex flex-col gap-1.5">
+              {["Formula sheet.pdf", "Exercises 1.2 – 1.8.pdf", "Last week's recording"].map((f) => (
+                <a key={f} className="flex cursor-pointer items-center gap-2 truncate rounded-md px-2 py-1.5 text-xs transition hover:bg-[#1a1d20]" style={{ color: "#bcc0c5" }}>
+                  <BookOpen size={13} /> <span className="truncate">{f}</span>
+                </a>
+              ))}
+              <button className="mt-1 flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs" style={{ border: "1px dashed #2a2e34", color: "#9aa0a6" }}>
+                <Plus size={13} /> Add a file
               </button>
             </div>
+          </div>
+        </aside>
 
-            {/* ── Chat panel ──────────────────────────────────── */}
-            {activePanel === "chat" && (
+        {/* Stage */}
+        <div className="relative flex-1 overflow-hidden" style={{ background: "#15171a" }}>
+          {/* Whiteboard surface */}
+          <div className="absolute inset-4 flex flex-col overflow-hidden rounded-[10px]" style={{ background: "#fafaf9", color: "#15171a" }}>
+            {activeTool === "whiteboard" && (
               <>
-                <div className="flex-1 overflow-y-auto p-4">
-                  {chat.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                        <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                      </div>
-                      <p className="mt-3 text-sm text-white/40">No messages yet</p>
-                      <p className="mt-1 text-xs text-white/25">Start the conversation</p>
-                    </div>
-                  )}
-                  {chat.map((m, i) => (
-                    <div key={i} className="mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${m.senderId === "me" ? "bg-indigo-500" : "bg-white/20"}`}>
-                          {m.senderId === "me" ? "Y" : m.senderId.slice(0, 1).toUpperCase()}
-                        </div>
-                        <span className="text-xs font-medium text-white/70">{m.senderId === "me" ? "You" : m.senderId.slice(0, 8)}</span>
-                        <span className="text-[10px] text-white/30">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                      </div>
-                      <p className="mt-1 pl-8 text-sm leading-relaxed text-white/85">{m.body}</p>
-                    </div>
-                  ))}
-                  <div ref={chatEndRef} />
+                <div className="flex items-center gap-2.5 border-b px-4 py-3" style={{ borderColor: "#e8e6e0" }}>
+                  <span className="font-mono text-[11px]" style={{ color: "#76787c" }}>WHITEBOARD</span>
+                  <div className="ml-auto flex gap-1">
+                    {[
+                      <Pen key="pen" size={13} />,
+                      <span key="a" className="font-bold">A</span>,
+                      <span key="int" className="font-mono">∫</span>,
+                      <Share2 key="share" size={13} />,
+                    ].map((ic, i) => (
+                      <button key={i} className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[13px]" style={{
+                        background: i === 0 ? "#1f4a3a" : "transparent",
+                        color: i === 0 ? "#fff" : "#5a5e64",
+                      }}>{ic}</button>
+                    ))}
+                  </div>
                 </div>
-                <div className="border-t border-white/10 p-3">
-                  <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex gap-2">
-                    <input
-                      className="flex-1 rounded-lg bg-white/10 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
-                      placeholder="Type a message..."
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      disabled={status !== "joined"}
-                    />
-                    <button type="submit" disabled={status !== "joined" || !draft.trim()} className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                    </button>
-                  </form>
-                </div>
+                <div className="flex-1" style={{
+                  background: "linear-gradient(#fafaf9, #fafaf9), repeating-linear-gradient(0deg, #ececea 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, #ececea 0 1px, transparent 1px 24px)",
+                  backgroundBlendMode: "multiply",
+                }} />
               </>
             )}
-
-            {/* ── Participants panel ──────────────────────────── */}
-            {activePanel === "participants" && (
-              <div className="flex-1 overflow-y-auto p-4">
-                {(!attendance || attendance.length === 0) ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                      <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    </div>
-                    <p className="mt-3 text-sm text-white/40">No participants yet</p>
-                  </div>
-                ) : (
-                  <ul className="space-y-1">
-                    {attendance.map((a) => (
-                      <li key={a.userId} className="flex items-center justify-between rounded-xl px-3 py-2.5 transition hover:bg-white/5">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-sm font-semibold text-white/80">
-                              {(a.user?.displayName ?? a.userId).slice(0, 1).toUpperCase()}
-                            </div>
-                            <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#16162a] ${STATUS_COLORS[a.status]}`} />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-white/90">{a.user?.displayName ?? a.userId.slice(0, 12)}</div>
-                            <div className="text-[11px] text-white/40">{a.status}</div>
-                          </div>
-                        </div>
-                        {isTeacher && (
-                          <select
-                            value={a.status}
-                            onChange={(e) => markAttendance(a.userId, e.target.value as AttendanceStatus)}
-                            className="rounded-md bg-white/10 px-2 py-1 text-xs text-white/70 outline-none"
-                          >
-                            {ATTENDANCE_STATUSES.map((s) => (<option key={s} value={s} className="bg-[#16162a]">{s}</option>))}
-                          </select>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-
-            {/* ── Notes panel ────────────────────────────────── */}
-            {activePanel === "notes" && (
-              <div className="flex flex-1 flex-col p-4">
-                <p className="mb-3 text-xs text-white/40">Private notes — only you can see these.</p>
+            {activeTool === "notes" && (
+              <div className="flex-1 overflow-auto p-7">
+                <div className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "#76787c" }}>Shared notes · live edit</div>
                 <textarea
                   value={noteBody}
                   onChange={(e) => setNoteBody(e.target.value)}
-                  rows={12}
-                  maxLength={20000}
-                  className="flex-1 resize-none rounded-lg bg-white/5 p-3 text-sm leading-relaxed text-white/85 placeholder-white/25 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
-                  placeholder="Capture key learning points..."
+                  className="mt-4 w-full flex-1 resize-none text-[15.5px] leading-relaxed outline-none"
+                  style={{ fontFamily: "Newsreader, serif", color: "#2a2d31", minHeight: 300 }}
+                  placeholder="Start typing session notes..."
                 />
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs text-white/40">{noteSaved ? "Saved" : noteBody.length > 0 ? `${noteBody.length.toLocaleString()} chars` : ""}</span>
-                  <button onClick={saveNote} disabled={noteSaving} className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
+                <div className="mt-4 flex items-center justify-end gap-2">
+                  {noteSaved && <span className="text-xs" style={{ color: "#76787c" }}>Saved</span>}
+                  <button onClick={saveNote} disabled={noteSaving} className="rounded-lg px-4 py-2 text-xs font-medium text-white" style={{ background: "#1f4a3a" }}>
                     {noteSaving ? "Saving..." : "Save"}
                   </button>
                 </div>
               </div>
             )}
-
-            {/* ── Breakout rooms panel ───────────────────────── */}
-            {activePanel === "breakouts" && (
-              <div className="flex-1 overflow-y-auto p-4">
-                {isTeacher && (
-                  <form onSubmit={createBreakout} className="mb-4 space-y-2">
-                    <input
-                      value={newBreakoutLabel}
-                      onChange={(e) => setNewBreakoutLabel(e.target.value)}
-                      placeholder="Room label (e.g. Group A)"
-                      maxLength={60}
-                      className="w-full rounded-lg bg-white/10 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
-                    />
-                    <input
-                      value={newBreakoutAssignees}
-                      onChange={(e) => setNewBreakoutAssignees(e.target.value)}
-                      placeholder="Student IDs (comma-separated)"
-                      className="w-full rounded-lg bg-white/10 px-3 py-2 font-mono text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 transition focus:ring-indigo-500/50"
-                    />
-                    <button type="submit" disabled={!newBreakoutLabel.trim()} className="w-full rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:opacity-40">
-                      Create breakout
-                    </button>
-                  </form>
-                )}
-                {breakoutError && <p className="mb-3 text-xs text-red-400">{breakoutError}</p>}
-                {breakouts && breakouts.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-                      <svg className="h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                    </div>
-                    <p className="mt-3 text-sm text-white/40">No breakout rooms</p>
-                    {isTeacher && <p className="mt-1 text-xs text-white/25">Create one above to split the class</p>}
-                  </div>
-                )}
-                {breakouts && breakouts.length > 0 && (
-                  <ul className="space-y-2">
-                    {breakouts.map((b) => {
-                      const canJoin = isTeacher || (viewerSub && b.assignedUserIds.includes(viewerSub));
-                      return (
-                        <li key={b.breakoutId} className="rounded-xl bg-white/5 p-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-sm font-medium text-white/90">{b.label}</div>
-                              <div className="mt-0.5 text-[11px] text-white/40">{b.assignedUserIds.length} assigned</div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {canJoin && (
-                                <Link href={`/breakout/${sessionId}/${b.breakoutId}`} target="_blank" className="rounded-lg bg-indigo-500/20 px-3 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/30">
-                                  Join
-                                </Link>
-                              )}
-                              {isTeacher && (
-                                <button onClick={() => endBreakout(b.breakoutId)} className="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-accent/50/30">
-                                  End
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+            {activeTool === "screenshare" && (
+              <div className="flex flex-1 items-center justify-center">
+                <div className="text-center">
+                  <Monitor size={48} style={{ color: "#d8d5cf" }} className="mx-auto" />
+                  <p className="mt-3 text-sm" style={{ color: "#76787c" }}>Click "Share screen" in the toolbar to start</p>
+                </div>
+              </div>
+            )}
+            {activeTool === "quiz" && (
+              <div className="flex-1 overflow-auto p-8" style={{ maxWidth: 720 }}>
+                <div className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "#76787c" }}>Quick check</div>
+                <h2 className="mt-3 font-bold text-[28px]" style={{ color: "#15171a" }}>Quiz mode coming soon</h2>
+                <p className="mt-2 text-sm" style={{ color: "#76787c" }}>The teacher can start a live quiz from their controls.</p>
               </div>
             )}
           </div>
+
+          {/* PiP self-view */}
+          <div className="absolute bottom-6 right-7 overflow-hidden rounded-xl shadow-2xl" style={{ width: 220, aspectRatio: "4/3", background: "#0c0e10", border: "1px solid #2a2e34" }}>
+            <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted />
+            {!camOn && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2" style={{ color: "#9aa0a6" }}>
+                <VideoOff size={24} />
+                <span className="text-xs">Camera off</span>
+              </div>
+            )}
+            <div className="absolute bottom-1.5 left-2 rounded px-1.5 py-0.5 font-mono text-[11px] text-white" style={{ background: "rgba(0,0,0,0.45)" }}>YOU</div>
+            {!micOn && (
+              <div className="absolute right-2 top-2 flex h-[22px] w-[22px] items-center justify-center rounded-full" style={{ background: "#e34c4c" }}>
+                <MicOff size={12} className="text-white" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: chat panel */}
+        {showChat && (
+          <aside className="flex w-[320px] shrink-0 flex-col" style={{ borderLeft: "1px solid #1a1d20", minHeight: 0 }}>
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #1a1d20" }}>
+              <span className="text-[13px] font-medium">Chat</span>
+              <button onClick={() => setShowChat(false)} style={{ color: "#7c8086" }}><X size={14} /></button>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto p-3.5">
+              {chat.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-center" style={{ color: "#7c8086" }}>
+                  <MessageCircle size={24} className="mb-2" />
+                  <p className="text-sm">No messages yet</p>
+                </div>
+              )}
+              {chat.map((m, i) => (
+                <div key={i} className="flex flex-col" style={{ alignItems: m.senderId === "me" ? "flex-end" : "flex-start" }}>
+                  <div className="mb-1 text-[11px]" style={{ color: "#7c8086" }}>
+                    {m.senderId === "me" ? "You" : m.senderId.slice(0, 8)} · {new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                  <div
+                    className="rounded-xl px-3 py-2 text-[13.5px] leading-snug"
+                    style={{
+                      maxWidth: "82%",
+                      background: m.senderId === "me" ? "#1f4a3a" : "#1a1d20",
+                      color: m.senderId === "me" ? "#fff" : "#e8e8e6",
+                    }}
+                  >
+                    {m.body}
+                  </div>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="flex gap-2 p-3" style={{ borderTop: "1px solid #1a1d20" }}>
+              <input
+                placeholder="Message everyone…"
+                className="flex-1 rounded-lg px-3 py-2.5 text-[13.5px] outline-none"
+                style={{ background: "#1a1d20", border: "1px solid #2a2e34", color: "#e8e8e6" }}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                disabled={status !== "joined"}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={status !== "joined" || !draft.trim()}
+                className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-lg text-white disabled:opacity-40"
+                style={{ background: "#1f4a3a" }}
+              >
+                <Send size={14} />
+              </button>
+            </div>
+          </aside>
         )}
       </div>
 
-      {/* ── Bottom toolbar ──────────────────────────────────────── */}
-      <div className="flex h-16 shrink-0 items-center justify-center gap-1.5 border-t border-white/10 bg-[#12122a] px-2 sm:h-20 sm:gap-3 sm:px-6">
-        {/* Mic toggle */}
-        <ToolbarButton
-          active={micOn}
-          onClick={() => setMicOn(!micOn)}
-          label={micOn ? "Mute" : "Unmute"}
-          icon={micOn
-            ? <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            : <><path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" /></>
-          }
-          danger={!micOn}
-        />
-
-        {/* Camera toggle */}
-        <ToolbarButton
-          active={camOn}
-          onClick={() => setCamOn(!camOn)}
-          label={camOn ? "Stop video" : "Start video"}
-          icon={camOn
-            ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            : <><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" /></>
-          }
-          danger={!camOn}
-        />
-
-        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
-
-        {/* Whiteboard */}
-        {classroomId && (
-          <ToolbarButton
-            onClick={() => window.open(`/whiteboard/${classroomId}`, "_blank")}
-            label="Whiteboard"
-            icon={<path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />}
-          />
-        )}
-
-        {/* Record (teacher only) */}
+      {/* ── Bottom control bar ── */}
+      <div className="flex shrink-0 items-center justify-center gap-3 px-[18px]" style={{ height: 76, borderTop: "1px solid #1a1d20" }}>
+        <CtrlBtn icon={micOn ? <Mic size={18} /> : <MicOff size={18} />} label={micOn ? "Mute" : "Unmute"} active={micOn} danger={!micOn} onClick={() => setMicOn((v) => !v)} />
+        <CtrlBtn icon={camOn ? <Video size={18} /> : <VideoOff size={18} />} label={camOn ? "Camera" : "Camera off"} active={camOn} danger={!camOn} onClick={() => setCamOn((v) => !v)} />
+        <CtrlBtn icon={<Share2 size={18} />} label="Share screen" onClick={() => setActiveTool("screenshare")} />
+        <CtrlBtn icon={<Hand size={18} />} label={handRaised ? "Lower hand" : "Raise hand"} active={handRaised} onClick={() => setHandRaised((v) => !v)} />
+        <CtrlBtn icon={<MessageCircle size={18} />} label="Chat" active={showChat} onClick={() => setShowChat((v) => !v)} />
+        {isTeacher && <CtrlBtn icon={<Users size={18} />} label="Breakouts" onClick={() => {}} />}
         {isTeacher && (
-          <ToolbarButton
-            active={recording}
-            onClick={toggleRecording}
-            label={recording ? "Stop recording" : "Record"}
-            icon={<circle cx="12" cy="12" r="5" fill={recording ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} />}
-            danger={recording}
-          />
+          <CtrlBtn icon={<div className={`h-3 w-3 rounded-full border-2 ${recording ? "border-red-400 bg-red-400" : "border-current"}`} />} label={recording ? "Stop rec" : "Record"} danger={recording} onClick={toggleRecording} />
         )}
+        <CtrlBtn icon={<MoreHorizontal size={18} />} label="More" onClick={() => {}} />
 
-        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
-
-        {/* Chat */}
-        <ToolbarButton
-          active={activePanel === "chat"}
-          onClick={() => togglePanel("chat")}
-          label="Chat"
-          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />}
-          badge={chat.length > 0 ? chat.length : undefined}
-        />
-
-        {/* Participants */}
-        <ToolbarButton
-          active={activePanel === "participants"}
-          onClick={() => togglePanel("participants")}
-          label="Participants"
-          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />}
-          badge={participantCount > 0 ? participantCount : undefined}
-        />
-
-        {/* Notes */}
-        <ToolbarButton
-          active={activePanel === "notes"}
-          onClick={() => togglePanel("notes")}
-          label="Notes"
-          icon={<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />}
-        />
-
-        {/* Breakout rooms — hide on very small screens */}
-        <span className="hidden sm:inline-flex">
-          <ToolbarButton
-            active={activePanel === "breakouts"}
-            onClick={() => togglePanel("breakouts")}
-            label="Breakouts"
-            icon={<path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />}
-          />
-        </span>
-
-        <div className="mx-0.5 h-8 w-px bg-white/15 sm:mx-1" />
-
-        {/* Leave */}
+        <div className="flex-1" />
         <button
           onClick={() => { sessionRef.current?.audioVideo.stop(); window.location.href = "/classrooms"; }}
-          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-red-500/25 transition hover:bg-red-600 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm"
+          className="rounded-full px-5 py-2.5 text-sm font-medium text-white"
+          style={{ background: "#b2362c" }}
         >
-          Leave
+          Leave session
         </button>
       </div>
 
@@ -595,44 +550,32 @@ export default function ClassroomPage({ params }: { params: Promise<{ sessionId:
   );
 }
 
-function ToolbarButton({
+function CtrlBtn({
   icon,
   label,
-  onClick,
   active,
   danger,
-  badge,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
   active?: boolean;
   danger?: boolean;
-  badge?: number;
+  onClick: () => void;
 }) {
   return (
-    <div className="group relative flex flex-col items-center">
-      <button
-        onClick={onClick}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition sm:h-11 sm:w-11 sm:rounded-xl ${
-          danger
-            ? "bg-red-500/20 text-red-400 hover:bg-accent/50/30"
-            : active
-              ? "bg-indigo-500/20 text-indigo-400"
-              : "bg-white/10 text-white/70 hover:bg-white/15 hover:text-white"
-        }`}
-        aria-label={label}
-      >
-        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          {icon}
-        </svg>
-        {badge !== undefined && badge > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-bold text-white">
-            {badge > 99 ? "99+" : badge}
-          </span>
-        )}
-      </button>
-      <span className="mt-1 hidden text-[10px] text-white/40 opacity-0 transition group-hover:opacity-100 sm:block">{label}</span>
-    </div>
+    <button
+      onClick={onClick}
+      title={label}
+      className="inline-flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2"
+      style={{
+        background: danger ? "#3a1715" : active ? "#1f2226" : "transparent",
+        color: danger ? "#ff7a72" : active ? "#fff" : "#9aa0a6",
+        border: `1px solid ${danger ? "#5a1f1c" : active ? "#2a2e34" : "transparent"}`,
+      }}
+    >
+      {icon}
+      <span className="text-[11px]">{label}</span>
+    </button>
   );
 }

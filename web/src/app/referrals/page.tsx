@@ -84,9 +84,9 @@ export default function ReferralsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Referrals</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Invite a friend</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Invite a friend</h1>
       <p className="mt-3 text-sm text-ink-soft">
         Share your code to invite students, parents, or teachers to EduBoost.
       </p>
@@ -120,7 +120,7 @@ export default function ReferralsPage() {
 
       {mine && !mine.referredByCode && (
         <section className="card mt-6 p-4">
-          <h2 className="font-serif text-base text-ink">Got invited?</h2>
+          <h2 className="font-semibold text-[15px] text-ink">Got invited?</h2>
           <p className="mt-1 text-xs text-ink-faded">
             Enter the code a friend shared with you. (One-time; can't change later.)
           </p>
@@ -152,7 +152,7 @@ export default function ReferralsPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="font-serif text-xl text-ink">People you&apos;ve invited</h2>
+        <h2 className="font-bold text-lg text-ink">People you&apos;ve invited</h2>
         {list === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
         {list && list.length === 0 && (
           <p className="mt-4 text-sm text-ink-soft">No one has claimed your code yet.</p>
@@ -162,7 +162,7 @@ export default function ReferralsPage() {
             {list.map((r) => (
               <li key={r.referredId} className="flex items-center justify-between p-3">
                 <div>
-                  <div className="font-serif text-base text-ink">
+                  <div className="font-semibold text-[15px] text-ink">
                     {r.referred?.displayName ?? "(unknown)"}
                   </div>
                   <div className="text-xs text-ink-faded">

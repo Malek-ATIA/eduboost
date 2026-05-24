@@ -205,7 +205,7 @@ export default function WhiteboardPage({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="eyebrow">Board</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Whiteboard</h1>
+          <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">Whiteboard</h1>
           <p className="mt-1 text-xs text-ink-faded truncate">
             Classroom <span className="font-mono">{classroomId.slice(0, 12)}…</span> · changes
             sync every {POLL_MS / 1000}s.

@@ -78,9 +78,9 @@ export default function TeacherBookingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Teacher</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Bookings</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Bookings</h1>
       <p className="mt-3 text-base text-ink-soft">
         Schedule a session against confirmed bookings.
       </p>
@@ -98,13 +98,13 @@ export default function TeacherBookingsPage() {
               <li key={b.bookingId} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-serif text-base text-ink capitalize">{b.type} session</div>
+                    <div className="font-semibold text-[15px] text-ink capitalize">{b.type} session</div>
                     <div className="text-xs text-ink-faded truncate">
                       #{b.bookingId.slice(0, 8)}… · booked {new Date(b.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-serif text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
+                    <div className="font-semibold text-[15px] text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
                     <div className={`font-mono text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>
                       {b.status}
                     </div>

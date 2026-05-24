@@ -134,15 +134,15 @@ export default function NotificationsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      {/* Page head */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">Notifications</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
-            What&apos;s <span className="italic">new</span>.
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
+            What&apos;s <span className="text-accent">new</span>.
           </h1>
-          <p className="mt-3 text-base text-ink-soft">
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
             {unreadCount > 0
               ? `${unreadCount} unread. Everything older than 30 days is archived automatically.`
               : "You're all caught up. Everything older than 30 days is archived automatically."}
@@ -170,7 +170,7 @@ export default function NotificationsPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">🔔</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No notifications yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No notifications yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             We&apos;ll notify you about bookings, messages, grades, and more.
           </p>
@@ -178,36 +178,38 @@ export default function NotificationsPage() {
       )}
 
       {items && items.length > 0 && (
-        <div className="notif-grid mt-8 grid gap-8" style={{ gridTemplateColumns: "240px 1fr" }}>
-          {/* Filter rail */}
-          <aside>
-            <div className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
-              Filter
-            </div>
-            <div className="mt-2.5 flex flex-col gap-1">
-              {FILTER_OPTIONS.map((f) => {
-                const count = countByType(f.key);
-                const isActive = filter === f.key;
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => setFilter(f.key)}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[13.5px] transition ${
-                      isActive
-                        ? "border border-rule bg-bg-soft font-medium text-ink"
-                        : "border border-transparent text-ink-soft hover:text-ink"
-                    }`}
+        <div className="mx-4 mt-6 sm:mx-8 sm:mt-7">
+          {/* Horizontal filter chips */}
+          <div className="flex flex-wrap gap-2 border-b border-rule pb-5">
+            {FILTER_OPTIONS.map((f) => {
+              const count = countByType(f.key);
+              const isActive = filter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] transition"
+                  style={{
+                    background: isActive ? "var(--ink)" : "var(--bg-card)",
+                    color: isActive ? "#fff" : "var(--ink-soft)",
+                    borderColor: isActive ? "var(--ink)" : "var(--rule)",
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                >
+                  <span>{f.label}</span>
+                  <span
+                    className="text-[11px]"
+                    style={{ color: isActive ? "rgba(255,255,255,0.7)" : "var(--ink-faded)" }}
                   >
-                    <span>{f.label}</span>
-                    <span className="font-mono text-[11px] text-ink-faded">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Notification groups */}
-          <div>
+          <div className="mt-5">
             {groups.length === 0 && (
               <div className="py-8 text-center text-sm text-ink-faded">
                 No notifications match this filter.

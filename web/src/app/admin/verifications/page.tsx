@@ -89,7 +89,7 @@ export default function AdminVerificationsPage() {
 
   if (!ready) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -98,11 +98,11 @@ export default function AdminVerificationsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="eyebrow">Admin</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             Teacher verifications
           </h1>
         </div>
@@ -142,7 +142,7 @@ export default function AdminVerificationsPage() {
               className="flex items-center gap-3.5 px-5 py-3.5"
               style={i > 0 ? { borderTop: "1px solid var(--rule-soft)" } : undefined}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bg-soft font-serif text-sm text-ink-soft">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bg-soft font-semibold text-[13.5px] text-ink-soft">
                 {(r.user?.displayName ?? r.userId).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">

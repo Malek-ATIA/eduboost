@@ -84,11 +84,11 @@ export default function TeacherStudentDetailPage({
   }, [router, studentId]);
 
   if (!ready)
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
+    return <main className="pb-8 text-ink-soft">Loading…</main>;
 
   if (error)
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <Link href={"/teacher/students" as never} className="btn-ghost -ml-3">
           ← All students
         </Link>
@@ -97,12 +97,12 @@ export default function TeacherStudentDetailPage({
     );
 
   if (!data)
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
+    return <main className="pb-8 text-ink-soft">Loading…</main>;
 
   const { user, bookings, classrooms, grades, gradeSummary, payments, paymentsNetTotalCents, paymentsCurrency } = data;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href={"/teacher/students" as never} className="btn-ghost -ml-3">
         ← All students
       </Link>
@@ -111,7 +111,7 @@ export default function TeacherStudentDetailPage({
         <Avatar userId={user.userId} size="lg" initial={user.displayName} />
         <div>
           <div className="eyebrow">Student</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{user.displayName}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{user.displayName}</h1>
           <p className="mt-0.5 text-sm text-ink-soft">
             {user.email} · <span className="capitalize">{user.role}</span>
           </p>
@@ -140,7 +140,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Classrooms we share</h2>
+        <h2 className="font-bold text-lg text-ink">Classrooms we share</h2>
         {classrooms.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">Not enrolled in any of your classrooms.</p>
         ) : (
@@ -148,7 +148,7 @@ export default function TeacherStudentDetailPage({
             {classrooms.map((c) => (
               <li key={c.classroomId} className="card flex items-center justify-between p-3 text-sm">
                 <div>
-                  <div className="font-serif text-base text-ink">{c.title}</div>
+                  <div className="font-semibold text-[15px] text-ink">{c.title}</div>
                   <div className="text-xs text-ink-faded">
                     {c.subject} · status {c.status}
                     {c.joinedAt ? ` · joined ${new Date(c.joinedAt).toLocaleDateString()}` : ""}
@@ -164,7 +164,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Bookings</h2>
+        <h2 className="font-bold text-lg text-ink">Bookings</h2>
         {bookings.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">No bookings with you yet.</p>
         ) : (
@@ -172,14 +172,14 @@ export default function TeacherStudentDetailPage({
             {bookings.map((b) => (
               <li key={b.bookingId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-serif text-sm capitalize text-ink">
+                  <div className="font-semibold text-[13.5px] capitalize text-ink">
                     {b.type} · <span className="text-ink-soft">{b.status}</span>
                   </div>
                   <div className="text-xs text-ink-faded">
                     {new Date(b.createdAt).toLocaleString()} · <span className="font-mono">{b.bookingId}</span>
                   </div>
                 </div>
-                <span className="font-serif text-sm text-ink">
+                <span className="font-semibold text-[13.5px] text-ink">
                   {formatMoney(b.amountCents, b.currency)}
                 </span>
               </li>
@@ -189,7 +189,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Grades I&apos;ve given</h2>
+        <h2 className="font-bold text-lg text-ink">Grades I&apos;ve given</h2>
         {grades.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">
             No AI-graded submissions yet.{" "}
@@ -202,12 +202,12 @@ export default function TeacherStudentDetailPage({
             {grades.map((g) => (
               <li key={g.gradeId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-serif text-sm text-ink">{g.subject}</div>
+                  <div className="font-semibold text-[13.5px] text-ink">{g.subject}</div>
                   <div className="text-xs text-ink-faded">
                     {new Date(g.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-                <span className="font-serif text-sm text-ink">
+                <span className="font-semibold text-[13.5px] text-ink">
                   {g.score} / {g.maxScore}
                 </span>
               </li>
@@ -217,7 +217,7 @@ export default function TeacherStudentDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Payments from this student</h2>
+        <h2 className="font-bold text-lg text-ink">Payments from this student</h2>
         {payments.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">No payments yet.</p>
         ) : (
@@ -225,7 +225,7 @@ export default function TeacherStudentDetailPage({
             {payments.map((p) => (
               <li key={p.paymentId} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>
-                  <div className="font-serif text-sm text-ink">
+                  <div className="font-semibold text-[13.5px] text-ink">
                     {formatMoney(p.amountCents - (p.platformFeeCents ?? 0), p.currency)} net
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -256,7 +256,7 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
   return (
     <div>
       <div className="text-xs uppercase tracking-widest text-ink-faded">{label}</div>
-      <div className="mt-1 font-serif text-2xl text-ink">{value}</div>
+      <div className="mt-1 font-bold text-[22px] text-ink">{value}</div>
       {note && <div className="mt-0.5 text-xs text-ink-faded">{note}</div>}
     </div>
   );

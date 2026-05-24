@@ -51,12 +51,12 @@ function NewPostForm() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href="/forum" className="btn-ghost -ml-3">
         ← Forum
       </Link>
       <div className="eyebrow">Forum</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New post</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">New post</h1>
 
       <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <label className="block">
@@ -114,9 +114,9 @@ export default function NewPostPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+        <main className="pb-8">
           <div className="eyebrow">Forum</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New post</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">New post</h1>
           <p className="mt-4 text-sm text-ink-soft">Loading...</p>
         </main>
       }

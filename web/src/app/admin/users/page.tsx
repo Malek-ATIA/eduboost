@@ -70,14 +70,14 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Admin</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Users</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Users</h1>
         </div>
         <Link href="/admin" className="btn-ghost">
           ← Admin hub
@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
                 className="flex items-center justify-between p-3 transition hover:bg-bg-soft"
               >
                 <div>
-                  <div className="font-serif text-base text-ink">{u.displayName}</div>
+                  <div className="font-semibold text-[15px] text-ink">{u.displayName}</div>
                   <div className="text-xs text-ink-faded">
                     {u.email} · {u.role} · joined {new Date(u.createdAt).toLocaleDateString()}
                   </div>

@@ -77,9 +77,9 @@ function GoogleSettingsInner() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Settings</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
         Google Calendar
       </h1>
       <p className="mt-3 text-base text-ink-soft">
@@ -110,7 +110,7 @@ function GoogleSettingsInner() {
         <section className="card mt-6 p-4">
           {info.connected ? (
             <>
-              <div className="font-serif text-base text-ink">Connected</div>
+              <div className="font-semibold text-[15px] text-ink">Connected</div>
               <div className="mt-1 text-xs text-ink-faded">
                 {info.googleEmail ?? "(unknown email)"} · calendar {info.calendarId} ·
                 since {new Date(info.connectedAt).toLocaleDateString()}
@@ -125,7 +125,7 @@ function GoogleSettingsInner() {
             </>
           ) : (
             <>
-              <div className="font-serif text-base text-ink">Not connected</div>
+              <div className="font-semibold text-[15px] text-ink">Not connected</div>
               <p className="mt-1 text-xs text-ink-faded">
                 We ask for permission to create and update events on your primary Google
                 Calendar — nothing else.
@@ -149,9 +149,9 @@ export default function GoogleSettingsPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+        <main className="pb-8">
           <div className="eyebrow">Settings</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Google Calendar</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Google Calendar</h1>
           <div className="mt-6 flex justify-center py-12">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>

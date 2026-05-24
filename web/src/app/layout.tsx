@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Newsreader, Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -8,23 +8,17 @@ import { Footer } from "@/components/Footer";
 import { ToastProvider } from "@/components/Toast";
 import { DialogProvider } from "@/components/Dialog";
 
-const newsreader = Newsreader({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
-const geist = Geist({
+const dmMono = DM_Mono({
   subsets: ["latin"],
-  variable: "--font-geist",
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
+  weight: ["400", "500"],
+  variable: "--font-dm-mono",
   display: "swap",
 });
 
@@ -36,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${geist.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
       <body className="flex min-h-screen flex-col font-sans text-ink">
         <ToastProvider>
           <DialogProvider>

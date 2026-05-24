@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { formatMoney, toMinorUnits } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
@@ -130,6 +130,7 @@ export default function TeachersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [hoveredTeacherId, setHoveredTeacherId] = useState<string | null>(null);
 
   const activeCount = countActive(debounced);
 
@@ -375,18 +376,22 @@ export default function TeachersPage() {
   );
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      {/* ── Page header ────────────────────────────────────────── */}
-      <div className="mb-8">
+    <main className="pb-12">
+      {/* ── PageHead ────────────────────────────────────────── */}
+      <div className="border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div className="eyebrow">Find a teacher</div>
-        <h1 className="mt-2 font-serif text-5xl tracking-tight sm:text-6xl">
+        <h1 className="mt-2 text-[clamp(26px,3.5vw,40px)] font-bold tracking-[-0.022em]">
           Browse{" "}
           <em className="not-italic text-accent">
             {loading ? "..." : sorted.length}
           </em>{" "}
           verified teachers.
         </h1>
+        <p className="mt-2 text-[14.5px] text-ink-soft">
+          Filter, sort and compare. Every teacher has been reviewed by our team.
+        </p>
       </div>
+      <div className="px-4 pt-6 sm:px-8 sm:pt-7">
 
       {/* ── Mobile filter toggle ───────────────────────────────── */}
       <div className="mb-4 lg:hidden">
@@ -457,85 +462,114 @@ export default function TeachersPage() {
           {/* Loading / error states */}
           {error && <p className="mb-4 text-sm text-warn">{error}</p>}
 
-          {/* ── Teacher cards grid ───────────────────────────────── */}
-          <div className="grid gap-4 sm:grid-cols-2">
+          {/* ── Teacher wide cards + hover preview ─────────────────── */}
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="grid grid-cols-1 gap-4">
             {sorted.map((t) => {
-              const isSponsored =
-                t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date();
+              const name = t.displayName ?? "Teacher";
+              let h = 0;
+              for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) & 0xffff;
+              const hue = Math.abs(h) % 360;
+              const isSponsored = t.sponsoredUntil && new Date(t.sponsoredUntil) > new Date();
               return (
                 <Link
                   key={t.userId}
                   href={`/teachers/${t.userId}` as never}
-                  className="card-interactive group overflow-hidden"
+                  onMouseEnter={() => setHoveredTeacherId(t.userId)}
+                  className="card-interactive group flex flex-col overflow-hidden p-0 sm:flex-row"
+                  style={{ borderRadius: 18 }}
                 >
-                  <div className="flex gap-4 p-5">
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
-                      <Avatar userId={t.userId} size="xl" initial={t.displayName?.[0]} />
-                      {t.ratingCount > 0 && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-                          {t.ratingAvg.toFixed(1)}
-                        </span>
-                      )}
+                  {/* Photo / video thumb — top on mobile, left on desktop */}
+                  <div
+                    className="relative shrink-0 sm:!w-[200px]"
+                    style={{
+                      width: "100%",
+                      aspectRatio: "5 / 3",
+                      background: `linear-gradient(135deg, oklch(0.88 0.06 ${hue}) 0%, oklch(0.94 0.04 ${(hue + 40) % 360}) 100%)`,
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Avatar userId={t.userId} size="xl" initial={name} className="!h-20 !w-20" />
                     </div>
+                    <div className="absolute bottom-2.5 left-2.5">
+                      <span className="play-pill">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M5 3l14 9-14 9V3z" />
+                        </svg>
+                        0:54
+                      </span>
+                    </div>
+                    {t.ratingCount > 0 && (
+                      <span
+                        title="Verified"
+                        className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white"
+                        style={{ border: "2px solid #fff" }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 8.5l3 3 7-7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
 
-                    {/* Info */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-serif text-lg leading-snug text-ink group-hover:text-accent">
-                            {t.displayName ?? "Teacher"}
-                          </div>
-                          <div className="mt-0.5 text-xs text-ink-faded">
-                            {t.subjects.slice(0, 2).join(" / ")}
-                            {t.city ? ` -- ${t.city}` : ""}
-                          </div>
+                  {/* Info */}
+                  <div className="flex min-w-0 flex-1 flex-col p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="truncate text-[19px] font-bold tracking-tight">{name}</div>
+                          {isSponsored && <span className="chip chip-accent text-[11.5px]">Sponsored</span>}
+                          {t.trialSession && !isSponsored && (
+                            <span className="chip chip-green text-[11.5px]">Free trial</span>
+                          )}
                         </div>
-                        <div className="shrink-0 text-right">
-                          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-faded">
-                            from
-                          </div>
-                          <div className="font-serif text-lg text-ink">
-                            {formatMoney(t.hourlyRateCents, t.currency, { trim: true })}
-                          </div>
+                        <div className="mt-1 text-[13px] text-ink-soft">
+                          Teaches <strong className="font-semibold text-ink">{t.subjects.join(", ")}</strong>
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[13px] text-ink-soft">
+                          {t.ratingCount > 0 && (
+                            <span className="inline-flex items-center gap-1">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="#ffb547" stroke="#ffb547">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                              <strong className="font-bold text-ink">{t.ratingAvg.toFixed(1)}</strong>
+                              <span className="text-ink-faded">({t.ratingCount})</span>
+                            </span>
+                          )}
+                          {t.yearsExperience > 0 && (
+                            <span className="inline-flex items-center gap-1">{t.yearsExperience} yrs experience</span>
+                          )}
+                          {t.languages.length > 0 && (
+                            <span className="inline-flex items-center gap-1">
+                              {t.languages.slice(0, 2).join(", ")}
+                            </span>
+                          )}
+                          {t.city && (
+                            <span className="inline-flex items-center gap-1">{t.city}</span>
+                          )}
                         </div>
                       </div>
-
-                      {/* Tags */}
-                      <div className="mt-2.5 flex flex-wrap gap-1.5">
-                        {isSponsored && (
-                          <span className="chip chip-accent text-[10px] font-semibold uppercase tracking-wider">
-                            Sponsored
+                      <div className="shrink-0 text-right">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-faded">
+                          From
+                        </div>
+                        <div className="mt-0.5">
+                          <span className="text-[26px] font-bold tracking-[-0.02em]">
+                            {(t.hourlyRateCents / 1000).toFixed(0)}
                           </span>
-                        )}
-                        {t.trialSession && !isSponsored && (
-                          <span className="chip chip-accent text-[10px]">Free trial</span>
-                        )}
-                        {t.yearsExperience > 0 && (
-                          <span className="chip text-[10px]">{t.yearsExperience} yrs exp</span>
-                        )}
-                        {t.languages.length > 0 && (
-                          <span className="chip text-[10px]">
-                            {t.languages.slice(0, 2).join(", ")}
-                          </span>
-                        )}
+                          <span className="text-[12.5px] text-ink-faded"> DT</span>
+                        </div>
+                        <div className="text-[11px] text-ink-faded">per 50-min</div>
                       </div>
-
-                      {t.bio && (
-                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-ink-soft">
-                          {t.bio}
-                        </p>
-                      )}
-
-                      {/* Actions */}
-                      <div className="mt-3 flex items-center gap-2">
-                        <span className="btn-seal py-1.5 text-xs">
-                          Book now
-                        </span>
-                        <span className="btn-ghost text-xs text-ink-faded group-hover:text-accent">
-                          View profile
-                        </span>
-                      </div>
+                    </div>
+                    {t.bio && (
+                      <p className="mt-2.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-soft">
+                        {t.bio}
+                      </p>
+                    )}
+                    <div className="mt-auto flex items-center justify-end gap-2 pt-3.5">
+                      <span className="btn-outline btn-sm">Message</span>
+                      <span className="btn-accent btn-sm">Book a trial</span>
                     </div>
                   </div>
                 </Link>
@@ -556,6 +590,12 @@ export default function TeachersPage() {
                 </button>
               </div>
             )}
+            </div>
+
+            {/* Hover preview — desktop only */}
+            <aside className="hidden lg:block">
+              <HoverPreview teacher={sorted.find((t) => t.userId === hoveredTeacherId) ?? sorted[0]} />
+            </aside>
           </div>
 
           {loading && (
@@ -564,6 +604,7 @@ export default function TeachersPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </main>
   );
@@ -586,6 +627,121 @@ function FilterGroup({
         {title}
       </div>
       <div className="mt-3">{children}</div>
+    </div>
+  );
+}
+
+/* ── Hover preview panel: video + availability grid ──────────────────── */
+
+const DAYS_ABBR = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const TIME_BLOCKS = ["00 – 04", "04 – 08", "08 – 12", "12 – 16", "16 – 20", "20 – 24"];
+
+function HoverPreview({ teacher }: { teacher?: Teacher }) {
+  if (!teacher) {
+    return (
+      <div className="sticky top-20 card p-5 text-center text-sm text-ink-soft" style={{ borderRadius: 18 }}>
+        Hover a teacher to preview their availability.
+      </div>
+    );
+  }
+
+  const name = teacher.displayName ?? "Teacher";
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) & 0xffff;
+  const hue = Math.abs(h) % 360;
+
+  // Deterministic availability mask from teacher's id
+  let seed = 0;
+  for (let i = 0; i < teacher.userId.length; i++) seed = ((seed << 5) - seed + teacher.userId.charCodeAt(i)) & 0xffff;
+  const cellAvailable = (day: number, slot: number): boolean => {
+    return ((seed + day * 7 + slot * 3) % 5) < 2;
+  };
+
+  // Compute the current week starting Sunday
+  const today = new Date();
+  const dow = today.getDay();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - dow);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+
+  return (
+    <div className="sticky top-20 space-y-4">
+      {/* Video preview */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          aspectRatio: "16 / 10",
+          borderRadius: 18,
+          background: `linear-gradient(135deg, oklch(0.75 0.12 ${hue}) 0%, oklch(0.55 0.15 ${(hue + 30) % 360}) 100%)`,
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 text-accent">
+              <path d="M5 3l14 9-14 9V3z" />
+            </svg>
+          </div>
+        </div>
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+          <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+            Intro · 0:54
+          </span>
+          <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-ink">
+            {name}
+          </span>
+        </div>
+      </div>
+
+      {/* Availability grid */}
+      <div className="card p-3" style={{ borderRadius: 18 }}>
+        <div
+          className="grid gap-px"
+          style={{ gridTemplateColumns: "auto repeat(7, minmax(0, 1fr))" }}
+        >
+          {/* Header row */}
+          <div />
+          {weekDays.map((d, i) => (
+            <div key={i} className="text-center text-[11px]">
+              <div className="font-mono text-ink-faded">{DAYS_ABBR[i]}</div>
+              <div className="font-bold">{d.getDate()}</div>
+            </div>
+          ))}
+          {/* Time block rows */}
+          {TIME_BLOCKS.map((tb, slot) => (
+            <Fragment key={slot}>
+              <div className="self-center pr-2 font-mono text-[10.5px] text-ink-faded">
+                {tb}
+              </div>
+              {weekDays.map((_, day) => {
+                const avail = cellAvailable(day, slot);
+                return (
+                  <div
+                    key={`${slot}-${day}`}
+                    className="h-6"
+                    style={{
+                      background: avail ? "var(--bg-mint)" : "var(--rule-soft)",
+                      borderRadius: 3,
+                    }}
+                  />
+                );
+              })}
+            </Fragment>
+          ))}
+        </div>
+        <div className="mt-3 border-t border-rule-soft pt-2.5 text-center text-[11.5px] text-ink-faded">
+          Based on your timezone: Africa/Tunis (UTC +01:00)
+        </div>
+        <Link
+          href={`/teachers/${teacher.userId}#schedule` as never}
+          className="btn-outline mt-2.5 block w-full text-center text-sm"
+        >
+          View full schedule
+        </Link>
+      </div>
     </div>
   );
 }

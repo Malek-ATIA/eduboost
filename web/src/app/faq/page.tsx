@@ -85,13 +85,13 @@ export default function BlogFaqPage() {
   const filtered = category === "All" ? rest : rest.filter((p) => p.category === category);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8">
       {/* Hero heading */}
       <div className="grid items-end gap-12 lg:grid-cols-[1.4fr_1fr]">
         <div>
           <div className="eyebrow">The folio</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
-            Writing on learning, teaching, and the <span className="italic">bac</span>.
+          <h1 className="mt-3 text-[clamp(40px,5vw,64px)] font-bold tracking-[-0.022em]">
+            Writing on learning, teaching, and the <span className="text-accent">bac</span>.
           </h1>
         </div>
         <p className="text-base leading-relaxed text-ink-soft lg:max-w-[460px]">
@@ -148,7 +148,7 @@ export default function BlogFaqPage() {
           {/* Featured article */}
           <article className="card-interactive mt-8 grid overflow-hidden p-0 lg:grid-cols-[1.1fr_1fr]">
             <div className="flex aspect-[5/4] items-center justify-center bg-bg-soft lg:aspect-auto">
-              <span className="font-serif text-4xl text-ink-faded/30">
+              <span className="font-bold text-[32px] text-ink-faded/30">
                 {featured.category}
               </span>
             </div>
@@ -156,7 +156,7 @@ export default function BlogFaqPage() {
               <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-accent">
                 {featured.category} &middot; Featured
               </div>
-              <h2 className="mt-4 font-serif text-3xl tracking-tight lg:text-4xl">
+              <h2 className="mt-4 font-bold text-[26px] tracking-tight lg:text-4xl">
                 {featured.title}
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
@@ -164,7 +164,7 @@ export default function BlogFaqPage() {
               </p>
               <div className="mt-auto flex items-center justify-between gap-3 pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-pale font-serif text-sm font-medium text-accent">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-pale font-semibold text-[13.5px] font-medium text-accent">
                     {featured.author[0]}
                   </div>
                   <div>
@@ -191,7 +191,7 @@ export default function BlogFaqPage() {
                 className="card-interactive flex flex-col overflow-hidden p-0"
               >
                 <div className="flex h-44 items-center justify-center bg-bg-soft">
-                  <span className="font-serif text-2xl text-ink-faded/30">
+                  <span className="font-bold text-[22px] text-ink-faded/30">
                     {p.category}
                   </span>
                 </div>
@@ -199,7 +199,7 @@ export default function BlogFaqPage() {
                   <div className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded">
                     {p.category}
                   </div>
-                  <h3 className="mt-2.5 font-serif text-xl leading-tight tracking-tight">
+                  <h3 className="mt-2.5 font-bold text-lg leading-tight tracking-tight">
                     {p.title}
                   </h3>
                   <p className="mt-2.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-soft">
@@ -218,7 +218,7 @@ export default function BlogFaqPage() {
           <div className="card mt-10 flex flex-wrap items-center justify-between gap-8 bg-bg-soft p-9">
             <div className="max-w-[480px]">
               <div className="eyebrow">Newsletter</div>
-              <h3 className="mt-2 font-serif text-2xl">
+              <h3 className="mt-2 font-bold text-[22px]">
                 One letter, every two weeks.
               </h3>
               <p className="mt-2 text-sm text-ink-soft">
@@ -244,7 +244,7 @@ export default function BlogFaqPage() {
         <div className="mt-8">
           {FAQ_SECTIONS.map((section) => (
             <section key={section.title} className="mt-10 first:mt-0">
-              <h2 className="font-serif text-xl text-ink">{section.title}</h2>
+              <h2 className="font-bold text-lg text-ink">{section.title}</h2>
               <div className="card mt-4 divide-y divide-rule overflow-hidden">
                 {section.items.map((f) => (
                   <FaqItem key={f.q} {...f} />
@@ -254,7 +254,7 @@ export default function BlogFaqPage() {
           ))}
 
           <section className="mt-12">
-            <h2 className="font-serif text-xl text-ink">Still need help?</h2>
+            <h2 className="font-bold text-lg text-ink">Still need help?</h2>
             <p className="mt-2 text-sm text-ink-soft">
               For payment, booking, or account issues the fastest route is{" "}
               <Link href="/support/new" className="underline">

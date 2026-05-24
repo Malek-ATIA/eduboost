@@ -78,9 +78,9 @@ export default function PaymentsPage() {
 
   const isTeacher = role === "teacher";
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Ledger</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
         {isTeacher ? "Payments received" : "Payment history"}
       </h1>
       <p className="mt-3 text-sm text-ink-soft">
@@ -99,7 +99,7 @@ export default function PaymentsPage() {
           {items.map((p) => (
             <li key={p.paymentId} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-serif text-base text-ink">
+                <div className="font-semibold text-[15px] text-ink">
                   {formatMoney(p.amountCents, p.currency)}
                 </div>
                 <div className="mt-0.5 text-xs text-ink-faded">

@@ -85,9 +85,9 @@ export default function BookingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Schedule</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My bookings</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My bookings</h1>
       {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
@@ -104,7 +104,7 @@ export default function BookingsPage() {
               <li key={b.bookingId} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-serif text-base text-ink capitalize">{b.type} session</div>
+                    <div className="font-semibold text-[15px] text-ink capitalize">{b.type} session</div>
                     <div className="text-sm text-ink-soft">
                       {new Date(b.createdAt).toLocaleString()} ·{" "}
                       <Link className="underline" href={`/teachers/${b.teacherId}` as never}>
@@ -113,7 +113,7 @@ export default function BookingsPage() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-serif text-base text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
+                    <div className="font-semibold text-[15px] text-ink">{formatMoneySymbol(b.amountCents, b.currency, { trim: true })}</div>
                     <div className={`text-xs uppercase tracking-widest ${STATUS_COLORS[b.status]}`}>{b.status}</div>
                   </div>
                 </div>

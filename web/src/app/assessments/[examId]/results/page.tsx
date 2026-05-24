@@ -58,14 +58,14 @@ export default function ResultsPage({
   }, [examId, router]);
 
   if (error && !exam) {
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="pb-8 text-sm text-red-600">{error}</main>;
   }
-  if (!exam) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!exam) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Results</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Results · {exam.title}</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Results · {exam.title}</h1>
       <p className="mt-3 text-sm text-ink-soft">
         {exam.questions.length} questions ·{" "}
         <span className="font-mono">{examId}</span>
@@ -83,7 +83,7 @@ export default function ResultsPage({
             <li key={a.studentId} className="card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-serif text-base text-ink">
+                  <div className="font-semibold text-[15px] text-ink">
                     {a.student?.displayName ?? a.studentId}
                   </div>
                   <div className="text-xs text-ink-faded">

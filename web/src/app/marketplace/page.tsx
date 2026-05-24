@@ -121,10 +121,10 @@ export default function MarketplacePage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8">
       <div className="eyebrow">Marketplace</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
-        Notes, exams, and <span className="italic">workshop</span> tickets.
+      <h1 className="mt-3 text-[clamp(40px,5vw,64px)] font-bold tracking-[-0.022em]">
+        Notes, exams, and <span className="text-accent">workshop</span> tickets.
       </h1>
       <p className="mt-3 max-w-[560px] text-base leading-relaxed text-ink-soft">
         From verified sellers only. Every listing reviewed before going live.
@@ -290,7 +290,7 @@ export default function MarketplacePage() {
             className="card-interactive group flex flex-col overflow-hidden p-0"
           >
             <div className="flex h-[140px] items-center justify-center bg-bg-soft">
-              <span className="font-serif text-2xl text-ink-faded/30">
+              <span className="font-bold text-[22px] text-ink-faded/30">
                 {l.subjects[0] ?? "Item"}
               </span>
             </div>
@@ -298,7 +298,7 @@ export default function MarketplacePage() {
               <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-ink-faded">
                 {l.subjects[0]?.toUpperCase() ?? "GENERAL"}
               </div>
-              <div className="mt-2 font-serif text-[17px] leading-[1.2] tracking-tight">
+              <div className="mt-2 font-bold text-[17px] leading-[1.2] tracking-tight">
                 {l.title}
               </div>
               {l.description && (
@@ -306,7 +306,7 @@ export default function MarketplacePage() {
               )}
               <div className="mt-auto flex items-baseline justify-between pt-3">
                 <div>
-                  <span className="font-serif text-[22px]">
+                  <span className="font-bold text-[22px]">
                     {formatMoney(l.priceCents, l.currency, { trim: true })}
                   </span>
                 </div>

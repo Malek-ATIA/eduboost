@@ -68,11 +68,11 @@ export default function BreakoutPage({
   }, [sessionId, breakoutId]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Breakout</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Breakout · {label || breakoutId}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Breakout · {label || breakoutId}</h1>
           <p className="mt-1 text-xs text-ink-faded">
             Parent session:{" "}
             <Link

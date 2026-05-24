@@ -104,7 +104,7 @@ export default function EventsListPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="eyebrow">Gatherings</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Events</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Events</h1>
           <p className="mt-3 text-sm text-ink-soft">
             Workshops, study sessions, and community meetups
           </p>
@@ -120,15 +120,15 @@ export default function EventsListPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{upcomingCount}</div>
+            <div className="font-bold text-[22px] text-ink">{upcomingCount}</div>
             <div className="text-xs text-ink-faded">Upcoming</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{freeCount}</div>
+            <div className="font-bold text-[22px] text-ink">{freeCount}</div>
             <div className="text-xs text-ink-faded">Free events</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{items.length}</div>
+            <div className="font-bold text-[22px] text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total events</div>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function EventsListPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📅</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">
+          <p className="mt-4 font-semibold text-base text-ink">
             {search ? "No events match your search" : timeFilter === "past" ? "No past events" : "No upcoming events"}
           </p>
           <p className="mt-3 text-sm text-ink-soft">
@@ -262,14 +262,14 @@ function EventCard({ event: e }: { event: EventRow }) {
             Free
           </span>
         ) : (
-          <span className="font-serif text-sm text-ink">
+          <span className="font-semibold text-[13.5px] text-ink">
             {formatMoney(e.priceCents, e.currency, { trim: true })}
           </span>
         )}
       </div>
 
       <div className="p-4">
-        <h3 className="font-serif text-base text-ink group-hover:text-accent transition-colors">
+        <h3 className="font-semibold text-[15px] text-ink group-hover:text-accent transition-colors">
           {e.title}
         </h3>
 
@@ -318,14 +318,14 @@ function EventListRow({ event: e }: { event: EventRow }) {
         <span className="text-[10px] font-semibold uppercase">
           {new Date(e.startsAt).toLocaleDateString(undefined, { month: "short" })}
         </span>
-        <span className="font-serif text-xl leading-none">
+        <span className="font-bold text-lg leading-none">
           {new Date(e.startsAt).getDate()}
         </span>
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate font-serif text-base text-ink group-hover:text-accent transition-colors">
+        <h3 className="truncate font-semibold text-[15px] text-ink group-hover:text-accent transition-colors">
           {e.title}
         </h3>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-ink-faded">
@@ -351,7 +351,7 @@ function EventListRow({ event: e }: { event: EventRow }) {
             Free
           </span>
         ) : (
-          <span className="font-serif text-sm text-ink">
+          <span className="font-semibold text-[13.5px] text-ink">
             {formatMoney(e.priceCents, e.currency, { trim: true })}
           </span>
         )}

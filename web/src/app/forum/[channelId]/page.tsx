@@ -153,27 +153,32 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      <Link href="/forum" className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
-        <ArrowLeft size={16} />
-        Forum
-      </Link>
-      <div className="mt-2 flex items-center justify-between">
-        <div>
-          <div className="eyebrow">Channel</div>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-ink">{channel?.name ?? channelId}</h1>
-          {channel && <p className="mt-3 text-sm text-ink-soft">{channel.description}</p>}
-        </div>
-        <Link
-          href={`/forum/posts/new?channelId=${channelId}` as never}
-          className="btn-seal inline-flex items-center gap-2"
-        >
-          <PenSquare size={16} />
-          New post
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
+        <Link href="/forum" className="inline-flex items-center gap-1.5 text-[13px] text-ink-faded transition hover:text-ink">
+          <ArrowLeft size={14} />
+          Back to community
         </Link>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <div className="eyebrow">Channel</div>
+            <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
+              {channel?.name ?? channelId}
+            </h1>
+            {channel && <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">{channel.description}</p>}
+          </div>
+          <Link
+            href={`/forum/posts/new?channelId=${channelId}` as never}
+            className="btn-accent btn-sm inline-flex items-center gap-2"
+          >
+            <PenSquare size={14} />
+            New post
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-6 flex gap-2">
+      <div className="mx-4 mt-6 sm:mx-8 sm:mt-7 flex gap-2">
         {(["new", "top"] as const).map((s) => (
           <button
             key={s}
@@ -199,13 +204,13 @@ export default function ChannelPage({ params }: { params: Promise<{ channelId: s
         ))}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
+      {error && <p className="mx-4 mt-4 sm:mx-8 text-sm text-red-600">{error}</p>}
+      {items === null && !error && <p className="mx-4 mt-4 sm:mx-8 text-sm text-ink-soft">Loading...</p>}
       {items && items.length === 0 && (
-        <p className="mt-6 text-sm text-ink-soft">No posts yet. Be the first!</p>
+        <p className="mx-4 mt-5 sm:mx-8 sm:mt-6 text-sm text-ink-soft">No posts yet. Be the first!</p>
       )}
 
-      <div className="mt-6 space-y-4">
+      <div className="mx-4 mt-5 sm:mx-8 sm:mt-6 space-y-4">
         {items?.map((p) => {
           const rx = reactions[p.postId];
           const reactionEntries = Object.entries(rx?.counts ?? {}).filter(

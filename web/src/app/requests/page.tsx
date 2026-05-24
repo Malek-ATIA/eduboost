@@ -91,12 +91,12 @@ export default function RequestsPage() {
   const acceptedCount = (items ?? []).filter((r) => r.status === "accepted").length;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Requests</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{title}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{title}</h1>
           <p className="mt-3 text-sm text-ink-soft">
             {isTeacher
               ? "Lesson requests from students"
@@ -123,15 +123,15 @@ export default function RequestsPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{items.length}</div>
+            <div className="font-bold text-[22px] text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-amber-600">{pendingCount}</div>
+            <div className="font-bold text-[22px] text-amber-600">{pendingCount}</div>
             <div className="text-xs text-ink-faded">Pending</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-green-700">{acceptedCount}</div>
+            <div className="font-bold text-[22px] text-green-700">{acceptedCount}</div>
             <div className="text-xs text-ink-faded">Accepted</div>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function RequestsPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📬</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">
+          <p className="mt-4 font-semibold text-base text-ink">
             {isTeacher ? "No lesson requests yet" : "No requests sent"}
           </p>
           <p className="mt-3 text-sm text-ink-soft">
@@ -201,7 +201,7 @@ export default function RequestsPage() {
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate font-serif text-base text-ink group-hover:text-accent transition-colors">
+                      <h3 className="truncate font-semibold text-[15px] text-ink group-hover:text-accent transition-colors">
                         {r.subject}
                       </h3>
                       <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}>

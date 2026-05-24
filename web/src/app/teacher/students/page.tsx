@@ -52,7 +52,7 @@ export default function TeacherStudentsPage() {
 
   if (!ready) {
     return (
-      <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+      <main className="pb-8">
         <div className="flex justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
         </div>
@@ -80,11 +80,11 @@ export default function TeacherStudentsPage() {
   const totalBookings = (items ?? []).reduce((sum, r) => sum + r.bookingCount, 0);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div>
         <div className="eyebrow">Teacher · Classroom portal</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My students</h1>
+        <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My students</h1>
         <p className="mt-3 text-sm text-ink-soft">
           Students from bookings and classroom enrollments
         </p>
@@ -103,15 +103,15 @@ export default function TeacherStudentsPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{items.length}</div>
+            <div className="font-bold text-[22px] text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Students</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{totalBookings}</div>
+            <div className="font-bold text-[22px] text-ink">{totalBookings}</div>
             <div className="text-xs text-ink-faded">Total bookings</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">
+            <div className="font-bold text-[22px] text-ink">
               {items.filter((r) => {
                 const d = Date.now() - new Date(r.lastEngagementAt).getTime();
                 return d < 30 * 86_400_000;
@@ -156,7 +156,7 @@ export default function TeacherStudentsPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">👥</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No students yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No students yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Students will appear here after their first booking or classroom enrollment.
           </p>
@@ -176,7 +176,7 @@ export default function TeacherStudentsPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate font-serif text-base text-ink group-hover:text-accent transition-colors">
+                    <h3 className="truncate font-semibold text-[15px] text-ink group-hover:text-accent transition-colors">
                       {r.displayName ?? r.email ?? r.studentId}
                     </h3>
                   </div>
@@ -187,11 +187,11 @@ export default function TeacherStudentsPage() {
 
                 <div className="hidden shrink-0 gap-4 text-center sm:flex">
                   <div>
-                    <div className="font-serif text-sm text-ink">{r.bookingCount}</div>
+                    <div className="font-semibold text-[13.5px] text-ink">{r.bookingCount}</div>
                     <div className="text-[10px] text-ink-faded">Bookings</div>
                   </div>
                   <div>
-                    <div className="font-serif text-sm text-ink">{r.classroomCount}</div>
+                    <div className="font-semibold text-[13.5px] text-ink">{r.classroomCount}</div>
                     <div className="text-[10px] text-ink-faded">Classes</div>
                   </div>
                   <div>

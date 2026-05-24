@@ -171,12 +171,8 @@ export function Breadcrumbs() {
   }, [pathname]);
 
   if (HIDDEN.has(pathname)) return null;
-
-  // Breadcrumb UI intentionally hidden — the trail logic above still runs
-  // (kept for future re-enable without a rewrite), but the bar renders only
-  // as a spacer so there's air between the sticky header and the page
-  // content. Height roughly matches what the visible breadcrumb used to
-  // occupy so re-enabling is a one-liner.
+  // Always render nothing — the AppShell has its own in-page header on signed-in
+  // routes, and public marketing pages don't need a spacer either.
   void trail;
-  return <div aria-hidden className="h-8" />;
+  return null;
 }

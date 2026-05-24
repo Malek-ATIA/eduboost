@@ -90,28 +90,29 @@ export default function EarningsPage() {
       : 0;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      {/* Page head */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">
             {new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" })}
           </div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             Earnings
           </h1>
-          <p className="mt-3 text-base text-ink-soft">
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
             Payouts go to your connected bank account every Friday.
           </p>
         </div>
         <button
           onClick={downloadCsv}
           disabled={downloading || !data}
-          className="btn-primary shrink-0"
+          className="btn-accent btn-sm shrink-0"
         >
           {downloading ? "Exporting…" : "Export CSV"}
         </button>
       </div>
+      <div className="px-4 pt-6 sm:px-8 sm:pt-7">
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
@@ -125,7 +126,7 @@ export default function EarningsPage() {
         <>
           {/* Stat cards — 4-col */}
           <section className="mt-8">
-            <h2 className="font-serif text-xl text-ink">This month</h2>
+            <h2 className="font-bold text-lg text-ink">This month</h2>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 label="Net earnings"
@@ -152,7 +153,7 @@ export default function EarningsPage() {
 
           {/* Bar chart */}
           <section className="mt-8">
-            <h2 className="font-serif text-xl text-ink">Earnings over time</h2>
+            <h2 className="font-bold text-lg text-ink">Earnings over time</h2>
             <div className="card mt-3 p-6">
               <EarningsChart data={data} />
             </div>
@@ -160,7 +161,7 @@ export default function EarningsPage() {
 
           {/* Breakdown table */}
           <section className="mt-8">
-            <h2 className="font-serif text-xl text-ink">Breakdown</h2>
+            <h2 className="font-bold text-lg text-ink">Breakdown</h2>
             <div className="card mt-3 overflow-hidden p-0">
               <div className="grid grid-cols-[1.2fr_0.6fr_0.8fr_0.8fr_0.8fr] items-center gap-3 border-b border-rule bg-bg-soft px-5 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
                 <span>Period</span>
@@ -199,6 +200,7 @@ export default function EarningsPage() {
           </section>
         </>
       )}
+      </div>
     </main>
   );
 }
@@ -217,7 +219,7 @@ function StatCard({
       <div className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-faded">
         {label}
       </div>
-      <div className="mt-1 font-serif text-[32px] tracking-tight text-ink">{value}</div>
+      <div className="mt-1 font-bold text-[32px] tracking-tight text-ink">{value}</div>
       {sub && (
         <div className="mt-1 text-[13px] text-ink-soft">{sub}</div>
       )}

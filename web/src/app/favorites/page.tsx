@@ -78,12 +78,12 @@ export default function FavoritesPage() {
   const orgCount = (items ?? []).filter((f) => f.kind === "organization").length;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Bookmarks</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My favorites</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My favorites</h1>
           <p className="mt-3 text-sm text-ink-soft">
             {items && items.length > 0
               ? `${items.length} saved item${items.length !== 1 ? "s" : ""}`
@@ -108,15 +108,15 @@ export default function FavoritesPage() {
       {items && items.length > 0 && (
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{items.length}</div>
+            <div className="font-bold text-[22px] text-ink">{items.length}</div>
             <div className="text-xs text-ink-faded">Total saved</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{teacherCount}</div>
+            <div className="font-bold text-[22px] text-ink">{teacherCount}</div>
             <div className="text-xs text-ink-faded">Teachers</div>
           </div>
           <div className="card p-3 text-center">
-            <div className="font-serif text-2xl text-ink">{orgCount}</div>
+            <div className="font-bold text-[22px] text-ink">{orgCount}</div>
             <div className="text-xs text-ink-faded">Organizations</div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function FavoritesPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">❤️</span>
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No favorites yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No favorites yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Bookmark a teacher from their profile to save them for later.
           </p>
@@ -204,7 +204,7 @@ export default function FavoritesPage() {
                             ? `/teachers/${t.id}`
                             : (`/orgs/${t.id}` as never)
                         }
-                        className="font-serif text-base text-ink hover:text-accent transition"
+                        className="font-semibold text-[15px] text-ink hover:text-accent transition"
                       >
                         {t.displayName}
                       </Link>

@@ -101,7 +101,7 @@ function NewReviewForm() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h1 className="mt-4 font-serif text-2xl text-ink">Can't load review</h1>
+          <h1 className="mt-4 font-bold text-[22px] text-ink">Can't load review</h1>
           <p className="mt-2 text-sm text-ink-soft">{error}</p>
           <Link href="/bookings" className="btn-seal mt-6 inline-block">
             Back to bookings
@@ -128,7 +128,7 @@ function NewReviewForm() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <span className="text-2xl">🎉</span>
           </div>
-          <h1 className="mt-4 font-serif text-2xl text-ink">Thank you!</h1>
+          <h1 className="mt-4 font-bold text-[22px] text-ink">Thank you!</h1>
           <p className="mt-2 text-sm text-ink-soft">
             Your review has been submitted. Redirecting to the teacher profile...
           </p>
@@ -150,14 +150,14 @@ function NewReviewForm() {
       {/* Header */}
       <div className="mt-4">
         <div className="eyebrow">Feedback</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Leave a review</h1>
+        <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Leave a review</h1>
       </div>
 
       {/* Teacher card */}
       <div className="card mt-6 flex items-center gap-3 bg-bg-soft p-4">
         <Avatar userId={booking.teacherId} size="md" initial={teacher?.displayName?.charAt(0)} />
         <div>
-          <div className="font-serif text-sm text-ink">
+          <div className="font-semibold text-[13.5px] text-ink">
             {teacher?.displayName || "Your teacher"}
           </div>
           <div className="text-xs text-ink-faded capitalize">
@@ -169,7 +169,7 @@ function NewReviewForm() {
       {/* Form */}
       <form onSubmit={onSubmit} className="card mt-6 overflow-hidden">
         <div className="border-b border-rule-soft bg-bg-soft px-5 py-3">
-          <h2 className="font-serif text-base text-ink">Your experience</h2>
+          <h2 className="font-semibold text-[15px] text-ink">Your experience</h2>
         </div>
 
         <div className="space-y-6 p-5">
@@ -267,7 +267,7 @@ export default function NewReviewPage() {
       fallback={
         <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
           <div className="eyebrow">Feedback</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Leave a review</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Leave a review</h1>
           <div className="mt-8 flex justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>

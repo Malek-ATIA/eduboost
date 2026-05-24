@@ -86,12 +86,12 @@ export default function NewAssessmentPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Study</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">New assessment</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">New assessment</h1>
       <p className="mt-3 text-sm text-ink-soft">
         MCQ questions auto-grade; short-answer responses are visible to you for manual review.
       </p>

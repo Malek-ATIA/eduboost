@@ -111,20 +111,20 @@ export default function TeacherProfilePage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (loading) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const vStatus = form.verificationStatus ?? "unsubmitted";
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Teacher</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Teacher profile</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Teacher profile</h1>
       <p className="mt-3 text-sm text-ink-soft">This is what students and parents see.</p>
 
       <section className="card mt-6 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-serif text-base text-ink">Verification</div>
+            <div className="font-semibold text-[15px] text-ink">Verification</div>
             <div className="mt-0.5 text-xs text-ink-faded">
               Verified teachers get a badge and rank higher in search results.
             </div>
@@ -160,7 +160,7 @@ export default function TeacherProfilePage() {
 
       {userId && (
         <section className="card mt-6 p-6">
-          <div className="font-serif text-base text-ink">Profile picture</div>
+          <div className="font-semibold text-[15px] text-ink">Profile picture</div>
           <div className="mt-0.5 text-xs text-ink-faded">Optional. Shown on the directory and your teacher page.</div>
           <div className="mt-4">
             <AvatarPicker userId={userId} />
@@ -170,7 +170,7 @@ export default function TeacherProfilePage() {
 
       {userId && (
         <section className="card mt-6 p-6">
-          <div className="font-serif text-base text-ink">Intro video</div>
+          <div className="font-semibold text-[15px] text-ink">Intro video</div>
           <div className="mt-0.5 text-xs text-ink-faded">
             Record a short video introducing yourself. Students see this on your profile.
           </div>

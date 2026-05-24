@@ -34,11 +34,11 @@ export default function StudyMaterialsPage() {
   }, [kind, subject]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Library</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Study materials portal</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Study materials portal</h1>
         </div>
         <Link
           href="/study-materials/new"
@@ -94,7 +94,7 @@ export default function StudyMaterialsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-serif text-base text-ink">{m.title}</span>
+                      <span className="font-semibold text-[15px] text-ink">{m.title}</span>
                       {m.premium && (
                         <span className="rounded-md border border-accent/30 bg-accent-pale px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent">
                           Premium

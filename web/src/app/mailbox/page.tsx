@@ -30,7 +30,7 @@ type Contact = {
 
 export default function MailboxPageWrapper() {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-container-wide px-8 pb-24 pt-12"><div className="eyebrow">Messages</div><h1 className="mt-3 font-serif text-5xl tracking-tight">Inbox</h1><div className="mt-6 flex justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" /></div></main>}>
+    <Suspense fallback={<main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8"><div className="eyebrow">Messages</div><h1 className="mt-3 text-[clamp(32px,4vw,44px)] font-bold tracking-[-0.022em]">Inbox</h1><div className="mt-6 flex justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" /></div></main>}>
       <MailboxPage />
     </Suspense>
   );
@@ -216,22 +216,23 @@ function MailboxPage() {
     : null;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">Messages</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
             Inbox
           </h1>
-          <p className="mt-3 text-base text-ink-soft">
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
             One thread per teacher, parent, or admin contact.
           </p>
         </div>
       </div>
 
-      <div className="msg-grid mt-8 grid gap-0 overflow-hidden rounded-2xl border border-rule" style={{ gridTemplateColumns: "minmax(280px, 340px) minmax(0, 1fr)", height: "calc(100vh - 280px)", minHeight: 540 }}>
-        {/* Thread list */}
-        <div className="flex flex-col border-r border-rule" style={{ minHeight: 0 }}>
+      <div className="mx-4 mt-6 sm:mx-8 sm:mt-7 space-y-6">
+        {/* Thread list (full width) */}
+        <div className="card overflow-hidden p-0">
           <div className="flex gap-2 border-b border-rule p-3.5">
             <div className="relative flex-1">
               <svg className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -296,12 +297,13 @@ function MailboxPage() {
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="flex flex-col" style={{ minHeight: 0 }}>
+        {/* Active thread / compose panel — below the list */}
+        {(composing || activeThread) && (
+        <div className="card overflow-hidden p-0">
           {composing ? (
             <div className="flex flex-1 flex-col">
               <div className="border-b border-rule px-5 py-3.5">
-                <h2 className="font-serif text-lg text-ink">New message</h2>
+                <h2 className="font-semibold text-base text-ink">New message</h2>
               </div>
               <form onSubmit={compose} className="flex flex-1 flex-col p-5">
                 <div className="relative">
@@ -378,7 +380,7 @@ function MailboxPage() {
               </form>
             </div>
           ) : activeThread && threadMeta ? (
-            <div className="flex flex-1 flex-col" style={{ minHeight: 0 }}>
+            <div className="flex flex-col">
               {/* Thread header */}
               <div className="flex items-center gap-3 border-b border-rule px-5 py-3.5">
                 {activeCounterparty && (
@@ -394,7 +396,7 @@ function MailboxPage() {
                 </div>
               </div>
               {/* Messages */}
-              <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-6">
+              <div className="flex flex-col gap-4 px-5 py-6" style={{ maxHeight: 480, overflowY: "auto" }}>
                 {messages === null && (
                   <div className="flex justify-center py-8">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
@@ -442,29 +444,9 @@ function MailboxPage() {
                 </div>
               </form>
             </div>
-          ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
-                  <span className="text-2xl text-ink-faded">✉️</span>
-                </div>
-                <p className="mt-4 font-serif text-lg text-ink">
-                  {sortedThreads.length === 0 ? "No messages yet" : "Select a conversation"}
-                </p>
-                <p className="mt-3 text-sm text-ink-soft">
-                  {sortedThreads.length === 0
-                    ? `Start a conversation with your ${role === "teacher" ? "students" : "teachers"}.`
-                    : "Pick a thread from the left to view it here."}
-                </p>
-                {sortedThreads.length === 0 && (
-                  <button onClick={() => setComposing(true)} className="btn-primary mt-4">
-                    Compose
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
+        )}
       </div>
     </main>
   );

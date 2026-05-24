@@ -5,44 +5,52 @@
 :root {
   color-scheme: light only;
   --bg: #ffffff;
-  --bg-soft: #f4f4f3;
+  --bg-soft: #f6f7f9;
   --bg-card: #ffffff;
-  --ink: #111315;
-  --ink-soft: #4a5057;
-  --ink-faded: #8a8f96;
-  --ink-mute: #c5c7cb;
-  --rule: #e6e6e4;
-  --rule-soft: #efefee;
-  --accent: #1f4a3a;
-  --accent-deep: #163428;
-  --accent-soft: #d8e3dc;
-  --accent-pale: #ecf2ee;
-  --warn: #b3551d;
-  --gold: #b9853a;
-  --legal: #c2c4c8;
-  --hit: 0.18s cubic-bezier(.2,.6,.2,1);
+  --bg-sky: #eaf1ff;
+  --bg-sun: #fff4d6;
+  --bg-mint: #e0f5ec;
+  --bg-rose: #ffe9e4;
+  --ink: #0e1116;
+  --ink-soft: #4a5260;
+  --ink-faded: #8a93a3;
+  --ink-mute: #c4c9d3;
+  --rule: #e7e9ee;
+  --rule-soft: #f0f2f5;
+  --accent: #2c5bff;
+  --accent-deep: #1f47d6;
+  --accent-soft: #cfdcff;
+  --accent-pale: #eaf0ff;
+  --warn: #ff5a3a;
+  --gold: #ffb547;
+  --green: #1faa6b;
+  --legal: #c2c6d0;
+  --hit: 0.16s cubic-bezier(.2,.6,.2,1);
 
+  /* legacy aliases kept so old class names still compile */
   --parchment: #ffffff;
-  --parchment-dark: #f4f4f3;
-  --seal: #1f4a3a;
+  --parchment-dark: #f6f7f9;
+  --seal: #2c5bff;
 }
 
 @layer base {
   html {
-    font-feature-settings: "ss01", "cv11";
+    font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
   body {
     color: var(--ink);
     background-color: var(--bg);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
   h1, h2, h3, h4 {
-    letter-spacing: -0.015em;
+    letter-spacing: -0.022em;
     color: var(--ink);
-    line-height: 1.05;
+    line-height: 1.06;
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
   }
-  h1 { font-weight: 500; }
   a {
     color: inherit;
     text-decoration: none;
@@ -60,42 +68,77 @@
 }
 
 @layer components {
+  /* Buttons — soft shadow, blue glow on accent CTAs */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white shadow-vellum transition hover:bg-accent-deep focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a1f29] disabled:cursor-not-allowed disabled:opacity-50;
   }
+  .btn-accent,
   .btn-seal {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-seal transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-50;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 18px -8px rgba(44, 91, 255, 0.5);
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-rule bg-transparent px-5 py-2.5 text-sm font-medium text-ink shadow-vellum transition hover:border-ink disabled:cursor-not-allowed disabled:opacity-50;
+  .btn-accent:hover,
+  .btn-seal:hover {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -10px rgba(44, 91, 255, 0.6);
+  }
+  .btn-secondary,
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-[1.5px] border-rule bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-ink disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition hover:bg-bg-soft hover:text-ink;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-ink-soft transition hover:bg-bg-soft hover:text-ink;
   }
+  .btn-lg {
+    @apply px-[26px] py-3.5 text-[15px];
+  }
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-[13px];
+  }
+
+  /* Cards — rounded 16px, hover lift */
   .card {
     @apply rounded-2xl border border-rule bg-bg-card;
   }
   .card-interactive {
-    @apply card transition hover:-translate-y-0.5 hover:shadow-manuscript hover:border-ink/[0.16];
+    @apply card transition hover:-translate-y-0.5 hover:shadow-lift hover:border-ink/[0.10];
   }
+
+  /* Inputs — softer, 12px radius, 4px blue glow on focus */
   .input {
-    @apply block w-full rounded-[10px] border border-rule bg-bg-card px-3.5 py-2.5 text-sm text-ink shadow-none transition placeholder:text-ink-faded focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/[0.12];
+    @apply block w-full rounded-xl border-[1.5px] border-rule bg-bg-card px-3.5 py-3 text-[14.5px] text-ink transition placeholder:text-ink-faded focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/[0.12];
   }
   .label {
-    @apply mb-1.5 block text-xs font-medium text-ink-soft tracking-wide;
+    @apply mb-2 block text-[13px] font-semibold text-ink;
   }
+
+  /* Eyebrows — blue, bold, uppercase, small letter-spacing */
   .eyebrow {
-    @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-faded;
+    @apply text-xs font-bold uppercase tracking-[0.05em] text-accent;
   }
+
+  /* Chips — pill, multiple variants */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-transparent bg-bg-soft px-3 py-1 text-xs text-ink-soft;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-transparent bg-bg-soft px-3 py-1.5 text-[13px] font-medium text-ink-soft;
   }
   .chip-accent {
-    @apply bg-accent-pale text-accent-deep border-accent/[0.18];
+    @apply bg-accent-pale text-accent-deep;
+    border-color: rgba(44, 91, 255, 0.18);
   }
   .chip-outline {
-    @apply bg-transparent border-rule;
+    @apply bg-transparent border-rule text-ink;
   }
+  .chip-green {
+    background: var(--bg-mint);
+    color: #0e7a4b;
+    border-color: rgba(31, 170, 107, 0.2);
+  }
+  .chip-sun {
+    background: var(--bg-sun);
+    color: #7a5b00;
+    border-color: rgba(255, 181, 71, 0.3);
+  }
+
+  /* Rule — OR divider with lines */
   .rule {
     @apply flex items-center gap-3 text-ink-faded;
   }
@@ -105,9 +148,24 @@
     flex: 1;
     height: 1px;
     background: currentColor;
-    opacity: 0.4;
+    opacity: 0.3;
   }
 
+  /* Play pill — overlay on photos */
+  .play-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    background: rgba(14, 17, 22, 0.78);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Range slider (kept for existing pages) */
   .range-thumb input[type="range"] {
     pointer-events: none;
   }
@@ -125,14 +183,14 @@
   .range-thumb input[type="range"]::-webkit-slider-thumb {
     pointer-events: auto;
     -webkit-appearance: none;
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     border-radius: 50%;
     background: var(--bg-card);
-    border: 2px solid var(--ink);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(44, 91, 255, 0.3);
     cursor: pointer;
-    margin-top: -7px;
+    margin-top: -8px;
   }
   .range-thumb input[type="range"]::-moz-range-thumb {
     pointer-events: auto;
@@ -140,8 +198,7 @@
     width: 18px;
     border-radius: 50%;
     background: var(--bg-card);
-    border: 2px solid var(--ink);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--accent);
     cursor: pointer;
   }
 }

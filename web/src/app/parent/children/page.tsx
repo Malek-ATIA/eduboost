@@ -144,7 +144,7 @@ export default function ParentChildrenPage() {
   const rejected = (items ?? []).filter((l) => l.status === "rejected");
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <Link href="/parent" className="btn-ghost -ml-3 inline-flex items-center gap-1.5">
         <ChevronLeft size={16} />
         Parent dashboard
@@ -153,7 +153,7 @@ export default function ParentChildrenPage() {
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="eyebrow">Family</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My children</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My children</h1>
           <p className="mt-3 text-sm text-ink-soft">
             Link your child&apos;s student account to track their progress. They&apos;ll need to
             accept your invitation.
@@ -223,7 +223,7 @@ export default function ParentChildrenPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <UserPlus size={28} className="text-ink-faded" />
           </div>
-          <p className="mt-4 font-serif text-lg text-ink">No children linked yet</p>
+          <p className="mt-4 font-semibold text-base text-ink">No children linked yet</p>
           <p className="mt-3 text-sm text-ink-soft">
             Use the form above to send a link request to your child&apos;s EduBoost student email.
           </p>
@@ -310,7 +310,7 @@ function ChildCard({
           <Avatar userId={link.childId} size="md" initial={childName.charAt(0)} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="truncate font-serif text-base text-ink">{childName}</span>
+              <span className="truncate font-semibold text-[15px] text-ink">{childName}</span>
               <span
                 className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${st.bg} ${st.color}`}
               >

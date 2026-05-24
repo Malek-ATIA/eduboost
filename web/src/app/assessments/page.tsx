@@ -43,11 +43,11 @@ export default function AssessmentsPage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Study</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Assessments</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Assessments</h1>
         </div>
         {role === "teacher" && (
           <Link
@@ -63,7 +63,7 @@ export default function AssessmentsPage() {
 
       {role === "teacher" && (
         <section className="mt-8">
-          <h2 className="font-serif text-xl text-ink">My exams</h2>
+          <h2 className="font-bold text-lg text-ink">My exams</h2>
           {mine === null ? (
             <p className="mt-3 text-sm text-ink-soft">Loading...</p>
           ) : mine.length === 0 ? (
@@ -77,7 +77,7 @@ export default function AssessmentsPage() {
                     className="flex items-center justify-between p-3 text-sm transition hover:bg-bg-soft"
                   >
                     <div>
-                      <div className="font-serif text-base text-ink">{e.title}</div>
+                      <div className="font-semibold text-[15px] text-ink">{e.title}</div>
                       <div className="mt-0.5 text-xs text-ink-faded">
                         {e.questionCount} questions · status {e.status}
                       </div>
@@ -92,7 +92,7 @@ export default function AssessmentsPage() {
       )}
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Published exams</h2>
+        <h2 className="font-bold text-lg text-ink">Published exams</h2>
         {published === null && !error && (
           <p className="mt-3 text-sm text-ink-soft">Loading...</p>
         )}
@@ -108,7 +108,7 @@ export default function AssessmentsPage() {
                   className="flex items-center justify-between p-3 text-sm transition hover:bg-bg-soft"
                 >
                   <div>
-                    <div className="font-serif text-base text-ink">{e.title}</div>
+                    <div className="font-semibold text-[15px] text-ink">{e.title}</div>
                     <div className="mt-0.5 text-xs text-ink-faded">
                       {e.questionCount} questions · by teacher{" "}
                       <span className="font-mono">{e.teacherId.slice(0, 8)}</span>

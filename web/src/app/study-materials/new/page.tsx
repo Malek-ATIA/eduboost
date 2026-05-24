@@ -74,12 +74,12 @@ export default function NewMaterialPage() {
     }
   }
 
-  if (!ready) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!ready) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Library</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Share study material</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Share study material</h1>
       <form onSubmit={onSubmit} className="card mt-6 space-y-4 p-6">
         <label className="block">
           <span className="label">Title</span>

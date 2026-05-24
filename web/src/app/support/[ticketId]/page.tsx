@@ -193,21 +193,21 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
     }
   }
 
-  if (error) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-red-600">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (error) return <main className="pb-8 text-red-600">{error}</main>;
+  if (!data) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const { ticket, messages } = data;
   const closed = ticket.status === "closed" || ticket.status === "resolved";
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <Link href="/support" className="btn-ghost -ml-3">
             ← All tickets
           </Link>
           <div className="eyebrow">Ticket</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{ticket.subject}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{ticket.subject}</h1>
           <p className="mt-3 text-sm text-ink-soft">
             <span className="font-mono">#{ticket.ticketId}</span> · {ticket.category.replace(/_/g, " ")} · priority {ticket.priority}
           </p>
@@ -347,7 +347,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
 
       {admin && !closed && (
         <section className="mt-8 rounded-lg border border-accent/20 bg-accent-pale p-4">
-          <h2 className="font-serif text-xl text-ink">Admin resolution</h2>
+          <h2 className="font-bold text-lg text-ink">Admin resolution</h2>
           <p className="mt-1 text-xs text-ink-soft">
             Resolving closes the ticket, records a system message in the
             thread, and (for refund/review_removed outcomes) executes the

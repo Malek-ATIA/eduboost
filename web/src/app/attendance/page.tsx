@@ -39,9 +39,9 @@ export default function AttendancePage() {
   }, [router]);
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Attendance</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">My attendance</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">My attendance</h1>
       <p className="mt-3 text-sm text-ink-soft">Your attendance record across all sessions.</p>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -54,7 +54,7 @@ export default function AttendancePage() {
           {items.map((r) => (
             <li key={`${r.sessionId}-${r.userId}`} className="flex items-center justify-between p-4">
               <div>
-                <div className="font-serif text-base text-ink">
+                <div className="font-semibold text-[15px] text-ink">
                   Session{" "}
                   <Link
                     href={`/classroom/${r.sessionId}` as never}

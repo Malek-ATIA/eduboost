@@ -78,7 +78,7 @@ function NewSessionForm() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-bg-soft">
             <span className="text-2xl">📅</span>
           </div>
-          <h1 className="mt-4 font-serif text-5xl tracking-tight sm:text-6xl">
+          <h1 className="mt-4 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">
             Schedule a session
           </h1>
           <p className="mt-2 text-sm text-ink-soft">
@@ -104,7 +104,7 @@ function NewSessionForm() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <span className="text-2xl">✅</span>
           </div>
-          <h1 className="mt-4 font-serif text-2xl text-ink">Session scheduled!</h1>
+          <h1 className="mt-4 font-bold text-[22px] text-ink">Session scheduled!</h1>
           <p className="mt-2 text-sm text-ink-soft">Redirecting to your calendar...</p>
         </div>
       </main>
@@ -124,7 +124,7 @@ function NewSessionForm() {
       {/* Header */}
       <div className="mt-4">
         <div className="eyebrow">Session</div>
-        <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">
+        <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">
           Schedule a session
         </h1>
       </div>
@@ -145,7 +145,7 @@ function NewSessionForm() {
       {/* Form */}
       <form onSubmit={onSubmit} className="card mt-6 overflow-hidden">
         <div className="border-b border-rule-soft bg-bg-soft px-5 py-3">
-          <h2 className="font-serif text-base text-ink">Session details</h2>
+          <h2 className="font-semibold text-[15px] text-ink">Session details</h2>
         </div>
 
         <div className="space-y-5 p-5">
@@ -274,7 +274,7 @@ export default function NewSessionPage() {
       fallback={
         <main className="mx-auto max-w-lg px-8 pb-24 pt-12">
           <div className="eyebrow">Session</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Schedule a session</h1>
+          <h1 className="mt-3 text-[clamp(36px,4.5vw,52px)] font-bold tracking-[-0.022em]">Schedule a session</h1>
           <div className="mt-8 flex justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-rule-soft border-t-accent" />
           </div>

@@ -214,9 +214,9 @@ export default function ClassroomInfoPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="pb-8 text-sm text-red-600">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!data) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const isTeacher = sub !== null && sub === data.teacherId;
 
@@ -227,35 +227,40 @@ export default function ClassroomInfoPage({
   ) ?? [];
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
+        <div className="min-w-0 flex-1">
           <div className="eyebrow">Classroom</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{data.title}</h1>
-          <p className="mt-3 text-sm text-ink-soft">
+          <h1 className="mt-2 truncate text-[clamp(24px,2.5vw,32px)] font-bold tracking-[-0.018em]">
+            {data.title}
+          </h1>
+          <p className="mt-2 text-[14.5px] text-ink-soft">
             {data.subject} · status {data.status} ·{" "}
-            <span className="font-mono text-xs">{data.classroomId}</span>
+            <span className="font-mono text-[12px]">{data.classroomId.slice(0, 12)}…</span>
           </p>
+          {data.description && (
+            <p className="mt-3 max-w-[640px] text-[13.5px] text-ink-soft">{data.description}</p>
+          )}
         </div>
         {lastLive && (
           <Link
             href={`/classroom/${lastLive.sessionId}` as never}
-            className="btn-seal shrink-0"
+            className="btn-accent shrink-0"
           >
             {lastLive.status === "live" ? "Join live" : "Join session"}
           </Link>
         )}
       </div>
-      {data.description && (
-        <p className="mt-4 text-sm text-ink">{data.description}</p>
-      )}
 
-      <section className="mt-8">
-        <h2 className="font-serif text-xl text-ink">Classroom features</h2>
-        <p className="mt-1 text-xs text-ink-faded">
-          Everything this course supports — chat, whiteboard, breakouts, notes, and recordings.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="px-4 pt-6 sm:px-8 sm:pt-7">
+        <div className="pb-3.5">
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">Classroom features</h2>
+          <p className="mt-1 text-[12.5px] text-ink-faded">
+            Everything this course supports — chat, whiteboard, breakouts, notes, and recordings.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <FeatureTile
             href={`/classroom-chat/${data.classroomId}` as never}
             label="Group chat"
@@ -308,10 +313,11 @@ export default function ClassroomInfoPage({
       </section>
 
       {isTeacher && (
-        <section className="card mt-8 flex items-center justify-between p-4">
+        <section className="mx-4 mt-5 sm:mx-8 sm:mt-6">
+          <div className="card flex items-center justify-between p-5">
           <div>
-            <div className="font-serif text-base text-ink">Group chat</div>
-            <div className="text-xs text-ink-faded">
+            <div className="text-[15px] font-semibold">Group chat</div>
+            <div className="mt-0.5 text-[12.5px] text-ink-faded">
               {chatOn
                 ? "Members can post messages. You can delete any message."
                 : "Members can read history but cannot post new messages."}
@@ -320,16 +326,17 @@ export default function ClassroomInfoPage({
           <button
             onClick={toggleChat}
             disabled={chatBusy}
-            className={chatOn ? "btn-secondary" : "btn-seal"}
+            className={chatOn ? "btn-outline btn-sm" : "btn-accent btn-sm"}
           >
             {chatBusy ? "…" : chatOn ? "Disable chat" : "Enable chat"}
           </button>
+          </div>
         </section>
       )}
 
-      <section className="mt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl text-ink">Members</h2>
+      <section className="px-4 pt-6 sm:px-8 sm:pt-7">
+        <div className="flex items-center justify-between pb-3.5">
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">Members</h2>
           {typeof data.maxStudents === "number" && members && (
             <span className="text-xs text-ink-faded">
               {members.filter((m) => m.role === "student").length} / {data.maxStudents} students
@@ -349,7 +356,7 @@ export default function ClassroomInfoPage({
                 className="flex items-center justify-between gap-3 p-3 text-sm"
               >
                 <div>
-                  <div className="font-serif text-base text-ink">
+                  <div className="font-semibold text-[15px] text-ink">
                     {m.displayName ?? m.email ?? m.userId}
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -414,11 +421,13 @@ export default function ClassroomInfoPage({
         {memberError && <p className="mt-2 text-sm text-red-600">{memberError}</p>}
       </section>
 
-      <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Resources</h2>
-        <p className="mt-1 text-xs text-ink-faded">
-          Links to external materials the teacher has shared for this classroom.
-        </p>
+      <section className="px-4 pt-6 sm:px-8 sm:pt-7">
+        <div className="pb-3.5">
+          <h2 className="text-[22px] font-bold tracking-[-0.01em]">Resources</h2>
+          <p className="mt-1 text-[12.5px] text-ink-faded">
+            Links to external materials the teacher has shared for this classroom.
+          </p>
+        </div>
 
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
@@ -501,8 +510,8 @@ export default function ClassroomInfoPage({
         )}
       </section>
 
-      <section id="recordings" className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Sessions & recordings</h2>
+      <section id="recordings" className="px-4 pt-6 sm:px-8 sm:pt-7">
+        <h2 className="pb-3.5 text-[22px] font-bold tracking-[-0.01em]">Sessions & recordings</h2>
         {sessions === null && (
           <p className="mt-3 text-sm text-ink-soft">Loading sessions…</p>
         )}
@@ -530,7 +539,7 @@ export default function ClassroomInfoPage({
                 className="flex items-center justify-between gap-3 p-3 text-sm"
               >
                 <div>
-                  <div className="font-serif text-sm text-ink">
+                  <div className="font-semibold text-[13.5px] text-ink">
                     {new Date(s.startsAt).toLocaleString()}
                   </div>
                   <div className="text-xs text-ink-faded">
@@ -593,7 +602,7 @@ function FeatureTile({
       href={href}
       className={`card-interactive group block p-4 ${muted ? "opacity-60" : ""}`}
     >
-      <div className="font-serif text-base text-ink group-hover:text-accent">{label}</div>
+      <div className="font-semibold text-[15px] text-ink group-hover:text-accent">{label}</div>
       <div className="mt-1 text-xs leading-relaxed text-ink-soft">{description}</div>
     </Link>
   );

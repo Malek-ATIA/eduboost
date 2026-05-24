@@ -93,9 +93,9 @@ export default function SellerOrdersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="eyebrow">Seller</div>
-      <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">Marketplace orders</h1>
+      <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">Marketplace orders</h1>
       <p className="mt-3 text-sm text-ink-soft">Sales on your listings.</p>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {items === null && !error && <p className="mt-4 text-sm text-ink-soft">Loading...</p>}
@@ -113,7 +113,7 @@ export default function SellerOrdersPage() {
               <li key={o.orderId} className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-serif text-base text-ink">
+                    <div className="font-semibold text-[15px] text-ink">
                       <Link href={`/marketplace/listings/${o.listingId}` as never} className="font-mono underline">
                         {o.listingId}
                       </Link>

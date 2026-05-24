@@ -39,33 +39,35 @@ export default function MyClassroomsPage() {
   }, [router]);
 
   if (!ready)
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading…</main>;
+    return <main className="mx-auto max-w-container-wide px-4 pb-24 pt-12 sm:px-8 text-ink-soft">Loading…</main>;
 
   const teaching = (items ?? []).filter((c) => c.myRole === "teacher");
   const enrolled = (items ?? []).filter((c) => c.myRole !== "teacher");
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="pb-8">
+      {/* PageHead */}
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-rule px-4 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
         <div>
           <div className="eyebrow">Classroom</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
-            {role === "student" && <>Return to your <span className="italic">studies</span>.</>}
-            {role === "teacher" && <>Open your <span className="italic">classroom</span>.</>}
-            {role !== "student" && role !== "teacher" && <>My <span className="italic">classrooms</span>.</>}
+          <h1 className="mt-2 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">
+            {role === "student" && <>Return to your <span className="text-accent">studies</span>.</>}
+            {role === "teacher" && <>Open your <span className="text-accent">classroom</span>.</>}
+            {role !== "student" && role !== "teacher" && <>My <span className="text-accent">classrooms</span>.</>}
           </h1>
-          <p className="mt-3 max-w-[560px] text-base leading-relaxed text-ink-soft">
+          <p className="mt-2 max-w-[640px] text-[14.5px] text-ink-soft">
             {role === "student" && "Pick up the lesson you left, review notes, and join the next session — all from one room."}
             {role === "teacher" && "Manage your students, schedule, and live sessions."}
             {role !== "student" && role !== "teacher" && "Manage the courses you teach, or open a room you're enrolled in."}
           </p>
         </div>
         {role === "teacher" && (
-          <Link href="/classrooms/new" className="btn-primary shrink-0">
+          <Link href="/classrooms/new" className="btn-accent btn-sm shrink-0">
             Create a classroom
           </Link>
         )}
       </div>
+      <div className="px-4 pt-6 sm:px-8 sm:pt-7">
 
       {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
 
@@ -89,7 +91,7 @@ export default function MyClassroomsPage() {
 
       {teaching.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-serif text-xl text-ink">Teaching</h2>
+          <h2 className="font-bold text-lg text-ink">Teaching</h2>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {teaching.map((c) => (
               <ClassroomCard key={c.classroomId} c={c} />
@@ -100,7 +102,7 @@ export default function MyClassroomsPage() {
 
       {enrolled.length > 0 && (
         <section className="mt-10">
-          <h2 className="font-serif text-xl text-ink">Enrolled</h2>
+          <h2 className="font-bold text-lg text-ink">Enrolled</h2>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {enrolled.map((c) => (
               <ClassroomCard key={c.classroomId} c={c} />
@@ -108,6 +110,7 @@ export default function MyClassroomsPage() {
           </ul>
         </section>
       )}
+      </div>
     </main>
   );
 }
@@ -120,7 +123,7 @@ function ClassroomCard({ c }: { c: Classroom }) {
         className="card-interactive block p-5"
       >
         <div className="flex items-center justify-between">
-          <div className="font-serif text-lg text-ink">{c.title}</div>
+          <div className="font-semibold text-base text-ink">{c.title}</div>
           <span className="rounded-md border border-rule bg-bg-soft px-2 py-0.5 text-xs uppercase tracking-widest text-ink-soft">
             {c.status}
           </span>

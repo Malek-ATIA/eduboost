@@ -264,19 +264,19 @@ export default function OrgDetailPage({
   }
 
   if (error && !data) {
-    return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-sm text-red-600">{error}</main>;
+    return <main className="pb-8 text-sm text-red-600">{error}</main>;
   }
-  if (!data) return <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12 text-ink-soft">Loading...</main>;
+  if (!data) return <main className="pb-8 text-ink-soft">Loading...</main>;
 
   const { org, members } = data;
   const canManage = org.myRole === "owner" || org.myRole === "admin";
 
   return (
-    <main className="mx-auto max-w-container-wide px-8 pb-24 pt-12">
+    <main className="pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="eyebrow">Organization</div>
-          <h1 className="mt-3 font-serif text-5xl tracking-tight sm:text-6xl">{org.name}</h1>
+          <h1 className="mt-3 text-[clamp(28px,3vw,40px)] font-bold tracking-[-0.018em]">{org.name}</h1>
           <p className="mt-3 text-sm text-ink-soft">
             {org.kind} · {org.country ?? "—"} · your role: {org.myRole}
           </p>
@@ -293,7 +293,7 @@ export default function OrgDetailPage({
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Members ({members.length})</h2>
+        <h2 className="font-bold text-lg text-ink">Members ({members.length})</h2>
         {canManage && (
           <form onSubmit={invite} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <input
@@ -328,7 +328,7 @@ export default function OrgDetailPage({
           {members.map((m) => (
             <li key={m.userId} className="flex items-center justify-between p-3 text-sm">
               <div>
-                <div className="font-serif text-base text-ink">{m.user?.displayName ?? m.userId}</div>
+                <div className="font-semibold text-[15px] text-ink">{m.user?.displayName ?? m.userId}</div>
                 <div className="text-xs text-ink-faded">
                   {m.user?.email ?? m.userId} · {m.role} · joined{" "}
                   {new Date(m.joinedAt).toLocaleDateString()}
@@ -348,7 +348,7 @@ export default function OrgDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-xl text-ink">Classrooms ({classrooms?.length ?? 0})</h2>
+        <h2 className="font-bold text-lg text-ink">Classrooms ({classrooms?.length ?? 0})</h2>
         {canManage && (
           <form onSubmit={linkClassroom} className="mt-4 flex gap-2">
             <input
@@ -373,7 +373,7 @@ export default function OrgDetailPage({
           <ul className="card mt-4 divide-y divide-rule">
             {classrooms.map((c) => (
               <li key={c.classroomId} className="p-3 text-sm">
-                <div className="font-serif text-base text-ink">{c.title}</div>
+                <div className="font-semibold text-[15px] text-ink">{c.title}</div>
                 <div className="text-xs text-ink-faded">
                   {c.subject} · status {c.status} ·{" "}
                   <span className="font-mono">{c.classroomId}</span>
@@ -390,7 +390,7 @@ export default function OrgDetailPage({
       {org.kind === "commercial" && (
         <section className="mt-10">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl text-ink">
+            <h2 className="font-bold text-lg text-ink">
               Marketplace listings ({listings?.length ?? 0})
             </h2>
             {canManage && (
@@ -417,7 +417,7 @@ export default function OrgDetailPage({
                   <div>
                     <Link
                       href={`/marketplace/listings/${l.listingId}` as never}
-                      className="font-serif text-base text-ink underline"
+                      className="font-semibold text-[15px] text-ink underline"
                     >
                       {l.title}
                     </Link>
